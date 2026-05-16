@@ -1,16 +1,10 @@
 plugins {
-    kotlin("jvm") version "1.9.22"
-    application
+    kotlin("jvm") version "1.9.22" apply false
+    application apply false
 }
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation(kotlin("stdlib"))
-}
-
-application {
-    mainClass.set("patches.MainKt")
+allprojects {
+    repositories {
+        mavenCentral()
+    }
 }
