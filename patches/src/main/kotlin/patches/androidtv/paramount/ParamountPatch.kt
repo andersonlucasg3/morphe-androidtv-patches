@@ -2,6 +2,7 @@ package patches.androidtv.paramount
 
 import patches.core.Patch
 import patches.core.PatchContext
+import patches.androidtv.paramount.ParamountFingerprint
 
 object ParamountPatch : Patch() {
 
