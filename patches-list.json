@@ -4,6 +4,8 @@
     "name": "Paramount+ Android TV",
     "description": "Disables IMA ad loading in Paramount+",
     "category": "androidtv",
+    "targetPackage": "com.paramountplus.android",
+    "enabled": true,
     "package": "patches.androidtv.paramount.ParamountPatch"
   },
   {
@@ -11,6 +13,8 @@
     "name": "Disney+ Android TV",
     "description": "Disables ad insertion in Disney+",
     "category": "androidtv",
+    "targetPackage": "com.disney.disneyplus",
+    "enabled": true,
     "package": "patches.androidtv.disney.DisneyPatch"
   }
 ]
