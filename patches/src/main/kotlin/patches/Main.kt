@@ -1,8 +1,7 @@
 package patches
 
 import patches.core.PatchContext
-import patches.androidtv.paramount.ParamountPatch
-import patches.androidtv.disney.DisneyPatch
+import patches.core.PatchRegistry
 
 fun main() {
 
@@ -10,15 +9,15 @@ fun main() {
 
     val context = PatchContext()
 
-    // Run Paramount+ patch
-    println("Running patch: ${ParamountPatch.name}")
-    ParamountPatch.execute(context)
-    println()
+    val patches = PatchRegistry.getPatches()
 
-    // Run Disney+ patch
-    println("Running patch: ${DisneyPatch.name}")
-    DisneyPatch.execute(context)
-    println()
+    println("Loaded ${patches.size} patches\n")
+
+    patches.forEach { patch ->
+        println("Running patch: ${patch.name}")
+        patch.execute(context)
+        println()
+    }
 
     println("Done.")
 }
