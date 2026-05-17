@@ -6,8 +6,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-
-        // Add this next if Morphe dependency fails to resolve
+        // add later if needed:
         // maven { url = uri("https://jitpack.io") }
     }
 }
