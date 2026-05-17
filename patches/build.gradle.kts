@@ -9,6 +9,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation(libs.morphe.patcher)
 }
 
 application {
