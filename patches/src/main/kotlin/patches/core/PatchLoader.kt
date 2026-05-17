@@ -5,7 +5,7 @@ import java.io.File
 object PatchLoader {
 
     fun loadPatchIds(): List<String> {
-        val file = File("patches-list.json")
+        val file = File("../patches-list.json")
 
         if (!file.exists()) {
             println("patches-list.json not found")
