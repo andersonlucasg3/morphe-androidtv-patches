@@ -8,7 +8,6 @@ fun main() {
     println("Starting patch execution...\n")
 
     val context = PatchContext()
-
     val patches = PatchRegistry.getPatches()
 
     println("Loaded ${patches.size} patches\n")
