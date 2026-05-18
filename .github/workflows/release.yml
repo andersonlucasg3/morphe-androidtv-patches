@@ -32,21 +32,15 @@ jobs:
 
       - name: Install semantic-release dependencies
         run: npm ci
-      - name: Write Gradle credentials
-        run: |
-          mkdir -p ~/.gradle
-          echo "gpr.user=${{ github.actor }}" >> ~/.gradle/gradle.properties
-          echo "gpr.key=${{ secrets.GITHUB_TOKEN }}" >> ~/.gradle/gradle.properties
-          cat ~/.gradle/gradle.properties
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
+
+      - name: Build patch artifact
+        run: ./gradlew publish -Pgpr.user=${{ github.actor }} -Pgpr.key=${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
-          GRADLE_USER_HOME: /home/runner/.gradle
-          ORG_GRADLE_PROJECT_gpr_user: ${{ github.actor }}
-          ORG_GRADLE_PROJECT_gpr_key: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
