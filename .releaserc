@@ -8,11 +8,9 @@
   ],
   "plugins": [
     [
-      "@semantic-release/commit-analyzer",
-      {
+      "@semantic-release/commit-analyzer", {
         "preset": "angular",
         "releaseRules": [
-          { "breaking": true, "release": "major" },
           { "type": "feat", "release": "minor" },
           { "type": "fix", "release": "patch" },
           { "type": "perf", "release": "patch" },
@@ -36,7 +34,6 @@
     [
       "@semantic-release/exec",
       {
-        "generateNotesCmd": "node scripts/changelog-for-release.js ${nextRelease.version}",
         "prepareCmd": "jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json"
       }
     ],
@@ -61,13 +58,6 @@
           }
         ],
         "successComment": false
-      }
-    ],
-    [
-      "@cleyrop-org/semantic-release-backmerge",
-      {
-        "backmergeBranches": [{"from": "main", "to": "dev"}],
-        "clearWorkspace": true
       }
     ]
   ]
