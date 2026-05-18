@@ -30,6 +30,11 @@ jobs:
 
       - name: Cache Gradle
         uses: burrunan/gradle-cache-action@v3
+        with:
+          job-id: morphe-build-v2
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
       - name: Build
         env:
