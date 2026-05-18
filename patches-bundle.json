@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-05-18T17:02:03",
-  "description": "# [1.1.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.0.2...v1.1.0) (2026-05-18)\n\n\n### Features\n\n* initial Paramount+ and Disney+ ad blocking patches ([dca286e](https://github.com/ajstrick81/morphe-androidtv-patches/commit/dca286eea91711f896674136521435cf74bb208d))\n\n\nRelease v1.1.0",
-  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.1.0/patches-1.1.0.mpp",
+  "created_at": "2026-05-18T17:14:41",
+  "description": "## [1.1.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.1.0...v1.1.1) (2026-05-18)\n\n\n### Bug Fixes\n\n* resolve Gradle credentials for publish step ([0a3e95b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/0a3e95b0b595453727c6496c7a08a16e440e3494))\n\n\nRelease v1.1.1",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.1.1/patches-1.1.1.mpp",
   "signature_download_url": "",
-  "version": "1.1.0"
+  "version": "1.1.1"
 }

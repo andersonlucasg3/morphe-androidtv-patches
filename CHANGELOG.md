@@ -1,3 +1,13 @@
+## [1.1.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.1.0...v1.1.1) (2026-05-18)
+
+
+### Bug Fixes
+
+* resolve Gradle credentials for publish step ([0a3e95b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/0a3e95b0b595453727c6496c7a08a16e440e3494))
+
+
+Release v1.1.1
+
 # [1.1.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.0.2...v1.1.0) (2026-05-18)
 
 
