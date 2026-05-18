@@ -37,7 +37,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build patch artifact
-        run: ./gradlew publish -Pgpr.user=${{ github.actor }} -Pgpr.key=${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew publish -Pgpr.user=${{ github.actor }} -Pgpr.key=${{ secrets.MORPHE_PACKAGES_TOKEN }}
 
       - name: Build and Release
         env:
