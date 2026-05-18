@@ -1,3 +1,3 @@
 plugins {
-    // no plugins needed here for now
+    alias(libs.plugins.android.library) apply false
 }
