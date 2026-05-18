@@ -16,6 +16,10 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("app.morphe.patches") version "1.2.0"
+}
+
 dependencyResolutionManagement {
     repositories {
         google()
