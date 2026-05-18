@@ -1,3 +1,13 @@
+# [1.1.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.0.2...v1.1.0) (2026-05-18)
+
+
+### Features
+
+* initial Paramount+ and Disney+ ad blocking patches ([dca286e](https://github.com/ajstrick81/morphe-androidtv-patches/commit/dca286eea91711f896674136521435cf74bb208d))
+
+
+Release v1.1.0
+
 ## [1.0.2](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.0.1...v1.0.2) (2026-05-18)
 
 
