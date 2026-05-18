@@ -6,6 +6,7 @@ import app.morphe.patcher.PatchContext
 object ParamountPatch : Patch(
     name = "Paramount+ Android TV",
     description = "Disables IMA ad loading in Paramount+"
+    compatibilities = listOf(AppCompatibilities.PARAMOUNT_TV)
 ) {
 
     override fun execute(context: PatchContext) {
