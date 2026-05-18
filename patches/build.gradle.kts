@@ -2,55 +2,34 @@ group = "app.morphe"
 
 patches {
     about {
-        name = "Morphe Patches"
-        description = "Morphe Patches for Andriod TV."
+        name = "ajstrick81 Patches"
+        description = "Paramount+ and Disney+ Android TV ad blocking patches"
         source = "https://github.com/ajstrick81/morphe-androidtv-patches"
         author = "ajstrick81"
-        contact = "na"
+        contact = "https://github.com/ajstrick81"
         website = "https://github.com/ajstrick81/morphe-androidtv-patches"
-        license = "GNU General Public License v3.0, with additional GPL section 7 requirements"
-    }
-}
-
-dependencies {
-    compileOnly(libs.morphe.patcher)
-
-    // Used by JsonGenerator.
-    implementation(libs.gson)
-
-    // Required due to smali, or build fails. Can be removed once smali is bumped.
-    implementation(libs.guava)
-
-    // Android API stubs defined here.
-    compileOnly(project(":patches:stub"))
-}
-
-tasks {
-    register<JavaExec>("checkStringResources") {
-        description = "Checks resource strings for invalid formatting"
-
-        dependsOn(compileKotlin)
-
-        classpath = sourceSets["main"].runtimeClasspath
-        mainClass.set("app.morphe.util.resource.CheckStringResourcesKt")
-    }
-
-    register<JavaExec>("generatePatchesList") {
-        description = "Build patch with patch list"
-
-        dependsOn(build)
-
-        classpath = sourceSets["main"].runtimeClasspath
-        mainClass.set("app.morphe.util.PatchListGeneratorKt")
-    }
-    // Used by gradle-semantic-release-plugin.
-    publish {
-        dependsOn("generatePatchesList")
+        license = "GPLv3"
     }
 }
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs = listOf("-Xcontext-receivers")
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
+}
+
+dependencies {
+    implementation(libs.gson)
+}
+
+tasks {
+    register<JavaExec>("generatePatchesList") {
+        description = "Build patch with patch list"
+        dependsOn(build)
+        classpath = sourceSets["main"].runtimeClasspath
+        mainClass.set("app.morphe.util.PatchListGeneratorKt")
+    }
+    publish {
+        dependsOn("generatePatchesList")
     }
 }
