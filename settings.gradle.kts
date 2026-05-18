@@ -6,8 +6,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        // add later if needed:
-        // maven { url = uri("https://jitpack.io") }
+        maven { url = uri("https://jitpack.io") }
     }
 }
 include(":patches")
