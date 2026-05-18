@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: read
+      packages: write
 
     steps:
       - name: Checkout
@@ -38,9 +38,8 @@ jobs:
 
       - name: Build patch artifact
         env:
-          GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid generatePatchesList clean -Pgpr.user=${{ github.actor }} -Pgpr.key=${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid generatePatchesList clean
 
       - name: Build and Release
         env:
