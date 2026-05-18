@@ -42,6 +42,15 @@ jobs:
           echo "gpr.user=${{ github.actor }}" >> ~/.gradle/gradle.properties
           echo "gpr.key=${{ secrets.MORPHE_PACKAGES_TOKEN }}" >> ~/.gradle/gradle.properties
 
+       - name: Verify credentials file
+        run: |
+          echo "=== gradle.properties exists ==="
+          ls -la ~/.gradle/gradle.properties
+          echo "=== contents (key masked) ==="
+          cat ~/.gradle/gradle.properties | sed 's/gpr.key=.*/gpr.key=***MASKED***/'
+          echo "=== GRADLE_USER_HOME ==="
+          echo $GRADLE_USER_HOME
+
       - name: Build patch artifact
         run: ./gradlew :patches:buildAndroid generatePatchesList clean
 
