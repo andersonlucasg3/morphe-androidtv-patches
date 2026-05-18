@@ -10,6 +10,3 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 morphe-patcher = { module = "app.morphe:patcher", version.ref = "morphe-patcher" }
 smali = { module = "com.github.iBotPeaches:Apktool", version.ref = "smali" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
-
-[plugins]
-android-library = { id = "com.android.library", version.ref = "agp" }
