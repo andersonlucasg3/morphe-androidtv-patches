@@ -1,19 +1,17 @@
-rootProject.name = "morphe-androidtv-patches"
+rootProject.name = "ajstrick81-patches"
 
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-
+pluginManagement {
     repositories {
+        gradlePluginPortal()
         google()
-        mavenCentral()
-
         maven {
+            name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/MorpheApp/registry")
             credentials {
-                username = System.getenv("GITHUB_ACTOR") ?: ""
-                password = System.getenv("GITHUB_TOKEN") ?: ""
+                username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
             }
         }
+        maven { url = uri("https://jitpack.io") }
     }
 }
-include(":patches")
