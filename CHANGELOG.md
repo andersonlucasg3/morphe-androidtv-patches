@@ -1,3 +1,14 @@
+## [1.1.3](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.1.2...v1.1.3) (2026-05-19)
+
+
+### Bug Fixes
+
+* Add Gradle credentials setup in release workflow via Morphe tutorial ([cdc695e](https://github.com/ajstrick81/morphe-androidtv-patches/commit/cdc695e0b72e1e24d16d15769553b2ec023376a9))
+* Clarify patch compatibility for Paramount versions ([6dfb89d](https://github.com/ajstrick81/morphe-androidtv-patches/commit/6dfb89d875afbdbec3a1392d16544d7ed42cc336))
+* Make gradlew executable in release workflow ([e0bc1ff](https://github.com/ajstrick81/morphe-androidtv-patches/commit/e0bc1fff7a0b5985b69436fb15ced00b07b9909e))
+* update Gradle wrapper to 9.4.1 ([a0c8799](https://github.com/ajstrick81/morphe-androidtv-patches/commit/a0c8799e4dbbb0bbd69fb8221a2f572d63fa1205))
+* Update release workflow permissions and build steps ([bdc2476](https://github.com/ajstrick81/morphe-androidtv-patches/commit/bdc24760520ed7cf6b1d0db742f8910dda9372a2))
+
 ## [1.1.2](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.1.1...v1.1.2) (2026-05-18)
 
 
