@@ -14,6 +14,7 @@ I'm just like you, I enjoy watching TV and movies without being bored and annoye
 ## ⚠️ Recommended APK Version
 
 **This patch is built and tested against Paramount+ v16.8 only.**
+**Disney+ patch is built and tested with v26.6.0+rc5-2026.04.21**
 
 Applying this patch to any other version — especially v16.11 — will fail or produce an unstable result.
 
@@ -28,11 +29,17 @@ Applying this patch to any other version — especially v16.11 — will fail or 
 
 ### Where to Download
 
+For Paramount+
 1. Go to https://www.apkmirror.com/apk/cbs-interactive-inc/paramount-2/paramount-android-tv-16-8-0-2-release/
 2. Download the `.apkm` file
 3. Select the apkm in Morphe Manager
 4. Apply the patch in Morphe Manager
 
+For Disney+
+1. Go to https://www.apkmirror.com/apk/disney/disney-android-tv/disney-android-tv-26-6-0rc5-2026-04-21-release/disney-android-tv-26-6-0rc5-2026-04-21-android-apk-download/
+2. Download the `.apkm` file
+3. Select the apkm in Morphe Manager
+4. Apply the patch in Morphe Manager
 
 Morphe Patches template is based off the prior work of [ReVanced](https://github.com/ReVanced/revanced-patches-template).
 All modifications made by Morphe, along with their dates, can be found in the Git history.
