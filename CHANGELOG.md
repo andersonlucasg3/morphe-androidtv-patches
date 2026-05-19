@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.2.0...v1.3.0) (2026-05-19)
+
+
+### Bug Fixes
+
+* pin Paramount+ to v16.8.0 ([250eae2](https://github.com/ajstrick81/morphe-androidtv-patches/commit/250eae26bf5da15fa8b19d69306e5fe4b417c953))
+
+
+### Features
+
+* update app names for Paramount and Disney Plus ([a6450cf](https://github.com/ajstrick81/morphe-androidtv-patches/commit/a6450cfdfc489ef645afd69922ef770210150669))
+
 # [1.2.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.1.3...v1.2.0) (2026-05-19)
 
 
