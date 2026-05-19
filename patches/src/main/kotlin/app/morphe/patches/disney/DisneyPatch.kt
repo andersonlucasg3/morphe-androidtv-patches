@@ -10,37 +10,41 @@
 
 package app.morphe.patches.disney
 
-import app.morphe.patcher.Patch
-import app.morphe.patcher.PatchContext
+import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.fingerprint
 
-object DisneyPatch : Patch(
+@Suppress("unused")
+val disneyPatch = bytecodePatch(
     name = "Disney+ Android TV",
-    description = "Disables ad insertion in Disney+"
-    compatibilities = listOf(AppCompatibilities.DISNEY_PLUS_TV)
+    description = "Disables ad insertion in Disney+",
 ) {
+    compatibleWith(AppCompatibilities.DISNEY_PLUS_TV)
 
-    override fun execute(context: PatchContext) {
-
-        context.findMethod(
-            className = "Lcom/dss/sdk/internal/media/Insertion;",
-            methodName = "getPoints"
-        )?.let { method ->
-
-            method.addInstruction(
-                0,
-                "return-object v0"
-            )
+    val insertionGetPointsFingerprint = fingerprint {
+        custom { method, _ ->
+            method.definingClass == "Lcom/dss/sdk/internal/media/Insertion;" &&
+                method.name == "getPoints"
         }
+    }
 
-        context.findMethod(
-            className = "Lcom/dss/sdk/internal/media/Insertion;",
-            methodName = "getRanges"
-        )?.let { method ->
-
-            method.addInstruction(
-                0,
-                "return-object v0"
-            )
+    val insertionGetRangesFingerprint = fingerprint {
+        custom { method, _ ->
+            method.definingClass == "Lcom/dss/sdk/internal/media/Insertion;" &&
+                method.name == "getRanges"
         }
+    }
+
+    execute {
+        insertionGetPointsFingerprint.method.addInstructions(
+            0,
+            "return-object v0",
+        )
+
+        insertionGetRangesFingerprint.method.addInstructions(
+            0,
+            "return-object v0",
+        )
     }
 }
