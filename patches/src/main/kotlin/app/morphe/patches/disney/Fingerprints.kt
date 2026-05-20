@@ -1,8 +1,8 @@
 /*
  * Forked from:
  * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/disneyplus/ads/Fingerprints.kt
+ * ALL CREDIT GOES TO ROOKIEENOUGH FOR THE ORIGINAL CODE
  */
- */ALL CREDIT GOES TO ROOKIEENOUGH FOR THE ORIGINAL CODE
 
 package app.morphe.patches.disney
 
