@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.3.1...v1.4.0) (2026-05-24)
+
+
+### Features
+
+* restructure Paramount+ patch with separate Fingerprints file ([badd2c2](https://github.com/ajstrick81/morphe-androidtv-patches/commit/badd2c281981becff17d529d58961ec2caa10d59))
+
 ## [1.3.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.3.0...v1.3.1) (2026-05-19)
 
 
