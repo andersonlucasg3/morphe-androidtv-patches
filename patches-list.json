@@ -1,8 +1,8 @@
 {
-  "version": "1.4.2",
+  "version": "1.4.3",
   "appNames": {
     "com.disney.disneyplus": "Disney+ Android TV",
-    "com.hbo.hbonow": "HBO Max",
+    "com.wbd.hbomax": "HBO Max",
     "com.cbs.ott": "Paramount+ Android TV"
   },
   "patches": [
@@ -36,14 +36,14 @@
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
-        "com.hbo.hbonow": [
+        "com.wbd.hbomax": [
           "6.17.1.4"
         ]
       },
       "compatibility": [
         {
           "name": "HBO Max",
-          "packageName": "com.hbo.hbonow",
+          "packageName": "com.wbd.hbomax",
           "description": null,
           "appIconColor": 16777215,
           "targets": [

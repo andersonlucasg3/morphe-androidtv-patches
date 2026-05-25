@@ -1,3 +1,10 @@
+## [1.4.3](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.2...v1.4.3) (2026-05-25)
+
+
+### Bug Fixes
+
+* Update HBO Max package name in AppCompatibilities ([b374810](https://github.com/ajstrick81/morphe-androidtv-patches/commit/b374810cb92206b34b8bb5725afe54e51711ce5a))
+
 ## [1.4.2](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.1...v1.4.2) (2026-05-25)
 
 
