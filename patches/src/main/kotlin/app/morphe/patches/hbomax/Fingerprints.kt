@@ -4,12 +4,12 @@ import app.morphe.patcher.Fingerprint
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BoltNonLinearAdsRequest — Nonlinear (overlay) ad request serializer
-// classes4.dex — "advertisingInfo" is a required JSON key in write$Self,
-// survives R8, and is unique to the serializer write path for this class.
+// classes4.dex — exact class path and method name are sufficient identifiers.
+// write$Self is the serialization write path — suppresses advertisingInfo
+// (field index 2) and zeroes playbackId (field index 5) from the JSON body.
 // ─────────────────────────────────────────────────────────────────────────────
 
 internal object BoltNonLinearAdsRequestWriteSelfFingerprint : Fingerprint(
-    strings = listOf("advertisingInfo"),
     custom = { method, _ ->
         method.definingClass == "Lcom/wbd/adtech/bolt/BoltNonLinearAdsRequest;" &&
             method.name == "write\$Self"
@@ -18,13 +18,12 @@ internal object BoltNonLinearAdsRequestWriteSelfFingerprint : Fingerprint(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BoltDynamicAdFetcher — Nonlinear ad fetch coroutine continuation
-// classes4.dex — source file name survives R8.
+// classes4.dex — exact class path and method name are sufficient identifiers.
 // invokeSuspend discards the real ad list after fetchNonLinearAds returns,
 // causing the coroutine collector to receive null instead of a populated list.
 // ─────────────────────────────────────────────────────────────────────────────
 
 internal object BoltDynamicAdFetcherInvokeSuspendFingerprint : Fingerprint(
-    strings = listOf("BoltDynamicAdFetcher.kt"),
     custom = { method, _ ->
         method.definingClass ==
             "Lcom/wbd/adtech/bolt/BoltDynamicAdFetcher\$fetchNonLinearAds\$1;" &&
@@ -34,7 +33,7 @@ internal object BoltDynamicAdFetcherInvokeSuspendFingerprint : Fingerprint(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SsaiInfoTimelineBuilder — GMSS/AdSparx SSAI linear ad timeline builder
-// classes4.dex — SSAI parsing failure string survives R8.
+// classes4.dex — method names survive R8 as they are referenced by lambdas.
 // buildAdBreaksFromAdSparxAdBreaks registers linear ad breaks with the
 // RangeBuilder. Patched with return-void to suppress all SSAI ad break
 // timeline registration for VOD and movies.
@@ -43,21 +42,24 @@ internal object BoltDynamicAdFetcherInvokeSuspendFingerprint : Fingerprint(
 // ─────────────────────────────────────────────────────────────────────────────
 
 internal object SsaiInfoTimelineBuilderBuildAdBreaksFingerprint : Fingerprint(
-    strings = listOf("GSsaiInfo Parsing failed. Emitting empty timeline with indefinite range"),
     custom = { method, _ ->
-        method.name == "buildAdBreaksFromAdSparxAdBreaks"
+        method.definingClass ==
+            "Lcom/wbd/beam/player/timelinemanager/timelineprovider/gmsstimelineprovider/timelinebuilder/SsaiInfoTimelineBuilder;" &&
+            method.name == "buildAdBreaksFromAdSparxAdBreaks"
     },
 )
 
 internal object SsaiInfoTimelineBuilderAccessorFingerprint : Fingerprint(
     custom = { method, _ ->
-        method.name == "access\$buildAdBreaksFromAdSparxAdBreaks"
+        method.definingClass ==
+            "Lcom/wbd/beam/player/timelinemanager/timelineprovider/gmsstimelineprovider/timelinebuilder/SsaiInfoTimelineBuilder;" &&
+            method.name == "access\$buildAdBreaksFromAdSparxAdBreaks"
     },
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GenerateLiveTimelineEntriesForAdBreakKt — Live stream preroll ad entry builder
-// classes.dex — "adBreaks" null check string survives R8.
+// classes.dex — exact class path and method name are sufficient identifiers.
 // Returns empty ArrayList instead of building AdBreakEntry/AdEntry objects.
 // The caller (generateLiveTimelineEntries) does addAll() on the result —
 // empty list means no ad entries added to live timeline while chapter/content
@@ -66,7 +68,6 @@ internal object SsaiInfoTimelineBuilderAccessorFingerprint : Fingerprint(
 // ─────────────────────────────────────────────────────────────────────────────
 
 internal object GenerateLiveTimelineEntriesForAdBreakFingerprint : Fingerprint(
-    strings = listOf("adBreaks"),
     custom = { method, _ ->
         method.definingClass ==
             "Lcom/discovery/adtech/core/models/timeline/GenerateLiveTimelineEntriesForAdBreakKt;" &&
