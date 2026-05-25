@@ -20,7 +20,7 @@ object AppCompatibilities {
 
     val HBO_TV = Compatibility(
     name = "HBO Max",
-    packageName = "com.hbo.hbonow",
+    packageName = "com.wbd.hbomax",
     appIconColor = 0xFFFFFF,
     targets = listOf(AppTarget("6.17.1.4")),
     )
