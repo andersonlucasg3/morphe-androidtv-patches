@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-05-25T14:42:56",
-  "description": "## [1.4.8](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.7...v1.4.8) (2026-05-25)\n\n\n### Bug Fixes\n\n* Refactor Fingerprints for ad request and timeline builders ([506a49c](https://github.com/ajstrick81/morphe-androidtv-patches/commit/506a49cde31a23c1a284445edfe2888d17dd5ea6))",
-  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.8/patches-1.4.8.mpp",
+  "created_at": "2026-05-25T14:56:59",
+  "description": "## [1.4.9](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.8...v1.4.9) (2026-05-25)\n\n\n### Bug Fixes\n\n* Refactor code for 'HBO Max - Disable Ads' ([f55ebc2](https://github.com/ajstrick81/morphe-androidtv-patches/commit/f55ebc29dd0f128d647b1a84c463a88aa5d42c3a))",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.9/patches-1.4.9.mpp",
   "signature_download_url": "",
-  "version": "1.4.8"
+  "version": "1.4.9"
 }

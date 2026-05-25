@@ -1,3 +1,10 @@
+## [1.4.9](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.8...v1.4.9) (2026-05-25)
+
+
+### Bug Fixes
+
+* Refactor code for 'HBO Max - Disable Ads' ([f55ebc2](https://github.com/ajstrick81/morphe-androidtv-patches/commit/f55ebc29dd0f128d647b1a84c463a88aa5d42c3a))
+
 ## [1.4.8](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.7...v1.4.8) (2026-05-25)
 
 
