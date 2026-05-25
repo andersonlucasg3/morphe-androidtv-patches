@@ -1,5 +1,5 @@
 {
-  "version": "1.4.9",
+  "version": "1.4.10",
   "appNames": {
     "com.disney.disneyplus": "Disney+ Android TV",
     "com.wbd.stream": "HBO Max",
@@ -37,7 +37,7 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.wbd.stream": [
-          "6.17.1.4"
+          "7.2.0.41"
         ]
       },
       "compatibility": [
@@ -48,7 +48,7 @@
           "appIconColor": 16777215,
           "targets": [
             {
-              "version": "6.17.1.4",
+              "version": "7.2.0.41",
               "experimental": false
             }
           ]

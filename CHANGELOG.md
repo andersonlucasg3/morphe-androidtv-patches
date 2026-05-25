@@ -1,3 +1,10 @@
+## [1.4.10](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.9...v1.4.10) (2026-05-25)
+
+
+### Bug Fixes
+
+* Implement Nowtilus kill switch in HBOAdsPatch ([c95084b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/c95084b2beea95de31216169dfe5362999b229de))
+
 ## [1.4.9](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.8...v1.4.9) (2026-05-25)
 
 
