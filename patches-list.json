@@ -1,8 +1,8 @@
 {
-  "version": "1.4.3",
+  "version": "1.4.4",
   "appNames": {
     "com.disney.disneyplus": "Disney+ Android TV",
-    "com.wbd.hbomax": "HBO Max",
+    "com.wbd.stream": "HBO Max",
     "com.cbs.ott": "Paramount+ Android TV"
   },
   "patches": [
@@ -36,14 +36,14 @@
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
-        "com.wbd.hbomax": [
+        "com.wbd.stream": [
           "6.17.1.4"
         ]
       },
       "compatibility": [
         {
           "name": "HBO Max",
-          "packageName": "com.wbd.hbomax",
+          "packageName": "com.wbd.stream",
           "description": null,
           "appIconColor": 16777215,
           "targets": [

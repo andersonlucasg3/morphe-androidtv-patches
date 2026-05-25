@@ -1,3 +1,10 @@
+## [1.4.4](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.3...v1.4.4) (2026-05-25)
+
+
+### Bug Fixes
+
+* Update HBO Max package name to com.wbd.stream ([6b0c55d](https://github.com/ajstrick81/morphe-androidtv-patches/commit/6b0c55d26300ab774e3d65fd7598382011624e84))
+
 ## [1.4.3](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.2...v1.4.3) (2026-05-25)
 
 
