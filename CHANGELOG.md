@@ -1,3 +1,10 @@
+## [1.4.12](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.11...v1.4.12) (2026-05-26)
+
+
+### Bug Fixes
+
+* Delete patches/src/main/kotlin/ajstrick81/morphe/patches/primevideo/misc/permissions directory ([65515b9](https://github.com/ajstrick81/morphe-androidtv-patches/commit/65515b92873265ae44faefc96e061c25b52fe33e))
+
 ## [1.4.11](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.10...v1.4.11) (2026-05-26)
 
 
