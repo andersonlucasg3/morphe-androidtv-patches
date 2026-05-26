@@ -1,33 +1,29 @@
 package ajstrick81.morphe.patches.primevideo.misc.extension
 
-import app.morphe.patches.all.misc.extension.ExtensionHook
-import app.morphe.patches.all.misc.extension.sharedExtensionPatch
-import app.morphe.patcher.Fingerprint
-import com.android.tools.smali.dexlib2.AccessFlags
+import app.morphe.patcher.patch.bytecodePatch
+import ajstrick81.morphe.patches.primevideo.shared.Constants
 
-// Fingerprint for the ATV launcher activity onCreate.
+// In Morphe 1.3.0 the extension system works differently from later versions.
+// The app.morphe.patches.all.misc.extension namespace (sharedExtensionPatch,
+// ExtensionHook) does not exist in 1.3.0.
 //
-// The LEANBACK_LAUNCHER entry point is com.amazon.ignitionshared.MainActivity,
-// declared via the IgniteActivity / IgnitionActivity activity-alias in the
-// manifest. Using the full package segment /ignitionshared/MainActivity; to
-// avoid any ambiguity with other MainActivity classes in the dex tree.
+// Extension classes compiled from extensions/src/main/java/ via the
+// settings { extensions { } } block in settings.gradle.kts are automatically
+// merged into the patched APK's DEX by the Morphe plugin at build time.
+// No explicit MainActivity hook is required — the extension methods are
+// called directly via invoke-static instructions inserted by SkipAdsPatch.
 //
-// targetBundleMethod = true targets onCreate(Landroid/os/Bundle;)V
-// which is the standard Activity lifecycle entry point.
-private object MainActivityOnCreateFingerprint : Fingerprint(
-    definingClass = "Lcom/amazon/ignitionshared/MainActivity;",
-    name = "onCreate",
-    parameters = listOf("Landroid/os/Bundle;"),
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
-)
+// This patch exists as a dependency anchor so SkipAdsPatch can declare
+// dependsOn(primeVideoExtensionPatch), which signals to the Morphe plugin
+// that the extension DEX must be merged before the patch is applied.
+val primeVideoExtensionPatch = bytecodePatch(
+    name = "Prime Video extension",
+    description = "Integrates the Prime Video ATV extension for ad group skipping.",
+) {
+    compatibleWith(Constants.COMPATIBILITY)
 
-// The sharedExtensionPatch and ExtensionHook APIs come from the official
-// Morphe patches library (app.morphe.patches.all.misc.extension).
-// This is the same infrastructure the official morphe-patches repo uses
-// for YouTube, YouTube Music, etc. — no dependency on any third-party
-// patches repo required.
-val primeVideoExtensionPatch = sharedExtensionPatch(
-    "primevideo",
-    ExtensionHook(MainActivityOnCreateFingerprint)
-)
+    execute {
+        // Intentionally empty — extension merging is handled automatically
+        // by the Morphe 1.3.0 plugin via the settings.gradle.kts extensions block.
+    }
+}
