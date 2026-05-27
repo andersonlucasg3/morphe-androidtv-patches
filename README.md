@@ -14,8 +14,11 @@ I'm just like you. I enjoy watching TV and movies without being bored and annoye
 ## ⚠️ Recommended APK Versions
 
 **This patch is built and tested against Paramount+ v16.8 only.**
+
 **Disney+ patch is built and tested with v26.6.0+rc5-2026.04.21**
+
 **HBO MAX patch is built and tested with v7.2.0.41**
+
 **Prime Video patch is under development - currently not working**
 
 **For Paramount+: Applying this patch to any other version — especially v16.11 — will fail or produce an unstable result.**
