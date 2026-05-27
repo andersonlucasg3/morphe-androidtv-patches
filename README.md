@@ -8,15 +8,17 @@
 ## ❓ About
 
 
-I'm just like you, I enjoy watching TV and movies without being bored and annoyed to death with ads. I will try to update this repo when I can, as I only do it for fun :)
+I'm just like you. I enjoy watching TV and movies without being bored and annoyed to death with ads. I will try to update this repo when I can, as I only do it for fun :)
 
 
-## ⚠️ Recommended APK Version
+## ⚠️ Recommended APK Versions
 
 **This patch is built and tested against Paramount+ v16.8 only.**
 **Disney+ patch is built and tested with v26.6.0+rc5-2026.04.21**
+**HBO MAX patch is built and tested with v7.2.0.41**
+**Prime Video patch is under development - currently not working**
 
-Applying this patch to any other version — especially v16.11 — will fail or produce an unstable result.
+**For Paramount+: Applying this patch to any other version — especially v16.11 — will fail or produce an unstable result.**
 
 ### Why v16.8?
 
@@ -37,6 +39,12 @@ For Paramount+
 
 For Disney+
 1. Go to https://www.apkmirror.com/apk/disney/disney-android-tv/disney-android-tv-26-6-0rc5-2026-04-21-release/disney-android-tv-26-6-0rc5-2026-04-21-android-apk-download/
+2. Download the `.apkm` file
+3. Select the apkm in Morphe Manager
+4. Apply the patch in Morphe Manager
+
+For HBO MAX
+1. Go to https://www.apkmirror.com/apk/warnermedia-direct-llc/max-stream-hbo-tv-movies-android-tv/hbo-max-stream-tv-movies-android-tv-7-2-0-41-release/hbo-max-stream-tv-movies-android-tv-7-2-0-41-android-apk-download/
 2. Download the `.apkm` file
 3. Select the apkm in Morphe Manager
 4. Apply the patch in Morphe Manager
