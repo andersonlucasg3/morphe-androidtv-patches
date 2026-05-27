@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-05-26T22:12:27",
-  "description": "## [1.4.12](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.11...v1.4.12) (2026-05-26)\n\n\n### Bug Fixes\n\n* Delete patches/src/main/kotlin/ajstrick81/morphe/patches/primevideo/misc/permissions directory ([65515b9](https://github.com/ajstrick81/morphe-androidtv-patches/commit/65515b92873265ae44faefc96e061c25b52fe33e))",
-  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.12/patches-1.4.12.mpp",
+  "created_at": "2026-05-27T00:23:23",
+  "description": "## [1.4.13](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.12...v1.4.13) (2026-05-27)\n\n\n### Bug Fixes\n\n* Update SkipAdsPatch to use invoke-static/range ([a3ca8bf](https://github.com/ajstrick81/morphe-androidtv-patches/commit/a3ca8bfd260ce363617cdce103bc037542c2bba8))",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.13/patches-1.4.13.mpp",
   "signature_download_url": "",
-  "version": "1.4.12"
+  "version": "1.4.13"
 }

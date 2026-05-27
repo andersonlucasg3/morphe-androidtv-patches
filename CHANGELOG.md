@@ -1,3 +1,10 @@
+## [1.4.13](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.12...v1.4.13) (2026-05-27)
+
+
+### Bug Fixes
+
+* Update SkipAdsPatch to use invoke-static/range ([a3ca8bf](https://github.com/ajstrick81/morphe-androidtv-patches/commit/a3ca8bfd260ce363617cdce103bc037542c2bba8))
+
 ## [1.4.12](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.11...v1.4.12) (2026-05-26)
 
 
