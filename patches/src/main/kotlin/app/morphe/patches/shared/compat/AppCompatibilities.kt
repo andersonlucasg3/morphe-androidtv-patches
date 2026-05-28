@@ -16,10 +16,11 @@ object AppCompatibilities {
         name = "Disney+ Android TV",
         packageName = "com.disney.disneyplus",
         appIconColor = 0x113CCF,
+        targets = listOf(AppTarget("26.6.0-rc5")),
     )
 
     val HBO_TV = Compatibility(
-    name = "HBO Max",
+    name = "HBO Max Android TV",
     packageName = "com.wbd.stream",
     appIconColor = 0xFFFFFF,
     targets = listOf(AppTarget("7.2.0.41")),
