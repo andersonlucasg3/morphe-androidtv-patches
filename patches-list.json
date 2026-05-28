@@ -1,7 +1,8 @@
 {
-  "version": "1.4.16",
+  "version": "1.4.17",
   "appNames": {
     "com.amazon.amazonvideo.livingroom": "Prime Video",
+    "com.tubitv": "Tubi Android TV",
     "com.disney.disneyplus": "Disney+ Android TV",
     "com.wbd.stream": "HBO Max Android TV",
     "com.cbs.ott": "Paramount+ Android TV"
@@ -132,6 +133,32 @@
           "targets": [
             {
               "version": "6.23.23+v15.5.0.70-armv7a",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Skip ads",
+      "description": "Prevents IMA DAI ad events from reaching FoxPlayer, suppressing all ad breaks.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.tubitv": [
+          "10.20.5000"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Tubi Android TV",
+          "packageName": "com.tubitv",
+          "description": null,
+          "appIconColor": 15276060,
+          "targets": [
+            {
+              "version": "10.20.5000",
               "experimental": false
             }
           ]
