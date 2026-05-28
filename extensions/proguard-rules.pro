@@ -10,3 +10,7 @@
     public static *** skipAllMedia3AdGroups(com.google.common.collect.ImmutableMap);
     public static *** skipAllExo2AdGroups(com.google.common.collect.ImmutableMap);
 }
+
+-keep class ajstrick81.morphe.extension.tubi.ads.SkipAdsPatch {
+    public static *** onClearVodAds(java.lang.Object);
+}
