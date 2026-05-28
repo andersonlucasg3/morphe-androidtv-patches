@@ -2,7 +2,6 @@ package ajstrick81.morphe.patches.tubi.ads
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
 import ajstrick81.morphe.patches.tubi.shared.Constants
 
 @Suppress("unused")
@@ -17,45 +16,45 @@ val skipAdsPatch = bytecodePatch(
         // ─────────────────────────────────────────────────────────────────────
         // Hook 1 — FoxImaAdListeners.adEventListener_delegate$lambda$10$lambda$9
         //
-        // This is the single most impactful change in the entire patch.
         // Every Google IMA ad event (AD_BREAK_STARTED, AD_STARTED, AD_POD_START,
         // AD_PROGRESS, AD_COMPLETED, AD_BREAK_ENDED, etc.) flows through this
-        // one method before reaching FoxPlayer.
+        // one method before reaching FoxPlayer.dispatchAdEvent().
         //
-        // returnEarly() inserts return-void at index 0. FoxPlayer.dispatchAdEvent()
-        // is never called, so:
-        //   - No AD_BREAK_STARTED → no playback lock / FF disable
-        //   - No AD_STARTED → no ad rendering begins
-        //   - No AD_POD_START → no ad pod sequence initiated
-        //   - No AD_COMPLETED → no ad tracking beacons fired
-        //   - No AD_BREAK_ENDED → player never exits ad break state
+        // Inserting return-void at index 0 means FoxPlayer never receives any
+        // ad event — no AD_BREAK_STARTED triggers playback lock, no AD_STARTED
+        // triggers ad rendering, no AD_POD_START initiates the ad break sequence.
         //
-        // The IMA StreamManager continues running internally in the Google IMA
-        // SDK, meaning the DAI stream URL is still valid and content segments
-        // continue to be served normally. Only the ad event dispatch is silenced.
+        // The IMA StreamManager continues running internally inside the Google
+        // IMA SDK, meaning the DAI stream URL remains valid and content segments
+        // are served normally. Only the ad event dispatch is silenced.
         //
-        // This is the Fox One / FoxOne equivalent of the same architecture —
-        // Fox Corporation reuses FoxPlayer and FoxImaAdListeners across Tubi,
-        // Fox One, Fox Sports, and other Fox properties. The same fingerprint
-        // may apply with minimal changes to other Fox apps.
+        // This is the Fox One equivalent approach — Fox Corporation reuses
+        // FoxPlayer and FoxImaAdListeners across Tubi, Fox One, Fox Sports, and
+        // other Fox properties. The same fingerprint likely applies to all of them.
+        //
+        // Note: returnEarly() from app.morphe.util is not available in Morphe
+        // 1.3.0. We insert return-void directly via addInstructions at index 0.
         // ─────────────────────────────────────────────────────────────────────
-        FoxImaAdEventListenerFingerprint.method.returnEarly()
+        FoxImaAdEventListenerFingerprint.method.addInstructions(
+            0,
+            """
+                return-void
+            """
+        )
 
         // ─────────────────────────────────────────────────────────────────────
         // Hook 2 — FoxPlayer.clearVodAds()
         //
-        // clearVodAds() is FoxPlayer's built-in method to clear the VOD ad
-        // schedule. We hook its entry point to also call our extension which
-        // nulls the IMA StreamManager reference in FoxImaAdListeners.
+        // FoxPlayer's built-in clearVodAds() method clears the VOD ad schedule.
+        // We hook its entry point to also call our extension which nulls the
+        // IMA StreamManager reference in FoxImaAdListeners via reflection.
         //
-        // This covers the edge case where ad break metadata was pre-loaded
-        // into FoxPlayer's timeline before our Hook 1 fired. By clearing the
-        // VOD ad schedule at this natural call site, we ensure no pre-scheduled
-        // ad positions remain in FoxPlayer's internal state.
+        // This covers the edge case where ad break metadata was pre-loaded into
+        // FoxPlayer's timeline before Hook 1 fired. Amplifying the clear at this
+        // natural call site ensures no pre-scheduled ad positions remain.
         //
-        // Note: if clearVodAds() is not called during normal playback flow,
-        // this hook is a no-op. It does not proactively trigger ad clearing —
-        // it only amplifies the clearing when FoxPlayer already intends to do it.
+        // If clearVodAds() is not called during normal playback flow this hook
+        // is a silent no-op — Hook 1 is the primary suppression mechanism.
         // ─────────────────────────────────────────────────────────────────────
         FoxPlayerClearVodAdsFingerprint.method.addInstructions(
             0,
