@@ -1,72 +1,84 @@
 package ajstrick81.morphe.patches.foxsports.ads
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
-import ajstrick81.morphe.patches.foxsports.shared.Constants
+import app.morphe.patcher.Fingerprint
+import com.android.tools.smali.dexlib2.AccessFlags
 
-@Suppress("unused")
-val skipAdsPatch = bytecodePatch(
-    name = "Skip ads",
-    description = "Suppresses Yospace SSAI ad events from reaching FoxPlayer and unlocks fast-forward during ad breaks.",
-) {
-    compatibleWith(Constants.COMPATIBILITY)
+// ─────────────────────────────────────────────────────────────────────────────
+// Primary target — YospaceAnalyticEventObserver.dispatchAdEvent()
+// smali_classes4/com/fox/android/video/player/yospace/listener/
+//
+// This is the Yospace SSAI equivalent of FoxImaAdListeners.adEventListener
+// in Tubi. Every Yospace ad event (AD_BREAK_STARTED, AD_STARTED, AD_PROGRESS,
+// AD_COMPLETED, AD_BREAK_ENDED, etc.) flows through this private method before
+// reaching FoxPlayer.dispatchAdEvent() via the coroutine lambda.
+//
+// The call chain is:
+//   Yospace SDK → YospaceAnalyticEventObserver.onAnalyticUpdate()
+//     → dispatchAdEvent(FoxAdEvent)           ← OUR HOOK
+//       → coroutine launch { dispatchAdEvent$1.invokeSuspend() }
+//         → EventPlayer.dispatchAdEvent(FoxAdEvent)
+//             → FoxPlayer processes ad break events
+//
+// Returning void at index 0 silences all Yospace ad events before FoxPlayer
+// sees them — no ad break start, no ad rendering, no seek lock activated.
+//
+// The Yospace StreamManager continues to initialize and report playhead
+// positions to Yospace's server, meaning SSAI session management remains
+// intact. Only the ad event dispatch to FoxPlayer is suppressed.
+//
+// This is the same pattern as Tubi's FoxImaAdEventListenerFingerprint —
+// Fox Corporation reuses YospaceAnalyticEventObserver across Fox Sports,
+// Fox One, and other properties using Yospace SSAI.
+// ─────────────────────────────────────────────────────────────────────────────
+object YospaceDispatchAdEventFingerprint : Fingerprint(
+    definingClass = "Lcom/fox/android/video/player/yospace/listener/YospaceAnalyticEventObserver;",
+    name = "dispatchAdEvent",
+    parameters = listOf("Lcom/fox/android/video/player/event/FoxAdEvent;"),
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL)
+)
 
-    execute {
+// ─────────────────────────────────────────────────────────────────────────────
+// Secondary target — YospaceAnalyticEventObserver.dispatchSlateEvent()
+// smali_classes4/com/fox/android/video/player/yospace/listener/
+//
+// Slate events are Fox's term for replacement content shown during ad breaks
+// on live streams (e.g. "We'll be right back" slates). Suppressing slate
+// events alongside ad events ensures the player never enters the visual
+// ad/slate break state.
+//
+// Same pattern as dispatchAdEvent — return void at index 0.
+// ─────────────────────────────────────────────────────────────────────────────
+object YospaceDispatchSlateEventFingerprint : Fingerprint(
+    definingClass = "Lcom/fox/android/video/player/yospace/listener/YospaceAnalyticEventObserver;",
+    name = "dispatchSlateEvent",
+    parameters = listOf("Lcom/fox/android/video/player/event/FoxSlateEvent;"),
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL)
+)
 
-        // ─────────────────────────────────────────────────────────────────────
-        // Hook 1 — YospaceAnalyticEventObserver.dispatchAdEvent()
-        //
-        // Every Yospace ad event flows through this private method before
-        // reaching FoxPlayer via a coroutine launch. Inserting return-void
-        // at index 0 silences all ad events — the coroutine is never launched,
-        // FoxPlayer.dispatchAdEvent() is never called, and no ad break state
-        // is established in the player.
-        //
-        // The Yospace session itself continues normally, meaning the SSAI
-        // stream URL and content segments are unaffected. Only the event
-        // dispatch that triggers the player-level ad break is suppressed.
-        // ─────────────────────────────────────────────────────────────────────
-        YospaceDispatchAdEventFingerprint.method.addInstructions(
-            0,
-            """
-                return-void
-            """
-        )
-
-        // ─────────────────────────────────────────────────────────────────────
-        // Hook 2 — YospaceAnalyticEventObserver.dispatchSlateEvent()
-        //
-        // Slate events are Fox's replacement content shown during live stream
-        // ad breaks. Suppressing them alongside ad events ensures the player
-        // never visually enters the ad/slate break state.
-        // ─────────────────────────────────────────────────────────────────────
-        YospaceDispatchSlateEventFingerprint.method.addInstructions(
-            0,
-            """
-                return-void
-            """
-        )
-
-        // ─────────────────────────────────────────────────────────────────────
-        // Hook 3 — YospaceSeekablePlaybackPolicyHandler.setHandleFastForwardSeek()
-        //
-        // This setter installs the lambda that restricts FF seeking during
-        // Yospace ad breaks. Returning void immediately discards the incoming
-        // lambda without installing it, leaving handleFastForwardSeek at its
-        // default (null / unrestricted) state.
-        //
-        // Effect: users can freely fast-forward through any ad break positions
-        // on both VOD and live streams without seeing a restriction message.
-        //
-        // The handleRewindSeek equivalent is intentionally NOT patched — rewind
-        // restriction during live ads is a safety mechanism to prevent users
-        // from rewinding into ad content that has already been reported as viewed.
-        // ─────────────────────────────────────────────────────────────────────
-        YospaceSeekPolicySetFFFingerprint.method.addInstructions(
-            0,
-            """
-                return-void
-            """
-        )
-    }
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// Tertiary target — YospaceSeekablePlaybackPolicyHandler.setHandleFastForwardSeek()
+// smali_classes4/com/fox/android/video/player/yospace/handler/
+//
+// YospaceSeekablePlaybackPolicyHandler is a singleton that manages seek
+// behavior during Yospace SSAI ad breaks. The static field handleFastForwardSeek
+// holds a Function3 lambda that restricts or allows FF seeks based on ad
+// break position.
+//
+// setHandleFastForwardSeek(Function3) is called during player initialization
+// to install the FF restriction. By hooking this setter and discarding the
+// incoming lambda (setting null instead), the FF restriction is never installed
+// and users can seek freely through ad break positions on live streams.
+//
+// This is the Fox Sports equivalent of the "unable to fast forward" lock
+// seen in Prime Video ATV — intercepted at the Java installation point
+// rather than the WASM/GMB layer.
+// ─────────────────────────────────────────────────────────────────────────────
+object YospaceSeekPolicySetFFFingerprint : Fingerprint(
+    definingClass = "Lcom/fox/android/video/player/yospace/handler/YospaceSeekablePlaybackPolicyHandler;",
+    name = "setHandleFastForwardSeek",
+    parameters = listOf("Lkotlin/jvm/functions/Function3;"),
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
+)
