@@ -14,7 +14,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 //
 // Intercepting here — before the states are validated, posted to the playback
 // Handler, and written into SharedMediaPeriod.adPlaybackState — is the
-// earliest and cleanest point to nullify all ad groups AND trigger speed ramp.
+// earliest and cleanest point to nullify all ad groups.
 // ─────────────────────────────────────────────────────────────────────────────
 object SetAdPlaybackStatesMedia3Fingerprint : Fingerprint(
     definingClass = "Landroidx/media3/exoplayer/source/ads/ServerSideAdInsertionMediaSource;",
@@ -42,33 +42,5 @@ object SetAdPlaybackStatesExo2Fingerprint : Fingerprint(
         "Lcom/google/common/collect/ImmutableMap;"
     ),
     returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
-)
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Player capture target — ExoPlayer.Builder.build()
-// classes.dex / smali/androidx/media3/exoplayer/ExoPlayer$Builder.smali
-//
-// Called once per playback session by MediaPipelineBackendEngine when it
-// constructs the ExoPlayer instance. Returns ExoPlayerImpl which implements
-// the ExoPlayer interface and exposes setPlaybackParameters(PlaybackParameters).
-//
-// We intercept the return value and store it in a static WeakReference in our
-// extension. This gives the skipAll methods a live Player handle to call
-// setPlaybackParameters() on when ad breaks are detected or cleared.
-//
-// Using build() rather than a field hook because:
-//   - It fires exactly once per player lifecycle (no duplicate captures)
-//   - The return value is the fully initialised Player, ready to accept calls
-//   - No traversal of MediaPipelineBackendEngine -> player field chain needed
-//
-// WeakReference ensures the Player is not kept alive past its natural lifecycle
-// if MediaPipelineBackendEngine is destroyed and recreated between content items.
-// ─────────────────────────────────────────────────────────────────────────────
-object ExoPlayerBuilderBuildFingerprint : Fingerprint(
-    definingClass = "Landroidx/media3/exoplayer/ExoPlayer\$Builder;",
-    name = "build",
-    parameters = listOf(),
-    returnType = "Landroidx/media3/exoplayer/ExoPlayer;",
     accessFlags = listOf(AccessFlags.PUBLIC)
 )
