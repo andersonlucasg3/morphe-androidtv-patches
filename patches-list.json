@@ -1,9 +1,9 @@
 {
-  "version": "1.4.15",
+  "version": "1.4.16",
   "appNames": {
     "com.amazon.amazonvideo.livingroom": "Prime Video",
     "com.disney.disneyplus": "Disney+ Android TV",
-    "com.wbd.stream": "HBO Max",
+    "com.wbd.stream": "HBO Max Android TV",
     "com.cbs.ott": "Paramount+ Android TV"
   },
   "patches": [
@@ -13,7 +13,9 @@
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
-        "com.disney.disneyplus": null
+        "com.disney.disneyplus": [
+          "26.6.0-rc5"
+        ]
       },
       "compatibility": [
         {
@@ -23,7 +25,7 @@
           "appIconColor": 1129679,
           "targets": [
             {
-              "version": "",
+              "version": "26.6.0-rc5",
               "experimental": false
             }
           ]
@@ -43,7 +45,7 @@
       },
       "compatibility": [
         {
-          "name": "HBO Max",
+          "name": "HBO Max Android TV",
           "packageName": "com.wbd.stream",
           "description": null,
           "appIconColor": 16777215,

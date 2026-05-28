@@ -1,3 +1,10 @@
+## [1.4.16](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.15...v1.4.16) (2026-05-28)
+
+
+### Bug Fixes
+
+* add AppTarget for Disney and update HBO Max compatibility name for Android TV ([bacee4a](https://github.com/ajstrick81/morphe-androidtv-patches/commit/bacee4a39555170a79cecb391bd57e9d3ae3fc18))
+
 ## [1.4.15](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.14...v1.4.15) (2026-05-28)
 
 
