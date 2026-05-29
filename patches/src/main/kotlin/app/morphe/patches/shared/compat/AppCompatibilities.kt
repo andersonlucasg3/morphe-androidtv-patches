@@ -21,7 +21,7 @@ object AppCompatibilities {
 
     val HBO_TV = Compatibility(
     name = "HBO Max Android TV",
-    packageName = "com.wbd.stream",
+    packageName = "com.wbd.hbomax",
     appIconColor = 0xFFFFFF,
     targets = listOf(AppTarget("7.2.0.41")),
     )
