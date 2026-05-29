@@ -1,5 +1,5 @@
 {
-  "version": "1.4.18",
+  "version": "1.4.19",
   "appNames": {
     "com.foxsports.android": "Fox Sports",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
@@ -142,7 +142,7 @@
     },
     {
       "name": "Skip ads",
-      "description": "Prevents Helio CSAI ad state from reaching the ExoPlayer pipeline, suppressing all ad breaks.",
+      "description": "Blocks Helio CSAI ad delivery via two hooks: a coroutine sentinel that prevents the ad schedule coroutine from constructing HelioAdPlaybackState, and a return-void on ComponentListener.a() that silences any AdPlaybackState updates that reach the media3 ExoPlayer timeline.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {

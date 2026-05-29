@@ -1,3 +1,10 @@
+## [1.4.19](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.18...v1.4.19) (2026-05-29)
+
+
+### Bug Fixes
+
+* Refactor Helio ad fingerprints and coroutine handling ([04c817e](https://github.com/ajstrick81/morphe-androidtv-patches/commit/04c817ea310e65b8cebb922a9b6a2962cc3ce1d9))
+
 ## [1.4.18](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.17...v1.4.18) (2026-05-29)
 
 
