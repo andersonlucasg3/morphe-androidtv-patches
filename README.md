@@ -34,19 +34,19 @@ I'm just like you. I enjoy watching TV and movies without being bored and annoye
 ### Where to Download
 
 For Paramount+
-1. Go to https://www.apkmirror.com/apk/cbs-interactive-inc/paramount-2/paramount-android-tv-16-8-0-2-release/
+1. Go to https://www.apkmirror.com and search for Paramount+ v16.8 (Android TV) **Make sure you only download "CBS Interactive" Do not download "Viacom"**
 2. Download the `.apkm` file
 3. Select the apkm in Morphe Manager
 4. Apply the patch in Morphe Manager
 
 For Disney+
-1. Go to https://www.apkmirror.com/apk/disney/disney-android-tv/disney-android-tv-26-6-0rc5-2026-04-21-release/disney-android-tv-26-6-0rc5-2026-04-21-android-apk-download/
+1. Go to https://www.apkmirror.com and search for Disney+ v26-6-0rc5-2026-04-21 (Android TV)
 2. Download the `.apkm` file
 3. Select the apkm in Morphe Manager
 4. Apply the patch in Morphe Manager
 
 For HBO MAX
-1. Go to https://www.apkmirror.com/apk/warnermedia-direct-llc/max-stream-hbo-tv-movies-android-tv/hbo-max-stream-tv-movies-android-tv-7-2-0-41-release/hbo-max-stream-tv-movies-android-tv-7-2-0-41-android-apk-download/
+1. Go to https://www.apkmirror.com and search for HBO MAX v-7-2-0-41 (Android TV)
 2. Download the `.apkm` file
 3. Select the apkm in Morphe Manager
 4. Apply the patch in Morphe Manager
