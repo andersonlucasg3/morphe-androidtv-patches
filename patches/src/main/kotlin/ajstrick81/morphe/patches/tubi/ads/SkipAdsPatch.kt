@@ -150,7 +150,7 @@ val skipAdsPatch = bytecodePatch(
         TubiWebClientInterceptFingerprint.method.addInstructions(
             0,
             """
-                invoke-static {p2}, Lajstrick81/morphe/extension/tubi/ads/TubiAdBlocker;->shouldBlock(Landroid/webkit/WebResourceRequest;)Landroid/webkit/WebResourceResponse;
+                invoke-static {p2}, Lajstrick81/morphe/extension/tubi/ads/SkipAdsPatch;->shouldBlock(Ljava/lang/Object;)Ljava/lang/Object;
                 move-result-object v0
                 return-object v0
             """
