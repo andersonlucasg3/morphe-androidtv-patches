@@ -14,3 +14,11 @@
 -keep class ajstrick81.morphe.extension.tubi.ads.SkipAdsPatch {
     public static *** onClearVodAds(java.lang.Object);
 }
+
+-keep class ajstrick81.morphe.extension.peacock.ads.SkipAdsPatch {
+    public static *** emptyAdPlaybackState(java.lang.Object);
+}
+
+-keep class ajstrick81.morphe.extension.tubi.ads.TubiAdBlocker {
+    public static *** shouldBlock(android.webkit.WebResourceRequest);
+}
