@@ -22,7 +22,7 @@ plugins {
 
 settings {
     extensions {
-        defaultNamespace = "app.morphe.extension"
+        defaultNamespace = "ajstrick81.morphe.extension"
         proguardFiles(rootProject.projectDir.resolve("extensions/proguard-rules.pro").toString())
     }
 }
