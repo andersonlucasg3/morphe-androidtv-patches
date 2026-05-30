@@ -1,3 +1,10 @@
+## [1.4.21](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.20...v1.4.21) (2026-05-30)
+
+
+### Bug Fixes
+
+* Add fingerprints for FoxIma stream requests ([d435003](https://github.com/ajstrick81/morphe-androidtv-patches/commit/d43500327ac868bb454defa76427b2d6acbed29f))
+
 ## [1.4.20](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.19...v1.4.20) (2026-05-29)
 
 

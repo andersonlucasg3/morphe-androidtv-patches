@@ -1,5 +1,5 @@
 {
-  "version": "1.4.20",
+  "version": "1.4.21",
   "appNames": {
     "com.foxsports.android": "Fox Sports",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
@@ -196,7 +196,7 @@
     },
     {
       "name": "Skip ads",
-      "description": "Eliminates all Tubi ad types: blocks IMA DAI mid-roll and post-roll events from reaching FoxPlayer, prevents the IMA AdsManager from priming the cold-launch pre-roll, and suppresses the pause-screen image overlay ad.",
+      "description": "Eliminates all Tubi ad types: intercepts DAI stream requests before they reach dai.google.com to prevent pre-roll stitching, blocks IMA ad events from reaching FoxPlayer, prevents AdsManager from priming the cold-launch pre-roll, and suppresses the pause-screen image overlay ad.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
