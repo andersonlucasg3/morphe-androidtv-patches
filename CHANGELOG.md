@@ -1,3 +1,10 @@
+## [1.4.22](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.21...v1.4.22) (2026-05-30)
+
+
+### Bug Fixes
+
+* Implement ad request interception in TubiWebClient ([a7342b1](https://github.com/ajstrick81/morphe-androidtv-patches/commit/a7342b1e2784859010b669b2add0e69c13e651f8))
+
 ## [1.4.21](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.20...v1.4.21) (2026-05-30)
 
 
