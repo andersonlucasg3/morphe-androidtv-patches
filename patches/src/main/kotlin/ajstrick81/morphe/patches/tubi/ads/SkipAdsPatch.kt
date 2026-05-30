@@ -117,7 +117,7 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // ─────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────
         // Hook 7 — xo/C$c.shouldInterceptRequest(WebView, WebResourceRequest)
         //
         // WEBVIEW PRE-ROLL ROOT CAUSE suppression. Full architectural detail
@@ -125,39 +125,81 @@ val skipAdsPatch = bytecodePatch(
         // drives the pre-roll entirely in JavaScript, and this is the only
         // native interception point that reaches the WebView network layer.
         //
-        // IMPLEMENTATION: straight-line code only — no labels, no branches.
+        // IMPLEMENTATION: pure smali — no extension class required.
         //
-        // Morphe's addInstructions does NOT support conditional branches or
-        // labels in injected snippets. Any if-eqz/if-nez with a label target
-        // produces bytecode that fails ART's DEX verifier at class load time,
-        // crashing the app before launch (confirmed: v1.4.22 total failure).
+        // Earlier attempts used a Java extension (SkipAdsPatch.shouldBlock) to
+        // do the URL inspection, but the extension class never compiled into the
+        // DEX due to a namespace mismatch in settings.gradle.kts.
         //
-        // Fix exploits Android's shouldInterceptRequest() null contract:
-        //   return non-null WebResourceResponse → intercept (block) request
-        //   return null                         → pass through, Android handles normally
+        // The v1.4.22 crash taught us the wrong lesson: we thought labels in
+        // addInstructions caused the crash, but the actual cause was a missing
+        // check-cast (returning java.lang.Object instead of WebResourceResponse).
+        // Labels and conditional branches DO work in addInstructions.
         //
-        // The smali calls shouldBlock(Object)Object because Morphe extensions cannot
-        // import android.* types. ART's verifier requires the return type match
-        // the method declaration (WebResourceResponse), so check-cast bridges the
-        // Object return to the declared type. When shouldBlock() returns null,
-        // check-cast on null is a no-op — ART allows casting null to any type.
-        // so we return its result directly with zero branching required:
+        // This implementation inlines the full ad-domain check directly in Dalvik
+        // bytecode — no extension needed:
         //
-        //   shouldBlock() → empty WebResourceResponse  = ad domain, request blocked
-        //   shouldBlock() → null                       = not ad, Android handles normally
+        //   1. Get host from WebResourceRequest.getUrl().getHost()
+        //   2. Check against each blocked domain using String.contains()
+        //   3. If match → construct and return empty WebResourceResponse (blocked)
+        //   4. If no match → fall through to original shouldInterceptRequest body
+        //      which calls yo/b (LocalAssetsLoader) and returns null for external
+        //      URLs — identical to pass-through behaviour
         //
-        // The original yo/b (LocalAssetsLoader) is bypassed. yo/b only handles
-        // local asset paths and returns null for all external URLs — functionally
-        // identical to our null pass-through. The async coroutine xo/C$c$a
-        // (page navigation analytics) is also skipped; not required for playback.
+        // Registers used: v0–v4 (within original .registers 10 budget)
+        //   v0 = Uri / new WebResourceResponse
+        //   v1 = host String / "text/plain"
+        //   v2 = domain const / "utf-8"
+        //   v3 = boolean result / empty byte[]
+        //   v4 = ByteArrayInputStream
+        //
+        // Blocked domains (same set confirmed by AGP DNS test):
+        //   dai.google.com, imasdk.googleapis.com, doubleclick.net,
+        //   googletagmanager.com, googlesyndication.com
         // ─────────────────────────────────────────────────────────────────────
         TubiWebClientInterceptFingerprint.method.addInstructions(
             0,
             """
-                invoke-static {p2}, Lajstrick81/morphe/extension/tubi/ads/SkipAdsPatch;->shouldBlock(Ljava/lang/Object;)Ljava/lang/Object;
+                if-eqz p2, :intercept_skip
+                invoke-interface {p2}, Landroid/webkit/WebResourceRequest;->getUrl()Landroid/net/Uri;
                 move-result-object v0
-                check-cast v0, Landroid/webkit/WebResourceResponse;
+                if-eqz v0, :intercept_skip
+                invoke-virtual {v0}, Landroid/net/Uri;->getHost()Ljava/lang/String;
+                move-result-object v1
+                if-eqz v1, :intercept_skip
+                const-string v2, "dai.google.com"
+                invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+                move-result v3
+                if-nez v3, :intercept_block
+                const-string v2, "imasdk.googleapis.com"
+                invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+                move-result v3
+                if-nez v3, :intercept_block
+                const-string v2, "doubleclick.net"
+                invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+                move-result v3
+                if-nez v3, :intercept_block
+                const-string v2, "googletagmanager.com"
+                invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+                move-result v3
+                if-nez v3, :intercept_block
+                const-string v2, "googlesyndication.com"
+                invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+                move-result v3
+                if-nez v3, :intercept_block
+                goto :intercept_skip
+                :intercept_block
+                new-instance v0, Landroid/webkit/WebResourceResponse;
+                const-string v1, "text/plain"
+                const-string v2, "utf-8"
+                const/4 v3, 0x0
+                new-array v3, v3, [B
+                new-instance v4, Ljava/io/ByteArrayInputStream;
+                invoke-direct {v4, v3}, Ljava/io/ByteArrayInputStream;-><init>([B)V
+                invoke-direct {v0, v1, v2, v4}, Landroid/webkit/WebResourceResponse;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/io/InputStream;)V
                 return-object v0
+                :intercept_skip
+                nop
             """
         )
     }
