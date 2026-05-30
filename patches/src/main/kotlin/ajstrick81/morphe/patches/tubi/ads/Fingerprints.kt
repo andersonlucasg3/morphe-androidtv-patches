@@ -197,3 +197,70 @@ object FoxImaLiveStreamRequestFingerprint : Fingerprint(
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC)
 )
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hook 7 — xo/C$c.shouldInterceptRequest(WebView, WebResourceRequest)
+// classes11.dex / xo/ (R8-minified TvWebFragment$TubiWebClient)
+//
+// This is the most significant architectural discovery of this session.
+// Tubi on Android TV is a HYBRID app — it loads a full React/JavaScript SPA
+// at https://ott-androidtv.tubitv.com inside a TubiWebView (which wraps
+// wendu/dsbridge DWebView). The SPA handles the ENTIRE pre-roll ad lifecycle
+// in JavaScript:
+//
+//   Chrome WebView renderer (sandboxed process)
+//     → SPA requests ad creative from dai.google.com
+//     → SPA plays pre-roll video as a JS <video> element
+//     → SPA tracks impression via its own JS ad engine
+//     → SPA calls JS→Native bridge: startNativePlayer({use_tubi_native_player:true})
+//         → xo/C.startNativePlayer() launches ExoPlayer with content URL
+//
+// This is why Hooks 1–6 (which all patch Java classes) have ZERO effect on
+// the pre-roll: the ad plays before ExoPlayer even initialises. The logcat
+// confirmed this — ExoPlayerImpl.Init fires ~2 minutes after app launch,
+// long after the 39-second pre-roll session has ended.
+//
+// This is also the root cause behind unpatched pre-rolls in Fox Sports and
+// Fox One from previous sessions. Fox Corp ships the same WebView-SPA hybrid
+// architecture across all their TV apps. DNS rules worked because they block
+// at the network layer which affects the Chrome renderer process. Native
+// bytecode patches could not reach the JS ad engine.
+//
+// xo/C$c is the TubiWebClient (TvWebFragment$TubiWebClient after R8 mapping).
+// It extends android.webkit.WebViewClient and overrides shouldInterceptRequest(),
+// which Android calls for EVERY resource the WebView tries to load — including
+// the ad creative requests, ad tracking pixels, and DAI stream requests.
+//
+// Our hook:
+//   1. Before the existing yo/b (LocalAssetsLoader) check runs, call our
+//      Java extension TubiAdBlocker.shouldBlock(WebResourceRequest)
+//   2. If the request URL matches an ad domain pattern, return an empty
+//      WebResourceResponse (HTTP 200, empty body) — the ad request silently
+//      fails from the SPA's perspective
+//   3. If not an ad request, fall through to the existing yo/b logic
+//
+// This is the bytecode equivalent of the AGP DNS block — implemented as a
+// WebViewClient interceptor rather than a network-layer filter, which means
+// it works with or without AGH/AGP on the network.
+//
+// Extension required: TubiAdBlocker.java — needs to construct
+// WebResourceResponse objects and check URL host patterns. Pure smali
+// cannot construct WebResourceResponse; Java interop is necessary.
+//
+// Blocked domains (matching confirmed via AGP DNS test):
+//   dai.google.com         — Google DAI stream stitching (pre-roll source)
+//   imasdk.googleapis.com  — IMA SDK JS loader
+//   googletagmanager.com   — Ad tag manager
+//   doubleclick.net        — Ad delivery
+//   googlesyndication.com  — Ad syndication
+// ─────────────────────────────────────────────────────────────────────────────
+object TubiWebClientInterceptFingerprint : Fingerprint(
+    definingClass = "Lxo/C\$c;",
+    name = "shouldInterceptRequest",
+    parameters = listOf(
+        "Landroid/webkit/WebView;",
+        "Landroid/webkit/WebResourceRequest;"
+    ),
+    returnType = "Landroid/webkit/WebResourceResponse;",
+    accessFlags = listOf(AccessFlags.PUBLIC)
+)
