@@ -153,9 +153,17 @@ val skipAdsPatch = bytecodePatch(
         //   v3 = boolean result / empty byte[]
         //   v4 = ByteArrayInputStream
         //
-        // Blocked domains (same set confirmed by AGP DNS test):
-        //   dai.google.com, imasdk.googleapis.com, doubleclick.net,
-        //   googletagmanager.com, googlesyndication.com
+        // Blocked domains:
+        //   dai.google.com          — Google DAI stream stitching (primary pre-roll source)
+        //   imasdk.googleapis.com   — IMA SDK JS loader
+        //   doubleclick.net         — Google ad delivery
+        //   googletagmanager.com    — Ad tag manager
+        //   googlesyndication.com   — Google ad syndication
+        //   adrise.tv               — Tubi's own AdRise ad platform (s.adrise.tv = ad content,
+        //                             license.adrise.tv = ad DRM). Confirmed via AGH query log
+        //                             as the fallback serving the surviving 20-30s pre-roll
+        //                             when all Google domains are blocked.
+        //   ads.production-public.tubi.io — Tubi's ad config/orchestration server
         // ─────────────────────────────────────────────────────────────────────
         TubiWebClientInterceptFingerprint.method.addInstructions(
             0,
@@ -184,6 +192,14 @@ val skipAdsPatch = bytecodePatch(
                 move-result v3
                 if-nez v3, :intercept_block
                 const-string v2, "googlesyndication.com"
+                invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+                move-result v3
+                if-nez v3, :intercept_block
+                const-string v2, "adrise.tv"
+                invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+                move-result v3
+                if-nez v3, :intercept_block
+                const-string v2, "ads.production-public.tubi.io"
                 invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
                 move-result v3
                 if-nez v3, :intercept_block
