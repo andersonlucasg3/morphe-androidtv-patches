@@ -1,3 +1,10 @@
+## [1.4.29](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.28...v1.4.29) (2026-05-31)
+
+
+### Bug Fixes
+
+* Update comments and add new ad server checks ([a39195d](https://github.com/ajstrick81/morphe-androidtv-patches/commit/a39195d92bd3ea1810c8672a8642771f92aac4b5))
+
 ## [1.4.28](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.27...v1.4.28) (2026-05-31)
 
 
