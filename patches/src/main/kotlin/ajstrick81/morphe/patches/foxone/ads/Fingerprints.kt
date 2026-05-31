@@ -1,7 +1,7 @@
 package ajstrick81.morphe.patches.foxone.ads
 
-import app.morphe.patcher.patch.annotation.fingerprint.AccessFlags
-import app.morphe.patcher.patch.fingerprint.Fingerprint
+import app.morphe.patcher.Fingerprint
+import com.android.tools.smali.dexlib2.AccessFlags
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Fox One v1.9.2 (com.fox.foxone) — Ad suppression fingerprints
