@@ -1,3 +1,10 @@
+## [1.4.28](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.27...v1.4.28) (2026-05-31)
+
+
+### Bug Fixes
+
+* add Tubi ad domains block in SkipAdsPatch ([bca79ee](https://github.com/ajstrick81/morphe-androidtv-patches/commit/bca79ee15d39d7ffb64563b8d17ca9e009758247))
+
 ## [1.4.27](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.26...v1.4.27) (2026-05-30)
 
 
