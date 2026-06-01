@@ -101,10 +101,6 @@ internal object PauseAdOverlayFingerprint : Fingerprint(
     returnType = "V",
     strings = listOf("renderState: ", " not updating overlay."),
     custom = { method, _ ->
-        method.definingClass.endsWith("CbsPauseWithAdsOverlay;") &&
-            method.accessFlags.let { flags ->
-                // public static — not instance, not constructor
-                flags.contains("public") && flags.contains("static")
-            }
+        method.definingClass.endsWith("CbsPauseWithAdsOverlay;")
     },
 )
