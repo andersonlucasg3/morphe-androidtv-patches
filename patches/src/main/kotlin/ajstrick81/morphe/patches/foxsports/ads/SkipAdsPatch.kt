@@ -6,19 +6,11 @@ import app.morphe.patcher.patch.bytecodePatch
 @Suppress("unused")
 val foxSportsSkipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Suppresses all ad delivery systems in Fox Sports Android TV: intercepts Google IMA DAI stream requests for VOD, silences IMA ad event and AdsManager listeners, and suppresses Yospace SSAI ad and slate events for live content.",
+    description = "Suppresses all ad delivery systems in Fox Sports Android TV.",
 ) {
-
     execute {
-
-        FoxImaAdEventListenerFingerprint.method.addInstructions(
-            0, "return-void"
-        )
-
-        FoxImaAdsLoadedListenerFingerprint.method.addInstructions(
-            0, "return-void"
-        )
-
+        FoxImaAdEventListenerFingerprint.method.addInstructions(0, "return-void")
+        FoxImaAdsLoadedListenerFingerprint.method.addInstructions(0, "return-void")
         FoxPlayerClearVodAdsFingerprint.method.addInstructions(
             0,
             """
@@ -28,7 +20,6 @@ val foxSportsSkipAdsPatch = bytecodePatch(
                 iput-object v0, p0, Lcom/fox/android/video/player/FoxPlayer;->vodPlayedAdGroups:[Z
             """
         )
-
         FoxImaVodStreamRequestFingerprint.method.addInstructions(
             0,
             """
@@ -37,7 +28,6 @@ val foxSportsSkipAdsPatch = bytecodePatch(
                 return-void
             """
         )
-
         FoxImaLiveStreamRequestFingerprint.method.addInstructions(
             0,
             """
@@ -46,17 +36,8 @@ val foxSportsSkipAdsPatch = bytecodePatch(
                 return-void
             """
         )
-
-        YospaceDispatchAdEventFingerprint.method.addInstructions(
-            0, "return-void"
-        )
-
-        YospaceDispatchSlateEventFingerprint.method.addInstructions(
-            0, "return-void"
-        )
-
-        YospaceSeekPolicyFingerprint.method.addInstructions(
-            0, "return-void"
-        )
+        YospaceDispatchAdEventFingerprint.method.addInstructions(0, "return-void")
+        YospaceDispatchSlateEventFingerprint.method.addInstructions(0, "return-void")
+        YospaceSeekPolicyFingerprint.method.addInstructions(0, "return-void")
     }
 }
