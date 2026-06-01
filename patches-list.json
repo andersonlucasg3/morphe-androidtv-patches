@@ -1,6 +1,8 @@
 {
-  "version": "1.4.31",
+  "version": "1.4.32",
   "appNames": {
+    "com.fox.foxone": "Fox One Android TV",
+    "com.foxsports.android": "Fox Sports Android TV",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
     "com.amazon.amazonvideo.livingroom": "Prime Video",
     "com.tubitv": "Tubi Android TV",
@@ -118,8 +120,25 @@
       "description": "Suppresses all ad delivery systems in Fox One Android TV.",
       "use": true,
       "dependencies": [],
-      "compatiblePackages": null,
-      "compatibility": [],
+      "compatiblePackages": {
+        "com.fox.foxone": [
+          "1.9.2"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Fox One Android TV",
+          "packageName": "com.fox.foxone",
+          "description": null,
+          "appIconColor": 199450,
+          "targets": [
+            {
+              "version": "1.9.2",
+              "experimental": false
+            }
+          ]
+        }
+      ],
       "options": []
     },
     {
@@ -127,8 +146,25 @@
       "description": "Suppresses all ad delivery systems in Fox Sports Android TV.",
       "use": true,
       "dependencies": [],
-      "compatiblePackages": null,
-      "compatibility": [],
+      "compatiblePackages": {
+        "com.foxsports.android": [
+          "5.152.0"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Fox Sports Android TV",
+          "packageName": "com.foxsports.android",
+          "description": null,
+          "appIconColor": 84368,
+          "targets": [
+            {
+              "version": "5.152.0",
+              "experimental": false
+            }
+          ]
+        }
+      ],
       "options": []
     },
     {
