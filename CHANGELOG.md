@@ -1,3 +1,10 @@
+## [1.4.31](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.30...v1.4.31) (2026-06-01)
+
+
+### Bug Fixes
+
+* Simplify SkipAdsPatch description and clean up code ([ab3e2bf](https://github.com/ajstrick81/morphe-androidtv-patches/commit/ab3e2bfa268071f85c4a1636a687a0b036f5a0b6))
+
 ## [1.4.30](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.29...v1.4.30) (2026-06-01)
 
 
