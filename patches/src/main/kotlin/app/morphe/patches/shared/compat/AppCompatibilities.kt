@@ -9,14 +9,14 @@ object AppCompatibilities {
         name = "Paramount+ Android TV",
         packageName = "com.cbs.ott",
         appIconColor = 0x0064FF,
-        targets = listOf(AppTarget("16.8.0")),
+        targets = listOf(AppTarget("16.12.0")),
     )
 
     val DISNEY_PLUS_TV = Compatibility(
         name = "Disney+ Android TV",
         packageName = "com.disney.disneyplus",
         appIconColor = 0x113CCF,
-        targets = listOf(AppTarget("26.6.0+rc5-2026.04.21")),
+        targets = listOf(AppTarget("26.8.0+rc6-2026.05.20")),
     )
 
     val HBO_TV = Compatibility(
