@@ -3,17 +3,6 @@ package ajstrick81.morphe.patches.foxsports.ads
 import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Fox Sports Android TV — Ad suppression fingerprints
-//
-// Fox Corp ships the same compiled player SDK binary across Fox Sports,
-// Fox One, and Tubi. All IMA/DAI and Yospace class paths are identical.
-//
-// Two ad pipelines:
-//   VOD content   → Google IMA DAI  (Hooks 1–5)
-//   Live content  → Yospace SSAI    (Hooks 6–8)
-// ─────────────────────────────────────────────────────────────────────────────
-
 object FoxImaAdEventListenerFingerprint : Fingerprint(
     definingClass = "Lcom/fox/android/video/player/api/ima/listeners/FoxImaAdListeners;",
     name = "adEventListener_delegate\$lambda\$10\$lambda\$9",
