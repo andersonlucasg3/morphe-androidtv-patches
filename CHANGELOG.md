@@ -1,3 +1,10 @@
+## [1.4.33](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.32...v1.4.33) (2026-06-01)
+
+
+### Bug Fixes
+
+* Update Fingerprints.kt for Disney+ Android TV v26.8.0rc6 ([5140813](https://github.com/ajstrick81/morphe-androidtv-patches/commit/5140813ad11756cbd3134f92b243a5d3d08fbb7e))
+
 ## [1.4.32](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.31...v1.4.32) (2026-06-01)
 
 

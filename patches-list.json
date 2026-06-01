@@ -1,5 +1,5 @@
 {
-  "version": "1.4.32",
+  "version": "1.4.33",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.foxsports.android": "Fox Sports Android TV",
@@ -13,12 +13,12 @@
   "patches": [
     {
       "name": "Disney+ Android TV",
-      "description": "Automatically skips ads.",
+      "description": "Removes mid-roll / pre-roll ads and pause ads.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
         "com.disney.disneyplus": [
-          "26.6.0+rc5-2026.04.21"
+          "26.8.0+rc6-2026.05.20"
         ]
       },
       "compatibility": [
@@ -29,7 +29,7 @@
           "appIconColor": 1129679,
           "targets": [
             {
-              "version": "26.6.0+rc5-2026.04.21",
+              "version": "26.8.0+rc6-2026.05.20",
               "experimental": false
             }
           ]
@@ -70,7 +70,7 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.cbs.ott": [
-          "16.8.0"
+          "16.12.0"
         ]
       },
       "compatibility": [
@@ -81,7 +81,7 @@
           "appIconColor": 25855,
           "targets": [
             {
-              "version": "16.8.0",
+              "version": "16.12.0",
               "experimental": false
             }
           ]
