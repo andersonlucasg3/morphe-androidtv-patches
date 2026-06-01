@@ -1,3 +1,11 @@
+## [1.4.34](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.33...v1.4.34) (2026-06-01)
+
+
+### Bug Fixes
+
+* Change compatibility from PARAMOUNT_PLUS_TV to PARAMOUNT_TV ([96dc1a8](https://github.com/ajstrick81/morphe-androidtv-patches/commit/96dc1a873621549517c28df0b2cbcc7be501553d))
+* Refactor PauseAdOverlayFingerprint custom logic ([70c4804](https://github.com/ajstrick81/morphe-androidtv-patches/commit/70c4804acd3c9785271dbb878df5e9a3899558b2))
+
 ## [1.4.33](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.32...v1.4.33) (2026-06-01)
 
 
