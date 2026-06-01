@@ -1,7 +1,6 @@
 {
-  "version": "1.4.29",
+  "version": "1.4.30",
   "appNames": {
-    "com.foxsports.android": "Fox Sports",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
     "com.amazon.amazonvideo.livingroom": "Prime Video",
     "com.tubitv": "Tubi Android TV",
@@ -116,28 +115,20 @@
     },
     {
       "name": "Skip ads",
-      "description": "Suppresses Yospace SSAI ad events from reaching FoxPlayer and unlocks fast-forward during ad breaks.",
+      "description": "Suppresses all ad delivery systems in Fox One Android TV.",
       "use": true,
       "dependencies": [],
-      "compatiblePackages": {
-        "com.foxsports.android": [
-          "5.152.0"
-        ]
-      },
-      "compatibility": [
-        {
-          "name": "Fox Sports",
-          "packageName": "com.foxsports.android",
-          "description": null,
-          "appIconColor": 14183,
-          "targets": [
-            {
-              "version": "5.152.0",
-              "experimental": false
-            }
-          ]
-        }
-      ],
+      "compatiblePackages": null,
+      "compatibility": [],
+      "options": []
+    },
+    {
+      "name": "Skip ads",
+      "description": "Suppresses all ad delivery systems in Fox Sports Android TV: intercepts Google IMA DAI stream requests for VOD, silences IMA ad event and AdsManager listeners, and suppresses Yospace SSAI ad and slate events for live content.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "compatibility": [],
       "options": []
     },
     {

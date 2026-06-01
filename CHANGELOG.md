@@ -1,3 +1,12 @@
+## [1.4.30](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.29...v1.4.30) (2026-06-01)
+
+
+### Bug Fixes
+
+* Refactor Fingerprints.kt for Fox One integration ([23bdb4e](https://github.com/ajstrick81/morphe-androidtv-patches/commit/23bdb4eab64959710996db57ac23758424634d5f))
+* Refactor imports in Fingerprints.kt ([07ae48c](https://github.com/ajstrick81/morphe-androidtv-patches/commit/07ae48c9b0a4e5d0dbc70d591ed99fcd71097e42))
+* Rename patch from Fox One to Fox Sports ([ae60e8b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/ae60e8bf98ed90cb54e322a0abdfa0f14fd28807))
+
 ## [1.4.29](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.28...v1.4.29) (2026-05-31)
 
 

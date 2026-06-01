@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-05-31T17:46:13",
-  "description": "## [1.4.29](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.28...v1.4.29) (2026-05-31)\n\n\n### Bug Fixes\n\n* Update comments and add new ad server checks ([a39195d](https://github.com/ajstrick81/morphe-androidtv-patches/commit/a39195d92bd3ea1810c8672a8642771f92aac4b5))",
-  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.29/patches-1.4.29.mpp",
+  "created_at": "2026-06-01T00:16:07",
+  "description": "## [1.4.30](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.29...v1.4.30) (2026-06-01)\n\n\n### Bug Fixes\n\n* Refactor Fingerprints.kt for Fox One integration ([23bdb4e](https://github.com/ajstrick81/morphe-androidtv-patches/commit/23bdb4eab64959710996db57ac23758424634d5f))\n* Refactor imports in Fingerprints.kt ([07ae48c](https://github.com/ajstrick81/morphe-androidtv-patches/commit/07ae48c9b0a4e5d0dbc70d591ed99fcd71097e42))\n* Rename patch from Fox One to Fox Sports ([ae60e8b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/ae60e8bf98ed90cb54e322a0abdfa0f14fd28807))",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.30/patches-1.4.30.mpp",
   "signature_download_url": "",
-  "version": "1.4.29"
+  "version": "1.4.30"
 }
