@@ -19,8 +19,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 // from a parameter. Injecting return-void at index 0 prevents the field
 // from ever being written, leaving `enabled` at its JVM default (false).
 // The LuraPlayer ad scheduler reads this before fetching any ad URLs.
-//
-// Class is not R8-renamed — full descriptor confirmed in classes5.dex.
 // ─────────────────────────────────────────────────────────────────────────────
 object LuraFreewheelConfigFingerprint : Fingerprint(
     definingClass = "Lcom/akta/luraplayer/api/configs/ads/LuraFreewheelConfiguration;",
@@ -36,8 +34,6 @@ object LuraFreewheelConfigFingerprint : Fingerprint(
 // Top-level VAST/VMAP ad configuration object. Holds the ad URL macro bag
 // and break schedule. Stubbing the constructor leaves all fields null/empty,
 // so the Lura ad scheduler has no URL to request and no breaks to schedule.
-//
-// Class is not R8-renamed — full descriptor confirmed in classes6.dex.
 // ─────────────────────────────────────────────────────────────────────────────
 object LuraAdsConfigFingerprint : Fingerprint(
     definingClass = "Lcom/akta/luraplayer/api/configs/ads/LuraAdsConfiguration;",
@@ -54,8 +50,6 @@ object LuraAdsConfigFingerprint : Fingerprint(
 // skippable and after how many seconds. Stubbing the constructor leaves
 // skipMode at its default enum value, which is the most permissive skip mode.
 // Any ad that survives Hooks 1–2 will be immediately skippable.
-//
-// Class is not R8-renamed — full descriptor confirmed in classes5.dex.
 // ─────────────────────────────────────────────────────────────────────────────
 object LuraAdsPolicyFingerprint : Fingerprint(
     definingClass = "Lcom/akta/luraplayer/api/configs/ads/LuraAdsPolicySurrogate;",
@@ -73,7 +67,6 @@ object LuraAdsPolicyFingerprint : Fingerprint(
 // Innovid ad session. Stubbing it prevents the overlay WebView from ever
 // being mounted — no Innovid ad is fetched or rendered.
 //
-// Class is not R8-renamed — full descriptor confirmed in classes10.dex.
 // Method name is R8-obfuscated; matched by return type + access flags on
 // the single public non-constructor method in this class.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -81,24 +74,4 @@ object InnovidStartAdFingerprint : Fingerprint(
     definingClass = "Lcom/univision/descarga/videoplayer/utilities/innovid/InnovidHelper;",
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Hook 5 — DescargaApplication ad consent initialiser
-// classes6.dex / com/univision/descarga/app/
-//
-// DescargaApplication contains the consent/ad-ID initialisation block that
-// runs at app startup. Returning void at index 0 prevents the advertising
-// consent state from being written, which causes the ad pipeline to see
-// consent as undetermined — most ad providers will not serve ads in this
-// state and abort the ad request path early.
-//
-// This is the outermost gate and the safest single-point suppression.
-// Confirmed method: updateAdvertisingConsent (not R8-renamed).
-// ─────────────────────────────────────────────────────────────────────────────
-object DescargaAdConsentFingerprint : Fingerprint(
-    definingClass = "Lcom/univision/descarga/app/DescargaApplication;",
-    name = "updateAdvertisingConsent",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PRIVATE)
 )
