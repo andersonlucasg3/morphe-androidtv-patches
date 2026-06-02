@@ -1,125 +1,92 @@
-package com.ajstrick81.patches.vix.ads
+package ajstrick81.morphe.patches.vix.ads
 
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.util.returnEarly
-import com.brterabi.dalvik.dex.Opcode
+import app.morphe.patcher.patch.bytecodePatch
+import ajstrick81.morphe.patches.vix.shared.Constants
 
-// ---------------------------------------------------------------------------
-// SkipAdsPatch — ViX Android TV (com.univision.prendetv) v4.46.0_tv
-//
-// Five independent layers, each targeting a different stage of the ad
-// pipeline.  Any single layer may survive an app update; together they
-// provide defence-in-depth:
-//
-//   Layer 1 — Zero-out LuraFreeWheel config (ad scheduler sees disabled=false)
-//   Layer 2a — Nullify LuraAdsConfiguration ad URL macro bag
-//   Layer 2b — Force LuraAdsPolicySurrogate to maximum skip permissiveness
-//   Layer 3 — Stub InnovidHelper.startAd() (SSAI overlay never mounts)
-//   Layer 4 — Auto-complete AdsUI countdown (skip countdown → 0 immediately)
-//   Layer 5 — Stub VideoPlayerFragment ad-position ticker coroutine
-// ---------------------------------------------------------------------------
+@Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes ad breaks and the ad countdown overlay from ViX Android TV.",
+    description = "Eliminates all ViX ad types: stubs the LuraPlayer FreeWheel and VAST/VMAP " +
+        "configuration constructors so no ad URLs are ever requested, forces the skip policy to " +
+        "its most permissive mode, prevents the Innovid SSAI overlay from mounting, and blocks " +
+        "advertising consent initialisation at app startup.",
 ) {
-    compatibleWith(PACKAGE_NAME to listOf(COMPATIBLE_VERSION))
-
-    use(luraFreewheelConfigFingerprint)
-    use(luraAdsConfigFingerprint)
-    use(luraAdsPolicyFingerprint)
-    use(innovidStartAdFingerprint)
-    use(adsUiCountdownFingerprint)
-    use(videoPlayerAdJobFingerprint)
+    compatibleWith(Constants.COMPATIBILITY)
 
     execute {
 
-        // -------------------------------------------------------------------
-        // LAYER 1 — LuraFreewheelConfiguration.enabled = false
+        // ─────────────────────────────────────────────────────────────────────
+        // Hook 1 — LuraFreewheelConfiguration.<init>
         //
-        // The `enabled` field is a Kotlin Boolean stored as a JVM boolean (Z).
-        // The class initialiser copies a constructor parameter into the field
-        // with iput-boolean.  We inject `const/4 v0, 0x0` before the first
-        // iput-boolean so the field is always written as false, regardless of
-        // what the app's config JSON says.
-        // -------------------------------------------------------------------
-        luraFreewheelConfigFingerprint.method.apply {
-            val iputIndex = implementation!!.instructions.indexOfFirst {
-                it.opcode == Opcode.IPUT_BOOLEAN
-            }
-            if (iputIndex >= 0) {
-                // Force the source register to 0 (false) before the field write.
-                addInstructions(
-                    iputIndex,
-                    """
-                    const/4 v0, 0x0
-                    """.trimIndent(),
-                )
-            }
-        }
+        // Leaves the `enabled` boolean field at its JVM default (false).
+        // The LuraPlayer ad scheduler reads this before fetching ad URLs —
+        // with FreeWheel disabled the scheduler aborts the ad request early.
+        // ─────────────────────────────────────────────────────────────────────
+        LuraFreewheelConfigFingerprint.method.addInstructions(
+            0,
+            """
+                return-void
+            """
+        )
 
-        // -------------------------------------------------------------------
-        // LAYER 2a — LuraAdsConfiguration: return early from constructor
+        // ─────────────────────────────────────────────────────────────────────
+        // Hook 2 — LuraAdsConfiguration.<init>
         //
-        // By returning at the very start of the constructor we leave the
-        // `macros` and `adUrl` fields at their Kotlin default values
-        // (null / empty).  The scheduler will see no URLs and schedule nothing.
-        // -------------------------------------------------------------------
-        luraAdsConfigFingerprint.method.returnEarly()
+        // Leaves all ad URL macros and break schedule fields null/empty.
+        // Without a valid ad URL the VAST/VMAP request is never made and
+        // no ad breaks are scheduled for any content session.
+        // ─────────────────────────────────────────────────────────────────────
+        LuraAdsConfigFingerprint.method.addInstructions(
+            0,
+            """
+                return-void
+            """
+        )
 
-        // -------------------------------------------------------------------
-        // LAYER 2b — LuraAdsPolicySurrogate: return early from constructor
+        // ─────────────────────────────────────────────────────────────────────
+        // Hook 3 — LuraAdsPolicySurrogate.<init>
         //
-        // Leaves skipMode at its default (most permissive) enum value so that
-        // any ad that somehow starts playing is immediately skippable.
-        // -------------------------------------------------------------------
-        luraAdsPolicyFingerprint.method.returnEarly()
+        // Leaves skipMode at its default enum value (most permissive).
+        // Belt-and-suspenders: any ad that somehow survives Hooks 1–2 will
+        // be immediately skippable with no countdown.
+        // ─────────────────────────────────────────────────────────────────────
+        LuraAdsPolicyFingerprint.method.addInstructions(
+            0,
+            """
+                return-void
+            """
+        )
 
-        // -------------------------------------------------------------------
-        // LAYER 3 — InnovidHelper.startAd(): return early
+        // ─────────────────────────────────────────────────────────────────────
+        // Hook 4 — InnovidHelper (start ad method)
         //
-        // Prevents the Innovid WebView overlay from ever being mounted.
-        // The method is a suspend function (coroutine); returnEarly() inserts
-        // `return-void` at index 0, which is safe for Unit-returning suspends.
-        // -------------------------------------------------------------------
-        innovidStartAdFingerprint.method.returnEarly()
+        // Prevents the Innovid SSAI WebView overlay from mounting.
+        // The Innovid pipeline is entirely separate from LuraPlayer/FreeWheel —
+        // Hooks 1–3 have no effect on it. Returning void here stops the
+        // session before any network request or WebView instantiation.
+        // ─────────────────────────────────────────────────────────────────────
+        InnovidStartAdFingerprint.method.addInstructions(
+            0,
+            """
+                return-void
+            """
+        )
 
-        // -------------------------------------------------------------------
-        // LAYER 4 — AdsUI countdown coroutine: collapse delay to zero
+        // ─────────────────────────────────────────────────────────────────────
+        // Hook 5 — DescargaApplication.updateAdvertisingConsent
         //
-        // The countdown body calls `delay(intervalMs)` in a loop.  We locate
-        // the first invoke-static/invoke-virtual that references the delay
-        // value register and replace its argument with const/16 0x0 so the
-        // coroutine yields immediately on every tick, draining the countdown
-        // in a single frame and surfacing the skip button at t=0.
-        //
-        // The const/16 is injected two instructions before the delay call so
-        // it overwrites the delay-duration register cleanly.
-        // -------------------------------------------------------------------
-        adsUiCountdownFingerprint.method.apply {
-            val delayCallIndex = implementation!!.instructions.indexOfFirst {
-                it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_VIRTUAL
-            }
-            if (delayCallIndex >= 1) {
-                // Replace the long constant holding the delay duration with 0.
-                replaceInstruction(
-                    delayCallIndex - 1,
-                    "const/16 v0, 0x0",
-                )
-            }
-        }
-
-        // -------------------------------------------------------------------
-        // LAYER 5 — VideoPlayerFragment.startAdUpdateJob: return early
-        //
-        // Stops the coroutine that feeds ad-position ticks into the LuraPlayer
-        // SDK.  Without position ticks the ad engine cannot fire ad-break
-        // transitions.  This is the outermost gate — it fires before any ad
-        // URL is fetched for pre-roll scheduling.
-        // -------------------------------------------------------------------
-        videoPlayerAdJobFingerprint.method.returnEarly()
+        // Outermost gate. Prevents advertising consent state from being
+        // written at app startup. Most ad providers (FreeWheel, IMA, Innovid)
+        // check consent before serving — with consent undetermined they abort
+        // the ad request path, providing a second layer of protection
+        // independent of Hooks 1–4.
+        // ─────────────────────────────────────────────────────────────────────
+        DescargaAdConsentFingerprint.method.addInstructions(
+            0,
+            """
+                return-void
+            """
+        )
     }
 }
