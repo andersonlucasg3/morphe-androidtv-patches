@@ -2,18 +2,20 @@
  * Forked from:
  * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/disneyplus/ads/Fingerprints.kt
  * ALL CREDIT GOES TO RookieEnough FOR THE ORIGINAL CODE
- */
-
-/*
- * Forked from:
- * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/disneyplus/ads/Fingerprints.kt
- * ALL CREDIT GOES TO RookieEnough FOR THE ORIGINAL CODE
  *
  * Updated for Disney+ Android TV v26.8.0+rc6 (versionCode 1779314460)
- * - InsertionGetPointsFingerprint:   VALIDATED ✅  (class + method unchanged)
- * - InsertionGetRangesFingerprint:   VALIDATED ✅  (class + method unchanged)
- * - PauseAdScheduledFingerprint:     NEW ✅  targets onPauseScheduled() in
- *                                    MediaXInterstitialController
+ * - InsertionGetPointsFingerprint:  VALIDATED ✅  (class + method unchanged)
+ * - InsertionGetRangesFingerprint:  VALIDATED ✅  (class + method unchanged)
+ * - PauseAdSessionFingerprint:      NEW ✅  targets createPauseSession() in
+ *                                   MediaXInterstitialController
+ *
+ * Pause ad fix v2:
+ *   Previous target was onPauseScheduled() — this method already has a
+ *   null guard on pauseSession and was not being matched reliably.
+ *   Retargeted to createPauseSession(), which constructs and stores the
+ *   MediaXPauseSession object. Returning null here means pauseSession is
+ *   never populated, so onPauseScheduled()'s null guard fires and the
+ *   entire pause ad lifecycle is silently skipped.
  */
 
 package app.morphe.patches.disney
@@ -42,33 +44,39 @@ internal object InsertionGetRangesFingerprint : Fingerprint(
 )
 
 // ---------------------------------------------------------------------------
-// New fingerprint — pause ads
+// Pause ad fingerprint — retargeted to createPauseSession()
 //
-// Target: MediaXInterstitialController.onPauseScheduled(MediaXPause)
+// Target: MediaXInterstitialController.createPauseSession(MediaXPause)
 //
-// This method is the entry point for the pause ad lifecycle. When the player
-// pauses, the MEL (Media Event Layer) calls onPauseScheduled() which publishes
-// the pause session to a RxJava PublishSubject, triggering the ad overlay.
+// This method constructs the MediaXPauseSession and stores it in the
+// controller's pauseSession field. The full pause ad lifecycle depends
+// on this field being non-null:
 //
-// Patching strategy: return-void at instruction 0, preventing the event from
-// ever reaching the subscriber that renders the pause ad overlay.
+//   createPauseSession(MediaXPause)              ← patch here
+//     → new MediaXPauseSession(mediaXPause.into())
+//     → iput pauseSession field
+//     → return session
+//
+//   onPauseScheduled(MediaXPause)
+//     → iget pauseSession
+//     → if-eqz → return-void  (null guard — our kill switch)
+//     → getPauseScheduled().onNext(session)
+//       → subscriber renders pause ad overlay
+//
+// Patching strategy: return null (const/4 v0, 0x0 → return-object v0)
+// at offset 0. pauseSession field is never populated, so onPauseScheduled's
+// existing null guard fires and the render event is never published.
 //
 // Anchor string "mediaXPause" is a Kotlin non-null assertion label injected
-// by the compiler at the top of the method — stable across minification
-// because it comes from the Kotlin source parameter name, not ProGuard.
-//
-// Full call chain (for reference):
-//   onPauseScheduled(MediaXPause)
-//     → pauseSession (MediaXPauseSession field, set by createPauseSession)
-//     → getPauseScheduled() PublishSubject
-//       → subscriber renders CbsPauseWithAdsOverlay equivalent
+// by the compiler from the source parameter name — stable across ProGuard
+// minification since it is not subject to name obfuscation.
 // ---------------------------------------------------------------------------
 
-internal object PauseAdScheduledFingerprint : Fingerprint(
-    returnType = "V",
+internal object PauseAdSessionFingerprint : Fingerprint(
+    returnType = "Lcom/disneystreaming/nve/player/mel/MediaXPauseSession;",
     strings = listOf("mediaXPause"),
     custom = { method, _ ->
-        method.name == "onPauseScheduled" &&
+        method.name == "createPauseSession" &&
             method.definingClass ==
                 "Lcom/disneystreaming/nve/player/mel/MediaXInterstitialController;"
     },
