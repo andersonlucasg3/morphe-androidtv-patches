@@ -1,3 +1,10 @@
+## [1.4.36](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.35...v1.4.36) (2026-06-02)
+
+
+### Bug Fixes
+
+* Refine Paramount patch for ad handling ([cbe5e59](https://github.com/ajstrick81/morphe-androidtv-patches/commit/cbe5e5904f2dfcb1ebeb4f53bf065c35da7ebb2c))
+
 ## [1.4.35](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.34...v1.4.35) (2026-06-02)
 
 

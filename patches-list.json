@@ -1,5 +1,5 @@
 {
-  "version": "1.4.35",
+  "version": "1.4.36",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.foxsports.android": "Fox Sports Android TV",
@@ -65,7 +65,7 @@
     },
     {
       "name": "Paramount+ Android TV",
-      "description": "Removes VOD ads and pause ads.",
+      "description": "Removes pause ads.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
