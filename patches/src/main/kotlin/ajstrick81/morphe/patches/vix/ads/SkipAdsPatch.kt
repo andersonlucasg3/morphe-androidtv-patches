@@ -9,8 +9,7 @@ val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Eliminates all ViX ad types: stubs the LuraPlayer FreeWheel and VAST/VMAP " +
         "configuration constructors so no ad URLs are ever requested, forces the skip policy to " +
-        "its most permissive mode, prevents the Innovid SSAI overlay from mounting, and blocks " +
-        "advertising consent initialisation at app startup.",
+        "its most permissive mode, and prevents the Innovid SSAI overlay from mounting.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
@@ -67,22 +66,6 @@ val skipAdsPatch = bytecodePatch(
         // session before any network request or WebView instantiation.
         // ─────────────────────────────────────────────────────────────────────
         InnovidStartAdFingerprint.method.addInstructions(
-            0,
-            """
-                return-void
-            """
-        )
-
-        // ─────────────────────────────────────────────────────────────────────
-        // Hook 5 — DescargaApplication.updateAdvertisingConsent
-        //
-        // Outermost gate. Prevents advertising consent state from being
-        // written at app startup. Most ad providers (FreeWheel, IMA, Innovid)
-        // check consent before serving — with consent undetermined they abort
-        // the ad request path, providing a second layer of protection
-        // independent of Hooks 1–4.
-        // ─────────────────────────────────────────────────────────────────────
-        DescargaAdConsentFingerprint.method.addInstructions(
             0,
             """
                 return-void
