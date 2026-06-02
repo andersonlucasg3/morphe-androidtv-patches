@@ -6,15 +6,6 @@
  * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/disneyplus/ads/Fingerprints.kt
  *
  * Modified for use in morphe-androidtv-patches
- */
-/*
- * Credit:
- * Original work by RookieEnough aka The G.O.A.T :)
- *
- * Forked from:
- * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/disneyplus/ads/Fingerprints.kt
- *
- * Modified for use in morphe-androidtv-patches
  *
  * Validated against Disney+ Android TV v26.8.0+rc6-2026.05.20
  * Package:     com.disney.disneyplus
@@ -39,7 +30,7 @@ val disneyPatch = bytecodePatch(
         // Patch 1 & 2: Pre-roll / mid-roll SGAI/SSAI ad insertion
         //
         // Insertion.getPoints() returns the list of InsertionPoints (ad cue
-        // positions) for a media item.  Returning an empty list causes the
+        // positions) for a media item. Returning an empty list causes the
         // player to see zero ad cues and skip all break scheduling.
         //
         // Insertion.getRanges() returns ad range windows used by:
@@ -69,33 +60,31 @@ val disneyPatch = bytecodePatch(
         // ------------------------------------------------------------------
         // Patch 3: Pause ads
         //
-        // MediaXInterstitialController.onPauseScheduled(MediaXPause) is the
-        // MEL callback fired when the player detects a user pause event and
-        // a pause ad has been scheduled by the ad server (via AdSession
-        // .getPauseUrl()).
+        // MediaXInterstitialController.createPauseSession(MediaXPause) is
+        // the method that constructs the MediaXPauseSession and stores it
+        // in the controller's pauseSession field.
         //
-        // Call chain:
-        //   onPauseScheduled(MediaXPause)
-        //     iget pauseSession (MediaXPauseSession)
-        //     if null → return (already a no-op guard)
-        //     getPauseScheduled() PublishSubject → onNext(pauseSession)
-        //       → downstream subscriber renders the pause ad overlay
+        // The downstream method onPauseScheduled() already contains a null
+        // guard on that field:
         //
-        // Patching strategy: return-void at instruction 0.
+        //   iget-object v2, v1, ...->pauseSession
+        //   if-eqz v2, :return_void    ← fires if pauseSession is null
+        //   getPauseScheduled().onNext(v2)
+        //     → subscriber renders pause ad overlay
         //
-        // Effect:
-        //   - The RxJava onNext() is never called
-        //   - The pause ad overlay is never shown
-        //   - No NPE risk: pauseSession is still created by createPauseSession()
-        //     and can be cleaned up normally by clear(); we just never surface
-        //     the event that would render the UI
-        //   - Equivalent to the CbsPauseWithAdsOverlay.M() → return-void
-        //     patch used in the Paramount+ patch set
+        // Patching strategy: return null at offset 0 of createPauseSession().
+        // pauseSession is never populated, onPauseScheduled()'s existing null
+        // guard fires on every pause event, and the overlay is never rendered.
+        //
+        // Using the framework's existing null guard as our kill switch means
+        // no risk of NPE anywhere else in the controller — clear() and other
+        // lifecycle methods all perform their own null checks on pauseSession.
         // ------------------------------------------------------------------
-        PauseAdScheduledFingerprint.method.addInstructions(
+        PauseAdSessionFingerprint.method.addInstructions(
             0,
             """
-                return-void
+                const/4 v0, 0x0
+                return-object v0
             """.trimIndent(),
         )
     }
