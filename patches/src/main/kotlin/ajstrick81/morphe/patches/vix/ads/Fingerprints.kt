@@ -28,44 +28,12 @@ object LuraFreewheelConfigFingerprint : Fingerprint(
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Hook 2 — LuraAdsConfiguration (constructor)
-// classes6.dex / com/akta/luraplayer/api/configs/ads/
-//
-// Top-level VAST/VMAP ad configuration object. Holds the ad URL macro bag
-// and break schedule. Stubbing the constructor leaves all fields null/empty,
-// so the Lura ad scheduler has no URL to request and no breaks to schedule.
-// ─────────────────────────────────────────────────────────────────────────────
-object LuraAdsConfigFingerprint : Fingerprint(
-    definingClass = "Lcom/akta/luraplayer/api/configs/ads/LuraAdsConfiguration;",
-    name = "<init>",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR)
-)
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Hook 3 — LuraAdsPolicySurrogate (constructor)
-// classes5.dex / com/akta/luraplayer/api/configs/ads/
-//
-// Wraps skip-mode policy (LuraAdsSkipMode enum). Controls whether ads are
-// skippable and after how many seconds. Stubbing the constructor leaves
-// skipMode at its default enum value, which is the most permissive skip mode.
-// Any ad that survives Hooks 1–2 will be immediately skippable.
-// ─────────────────────────────────────────────────────────────────────────────
-object LuraAdsPolicyFingerprint : Fingerprint(
-    definingClass = "Lcom/akta/luraplayer/api/configs/ads/LuraAdsPolicySurrogate;",
-    name = "<init>",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR)
-)
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Hook 4 — InnovidHelper (primary public method)
+// Hook 2 — InnovidHelper (primary public method)
 // classes10.dex / com/univision/descarga/videoplayer/utilities/innovid/
 //
 // InnovidHelper is the entry point for the Innovid SSAI WebView overlay.
-// The class has a single public non-constructor method which starts the
-// Innovid ad session. Stubbing it prevents the overlay WebView from ever
-// being mounted — no Innovid ad is fetched or rendered.
+// Stubbing it prevents the overlay WebView from ever being mounted —
+// no Innovid ad is fetched or rendered.
 //
 // Method name is R8-obfuscated; matched by return type + access flags on
 // the single public non-constructor method in this class.
