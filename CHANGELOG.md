@@ -1,3 +1,10 @@
+## [1.4.37](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.36...v1.4.37) (2026-06-02)
+
+
+### Bug Fixes
+
+* Update comments and method name for ad pause patch ([1a06d95](https://github.com/ajstrick81/morphe-androidtv-patches/commit/1a06d95ee5b293e1e52b49d66f1abfc6565a0817))
+
 ## [1.4.36](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.35...v1.4.36) (2026-06-02)
 
 

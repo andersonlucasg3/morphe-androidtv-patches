@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-06-02T00:36:14",
-  "description": "## [1.4.36](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.35...v1.4.36) (2026-06-02)\n\n\n### Bug Fixes\n\n* Refine Paramount patch for ad handling ([cbe5e59](https://github.com/ajstrick81/morphe-androidtv-patches/commit/cbe5e5904f2dfcb1ebeb4f53bf065c35da7ebb2c))",
-  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.36/patches-1.4.36.mpp",
+  "created_at": "2026-06-02T00:45:33",
+  "description": "## [1.4.37](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.36...v1.4.37) (2026-06-02)\n\n\n### Bug Fixes\n\n* Update comments and method name for ad pause patch ([1a06d95](https://github.com/ajstrick81/morphe-androidtv-patches/commit/1a06d95ee5b293e1e52b49d66f1abfc6565a0817))",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.37/patches-1.4.37.mpp",
   "signature_download_url": "",
-  "version": "1.4.36"
+  "version": "1.4.37"
 }
