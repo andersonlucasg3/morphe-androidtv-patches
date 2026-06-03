@@ -8,6 +8,8 @@ object Constants {
         name = "Peacock TV Android TV",
         packageName = "com.peacocktv.peacockandroid",
         appIconColor = 0x000000,
-        targets = listOf(AppTarget("7.5.102"))
+        targets = listOf(
+            AppTarget("7.5.102"),
+        )
     )
 }
