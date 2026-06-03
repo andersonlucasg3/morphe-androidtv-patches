@@ -1,86 +1,100 @@
-package ajstrick81.morphe.patches.peacock.ads
+package app.morphe.patches.peacocktvandroidtv.ads
 
 import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Primary target — MultiPeriodAdsMediaSource$ComponentListener.a(AdPlaybackState)
-// classes.dex / com/comcast/helio/hacks/multiperiodads/
-//
-// ComponentListener is the concrete implementation of MultiPeriodAdsLoader$
-// EventListener. It is the single chokepoint where HelioAdsLoader pushes
-// every AdPlaybackState update into the media3 ExoPlayer timeline. The full
-// call chain is:
-//
-//   HelioAdsLoader (coroutines $1$1$1 and $1$1$1$1, plus direct method)
-//     → HelioAdsLoader.h.a(AdPlaybackState)           ← interface dispatch
-//       → ComponentListener.a(AdPlaybackState)         ← OUR HOOK
-//         → Handler.post(Runnable_a(c=1, adState))
-//           → Runnable_a.run()
-//             → MultiPeriodAdsMediaSource.w = adState
-//             → MultiPeriodAdsMediaSource.j0() / k0()  ← ExoPlayer timeline refresh
-//
-// Returning void at index 0 silences ALL AdPlaybackState deliveries from
-// all three callers (direct, coroutine init, coroutine update lambda).
-// MultiPeriodAdsMediaSource.w is never written and the ExoPlayer timeline
-// never registers any ad periods.
-//
-// APK autopsy confirmed (v7.5.102, classes.dex):
-//   - definingClass: Lcom/comcast/helio/hacks/multiperiodads/MultiPeriodAdsMediaSource$ComponentListener;
-//   - parameter:     Landroidx/media3/common/AdPlaybackState;   (media3 common, NOT exoplayer2)
-//   - ComponentListener lives only in classes.dex after patching; classes2.dex
-//     does NOT contain it, so the patched version loads first at runtime.
-//
-// Prior builds used an incorrect class path (cvs/android/helio/ads) and wrong
-// AdPlaybackState package (exoplayer2). Morphe fuzzy-matched anyway but a
-// strict build will reject it. These are the verified correct values.
-// ─────────────────────────────────────────────────────────────────────────────
-object HelioAdPlaybackStateFingerprint : Fingerprint(
-    definingClass = "Lcom/comcast/helio/hacks/multiperiodads/MultiPeriodAdsMediaSource\$ComponentListener;",
-    name = "a",
-    parameters = listOf("Landroidx/media3/common/AdPlaybackState;"),
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
+// ─────────────────────────────────────────────────────────
+// LAYER 1: MediaTailor SSAI proxy host
+// Target: SSAIConfiguration$MediaTailor$AutomaticMediaTailor.getProxyHost()
+// Returning "" prevents proxy URL configuration → no SSAI.
+// STATUS: Confirmed matching v6.11.212 and present in v7.5.102
+// ─────────────────────────────────────────────────────────
+internal object MediaTailorProxyHostFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "Ljava/lang/String;",
+    custom = { method, classDef ->
+        method.name == "getProxyHost" &&
+            classDef.type.contains("AutomaticMediaTailor")
+    },
 )
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Secondary target — HelioAdsLoader$1$1$1.invokeSuspend(Object)
-// classes2.dex / com/comcast/helio/ads/insert/
-//
-// This is the Kotlin coroutine (suspend fun) that drives the complete ad
-// schedule lifecycle for a playback session. Its invokeSuspend() method is
-// the coroutine's state machine entry point, called both on initial launch
-// and on each coroutine resume. The key operations inside are:
-//
-//   1. Fetches ad metadata from Helio's ad server
-//   2. Constructs a new HelioAdPlaybackState (stores in HelioAdsLoader.f)
-//   3. Dispatches via HelioAdsLoader.h.a(AdPlaybackState)
-//      → ComponentListener.a() → Handler.post() → timeline update
-//
-// Returning COROUTINE_SUSPENDED immediately causes the coroutine framework
-// to treat this suspension as permanent — the state machine never resumes,
-// so steps 2 and 3 never execute. HelioAdsLoader.f stays null.
-//
-// All three dispatch callers guard with:
-//   if-eqz f, :skip   ← HelioAdPlaybackState null check
-//   if-eqz h, :skip   ← EventListener null check
-//
-// With f null (HelioAdPlaybackState never created), every dispatch path
-// falls through the null guard as a no-op. This is the upstream backstop
-// that complements the ComponentListener hook.
-//
-// Coroutine sentinel pattern:
-//   sget-object p1, CoroutineSingletons->c   (c = COROUTINE_SUSPENDED, confirmed
-//                                             via APK autopsy on v7.5.102)
-//   return-object p1
-//
-// We reuse p1 (the incoming result Object) as the register since p-registers
-// are always allocated and we exit before p1's original value is ever read.
-// ─────────────────────────────────────────────────────────────────────────────
-object HelioAdScheduleCoroutineFingerprint : Fingerprint(
-    definingClass = "Lcom/comcast/helio/ads/insert/HelioAdsLoader\$1\$1\$1;",
-    name = "invokeSuspend",
-    parameters = listOf("Ljava/lang/Object;"),
+// ─────────────────────────────────────────────────────────
+// LAYER 2: ObfuscatedProfileId master kill switch
+// Target: ObfuscatedProfileId.values()
+// Returning empty array prevents all 9 ad/analytics SDKs from registering.
+// STATUS: Confirmed matching v6.11.212 and present in v7.5.102
+// ─────────────────────────────────────────────────────────
+internal object ObfuscatedProfileIdValuesFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "[Lcom/sky/core/player/addon/common/data/ObfuscatedProfileId;",
+    custom = { method, classDef ->
+        method.name == "values" &&
+            classDef.type == "Lcom/sky/core/player/addon/common/data/ObfuscatedProfileId;"
+    },
+)
+
+// ─────────────────────────────────────────────────────────
+// LAYER 3: MediaTailor ad service construction
+// Target: MediaTailorAdvertServiceFactoryImpl — method containing unique
+// error string "Could not build MT Advertising service".
+// returnEarly(null) aborts service construction.
+// Approach via RookieEnough/De-ReVanced — survives R8/D8 minification.
+// STATUS: String confirmed present in v7.5.102 base.apk (DEX 2)
+// ─────────────────────────────────────────────────────────
+internal object MediaTailorAdServiceMethodFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC),
     returnType = "Ljava/lang/Object;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
+    strings = listOf("Could not build MT Advertising service"),
+)
+
+// ─────────────────────────────────────────────────────────
+// LAYER 4: SSAI Configuration Provider null override
+// Target: Configuration.getSsaiConfigurationProvider()
+// Returning null forces strategyForType() → AdvertisingStrategy.None
+// for ALL playback types via confirmed if-eqz branch. No crash risk.
+// STATUS: Class confirmed present in v7.5.102; named method, version-stable
+// ─────────────────────────────────────────────────────────
+internal object SsaiConfigurationProviderFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Lcom/sky/core/player/sdk/addon/SSAIConfigurationProvider;",
+    custom = { method, classDef ->
+        method.name == "getSsaiConfigurationProvider" &&
+            classDef.type == "Lcom/sky/core/player/sdk/data/Configuration;"
+    },
+)
+
+// ─────────────────────────────────────────────────────────
+// LAYER 5: Ad break skip at playback level
+// Target: PlayerEngineItemImpl.handleAdBreakStarted()
+// This is the Sky SDK playback engine's ad break handler.
+// In v7.5.102 confirmed as:
+//   PlayerEngineItemImpl.handleAdBreakStarted(AdBreakStartedEvent)V
+// The class also has skipAdvert(StitchedAdvert)V — we call it from
+// handleAdBreakStarted to immediately skip every ad break.
+// Anchor: inner class "PlayerEngineItemImpl$handleAdBreakStarted$1"
+// is confirmed present in DEX 2 as a string literal.
+// ─────────────────────────────────────────────────────────
+internal object HandleAdBreakStartedFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "V",
+    custom = { method, classDef ->
+        method.name == "handleAdBreakStarted" &&
+            classDef.type ==
+                "Lcom/sky/core/player/sdk/playerEngine/playerBase/PlayerEngineItemImpl;"
+    },
+)
+
+// ─────────────────────────────────────────────────────────
+// LAYER 5b: handleAdStartedEvent — fallback anchor
+// Target: method in PlayerEngineItemImpl containing "handleAdStartedEvent"
+// string. Used to locate the class if Layer 5 needs a string anchor.
+// STATUS: String confirmed present in v7.5.102 DEX 2
+// ─────────────────────────────────────────────────────────
+internal object HandleAdStartedEventFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf("handleAdStartedEvent"),
+    custom = { method, classDef ->
+        classDef.type ==
+            "Lcom/sky/core/player/sdk/playerEngine/playerBase/PlayerEngineItemImpl;"
+    },
 )
