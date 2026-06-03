@@ -1,3 +1,10 @@
+## [1.4.42](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.41...v1.4.42) (2026-06-03)
+
+
+### Bug Fixes
+
+* force version update via SkipAdsPatch.kt ([4c5bf0d](https://github.com/ajstrick81/morphe-androidtv-patches/commit/4c5bf0d82e8389e21e0d6ac4411e30d1cf6662b5))
+
 ## [1.4.41](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.40...v1.4.41) (2026-06-03)
 
 
