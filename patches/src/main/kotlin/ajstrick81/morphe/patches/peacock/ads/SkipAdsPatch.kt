@@ -1,9 +1,8 @@
-package app.morphe.patches.peacocktvandroidtv.ads
+package ajstrick81.morphe.patches.peacock.ads
 
-import app.morphe.patches.shared.compat.AppCompatibilities
+import ajstrick81.morphe.patches.peacock.shared.Constants
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.util.returnEarly
 
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
@@ -14,7 +13,7 @@ val skipAdsPatch = bytecodePatch(
         "SSAI configuration provider (forces AdvertisingStrategy.None), and the Sky SDK " +
         "player engine ad break handler. Validated against v7.5.102.",
 ) {
-    compatibleWith(AppCompatibilities.PEACOCK_TV_ANDROID_TV)
+    compatibleWith(Constants.COMPATIBILITY)
 
     execute {
         // ── Layer 1 ─────────────────────────────────────────────────────────
@@ -41,24 +40,32 @@ val skipAdsPatch = bytecodePatch(
         )
 
         // ── Layer 3 ─────────────────────────────────────────────────────────
-        // Abort MediaTailor ad service construction — returnEarly(null)
-        // targets the factory method via its unique error string anchor,
-        // surviving R8/D8 minification. Approach: RookieEnough/De-ReVanced.
-        MediaTailorAdServiceMethodFingerprint.method.returnEarly(null)
+        // Abort MediaTailor ad service construction — return null from the
+        // factory method identified by its unique error string anchor.
+        MediaTailorAdServiceMethodFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return-object v0
+            """.trimIndent(),
+        )
 
         // ── Layer 4 ─────────────────────────────────────────────────────────
         // Force AdvertisingStrategy.None — getSsaiConfigurationProvider()
-        // returning null causes Configuration$getDefaultAdvertisingStrategyProvider$1
-        // .strategyForType() to take the confirmed if-eqz → None branch
-        // for ALL playback types. AutomaticSSAI becomes unreachable. No crash.
-        SsaiConfigurationProviderFingerprint.method.returnEarly(null)
+        // returning null causes strategyForType() to take the confirmed
+        // if-eqz → None branch for ALL playback types. No crash risk.
+        SsaiConfigurationProviderFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return-object v0
+            """.trimIndent(),
+        )
 
         // ── Layer 5 ─────────────────────────────────────────────────────────
-        // Kill ad breaks at the player engine level — immediately return-void
-        // from handleAdBreakStarted() in PlayerEngineItemImpl so the Sky SDK
-        // player never enters an ad break regardless of what upstream layers
-        // may have missed. This is the last line of defense before the player
-        // actually plays ad content.
+        // Kill ad breaks at the player engine level — return-void from
+        // handleAdBreakStarted() so the Sky SDK player never enters an
+        // ad break regardless of what upstream layers may have missed.
         HandleAdBreakStartedFingerprint.method.addInstructions(
             0,
             "return-void",
