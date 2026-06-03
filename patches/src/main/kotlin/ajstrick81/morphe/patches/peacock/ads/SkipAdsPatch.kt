@@ -1,5 +1,6 @@
 package ajstrick81.morphe.patches.peacock.ads
 
+import ajstrick81.morphe.patches.peacock.misc.extension.peacockExtensionPatch
 import ajstrick81.morphe.patches.peacock.shared.Constants
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -7,12 +8,14 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Disables ad delivery via five independent layers: MediaTailor SSAI proxy, " +
-        "ObfuscatedProfileId SDK registry (Adobe, Comscore, Conviva, Freewheel, MParticle, " +
-        "MediaTailor, Nielsen, OpenMeasurement), MediaTailor ad service constructor, " +
-        "SSAI configuration provider (forces AdvertisingStrategy.None), and the Sky SDK " +
-        "player engine ad break handler. Validated against v7.5.102.",
+    description = "Disables ad delivery via four bytecode layers plus a media3 " +
+        "AdPlaybackState extension: MediaTailor SSAI proxy, MediaTailor ad service " +
+        "constructor, SSAI configuration provider (forces AdvertisingStrategy.None), " +
+        "Sky SDK player engine ad break handler, and media3 " +
+        "ServerSideAdInsertionMediaSource ad group skipping. Validated v7.5.102.",
 ) {
+    dependsOn(peacockExtensionPatch)
+
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
@@ -23,18 +26,6 @@ val skipAdsPatch = bytecodePatch(
             0,
             """
                 const-string v0, ""
-                return-object v0
-            """.trimIndent(),
-        )
-
-        // ── Layer 2 ─────────────────────────────────────────────────────────
-        // Master kill switch — empty ObfuscatedProfileId array prevents all
-        // 9 ad/analytics SDKs from being registered by the Sky SDK.
-        ObfuscatedProfileIdValuesFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                new-array v0, v0, [Lcom/sky/core/player/addon/common/data/ObfuscatedProfileId;
                 return-object v0
             """.trimIndent(),
         )
@@ -69,6 +60,37 @@ val skipAdsPatch = bytecodePatch(
         HandleAdBreakStartedFingerprint.method.addInstructions(
             0,
             "return-void",
+        )
+
+        // ── Extension Layer ──────────────────────────────────────────────────
+        // media3 AdPlaybackState suppression — mark all active ad groups as
+        // AD_STATE_SKIPPED before setAdPlaybackStates() executes.
+        val setAdPlaybackStatesMethod = SetAdPlaybackStatesFingerprint.method
+        val extensionClass =
+            "Lajstrick81/morphe/extension/peacock/ads/SkipAdsPatch;"
+
+        setAdPlaybackStatesMethod.addInstructions(
+            0,
+            """
+                invoke-interface {p1}, Ljava/util/Map;->entrySet()Ljava/util/Set;
+                move-result-object v0
+                invoke-interface {v0}, Ljava/util/Set;->iterator()Ljava/util/Iterator;
+                move-result-object v1
+                :loop_start
+                invoke-interface {v1}, Ljava/util/Iterator;->hasNext()Z
+                move-result v2
+                if-eqz v2, :loop_end
+                invoke-interface {v1}, Ljava/util/Iterator;->next()Ljava/lang/Object;
+                move-result-object v3
+                check-cast v3, Ljava/util/Map${'$'}Entry;
+                invoke-interface {v3}, Ljava/util/Map${'$'}Entry;->getValue()Ljava/lang/Object;
+                move-result-object v4
+                invoke-static {v4}, $extensionClass->emptyAdPlaybackState(Ljava/lang/Object;)Ljava/lang/Object;
+                move-result-object v4
+                invoke-interface {v3}, Ljava/util/Map${'$'}Entry;->setValue(Ljava/lang/Object;)Ljava/lang/Object;
+                goto :loop_start
+                :loop_end
+            """.trimIndent(),
         )
     }
 }
