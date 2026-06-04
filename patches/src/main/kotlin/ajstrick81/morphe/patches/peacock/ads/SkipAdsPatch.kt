@@ -50,12 +50,16 @@ val skipAdsPatch = bytecodePatch(
         )
 
         // ── Layer 5 ─────────────────────────────────────────────────────────
-        // Kill ad breaks at the player engine level — return-void from
-        // handleAdBreakStarted() so the Sky SDK player never enters an
-        // ad break regardless of what upstream layers may have missed.
+        // Kill ad breaks at the player engine level — handleAdBreakStarted
+        // is a Kotlin suspend function (return type Object in DEX), so we
+        // return null rather than return-void to avoid a verifier error.
+        // Null return causes the coroutine to complete with no-op result.
         HandleAdBreakStartedFingerprint.method.addInstructions(
             0,
-            "return-void",
+            """
+                const/4 v0, 0x0
+                return-object v0
+            """.trimIndent(),
         )
     }
 }
