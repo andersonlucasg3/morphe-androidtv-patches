@@ -2,7 +2,7 @@
 
 > **Built on the Shoulders of Giants**
 > 
-> Huge shout-out to the [Morphe Team](https://github.com/morphepatches) for creating this beautiful community
+> Huge shout-out to the [Morphe Team](https://github.com/MorpheApp/morphe-patches) for creating this beautiful community
 
 ---
 
