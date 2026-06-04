@@ -42,16 +42,14 @@ internal object SsaiConfigurationProviderFingerprint : Fingerprint(
 )
 
 // ── Layer 5 ──────────────────────────────────────────────────────────────────
-// Target: PlayerEngineItemImpl.handleAdBreakStarted(AdBreakStartedEvent)
-// The Sky SDK player engine ad break entry point. Returning void immediately
-// prevents the player from ever entering an ad break at the playback level.
-// Confirmed present in v7.5.102 DEX 2 via androguard analysis.
+// Target: PlayerEngineItemImpl.handleAdBreakStarted()
+// Likely a Kotlin suspend function — return type is Ljava/lang/Object; in DEX,
+// not V. Using string anchor "handleAdBreakStarted" (confirmed in v7.5.102
+// DEX 2) plus class type to avoid access flag / return type mismatches.
 internal object HandleAdBreakStartedFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    returnType = "V",
+    strings = listOf("handleAdBreakStarted"),
     custom = { method, classDef ->
-        method.name == "handleAdBreakStarted" &&
-            classDef.type ==
-                "Lcom/sky/core/player/sdk/playerEngine/playerBase/PlayerEngineItemImpl;"
+        classDef.type ==
+            "Lcom/sky/core/player/sdk/playerEngine/playerBase/PlayerEngineItemImpl;"
     },
 )
