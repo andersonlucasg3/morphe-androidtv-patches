@@ -16,11 +16,6 @@ internal object MediaTailorProxyHostFingerprint : Fingerprint(
     },
 )
 
-// ── Layer 2 (REMOVED) ────────────────────────────────────────────────────────
-// ObfuscatedProfileId.values() was confirmed in v6.11.212 but the class
-// does not appear in the v7.5.102 DEX 2 scan — Sky SDK may have removed
-// or restructured it. Re-add once class presence is confirmed in new version.
-
 // ── Layer 3 ──────────────────────────────────────────────────────────────────
 // Target: MediaTailorAdvertServiceFactoryImpl — method containing unique
 // error string "Could not build MT Advertising service".
@@ -58,18 +53,5 @@ internal object HandleAdBreakStartedFingerprint : Fingerprint(
         method.name == "handleAdBreakStarted" &&
             classDef.type ==
                 "Lcom/sky/core/player/sdk/playerEngine/playerBase/PlayerEngineItemImpl;"
-    },
-)
-
-// ── Extension Layer ───────────────────────────────────────────────────────────
-// Target: androidx.media3.exoplayer.source.ads.ServerSideAdInsertionMediaSource
-//         .setAdPlaybackStates(ImmutableMap, Timeline)
-// Confirmed: Peacock v7.5.102 uses media3 (androidx.media3 in manifest).
-internal object SetAdPlaybackStatesFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    returnType = "V",
-    custom = { method, classDef ->
-        method.name == "setAdPlaybackStates" &&
-            classDef.type.contains("ServerSideAdInsertionMediaSource")
     },
 )
