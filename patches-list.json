@@ -1,5 +1,5 @@
 {
-  "version": "1.4.42",
+  "version": "1.4.43",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.foxsports.android": "Fox Sports Android TV",
@@ -170,7 +170,7 @@
     },
     {
       "name": "Skip ads",
-      "description": "Disables ad delivery via five independent layers: MediaTailor SSAI proxy, ObfuscatedProfileId SDK registry (Adobe, Comscore, Conviva, Freewheel, MParticle, MediaTailor, Nielsen, OpenMeasurement), MediaTailor ad service constructor, SSAI configuration provider (forces AdvertisingStrategy.None), and the Sky SDK player engine ad break handler. Validated against v7.5.102.",
+      "description": "Disables ad delivery via four independent layers: MediaTailor SSAI proxy, MediaTailor ad service constructor, SSAI configuration provider (forces AdvertisingStrategy.None), and the Sky SDK player engine ad break handler. Validated against v7.5.102.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {

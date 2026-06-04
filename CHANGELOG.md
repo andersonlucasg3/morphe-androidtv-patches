@@ -1,3 +1,10 @@
+## [1.4.43](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.42...v1.4.43) (2026-06-04)
+
+
+### Bug Fixes
+
+* Update Fingerprints: Remove and add SDK fingerprints ([36f3bd5](https://github.com/ajstrick81/morphe-androidtv-patches/commit/36f3bd5e023e55a49473ad5f92451f4f4a076597))
+
 ## [1.4.42](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.41...v1.4.42) (2026-06-03)
 
 
