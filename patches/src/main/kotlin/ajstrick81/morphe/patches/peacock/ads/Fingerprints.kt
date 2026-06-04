@@ -6,7 +6,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 // ── Layer 1 ──────────────────────────────────────────────────────────────────
 // Target: SSAIConfiguration$MediaTailor$AutomaticMediaTailor.getProxyHost()
 // Returns the MediaTailor SSAI proxy URL. Returning "" disables SSAI.
-// Confirmed present in v7.5.102.
+// Confirmed matching v7.5.102.
 internal object MediaTailorProxyHostFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC),
     returnType = "Ljava/lang/String;",
@@ -20,7 +20,7 @@ internal object MediaTailorProxyHostFingerprint : Fingerprint(
 // Target: MediaTailorAdvertServiceFactoryImpl — method containing unique
 // error string "Could not build MT Advertising service".
 // Returning null aborts service construction.
-// String confirmed present in v7.5.102 DEX 2.
+// Confirmed matching v7.5.102.
 internal object MediaTailorAdServiceMethodFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC),
     returnType = "Ljava/lang/Object;",
@@ -29,9 +29,9 @@ internal object MediaTailorAdServiceMethodFingerprint : Fingerprint(
 
 // ── Layer 4 ──────────────────────────────────────────────────────────────────
 // Target: Configuration.getSsaiConfigurationProvider()
-// Returning null forces Configuration$getDefaultAdvertisingStrategyProvider$1
-// .strategyForType() to return AdvertisingStrategy.None for all playback
-// types via confirmed if-eqz branch. AutomaticSSAI becomes unreachable.
+// Returning null forces strategyForType() → AdvertisingStrategy.None
+// for all playback types via confirmed if-eqz branch. No crash risk.
+// Confirmed matching v7.5.102.
 internal object SsaiConfigurationProviderFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Lcom/sky/core/player/sdk/addon/SSAIConfigurationProvider;",
@@ -41,15 +41,8 @@ internal object SsaiConfigurationProviderFingerprint : Fingerprint(
     },
 )
 
-// ── Layer 5 ──────────────────────────────────────────────────────────────────
-// Target: PlayerEngineItemImpl.handleAdBreakStarted()
-// Likely a Kotlin suspend function — return type is Ljava/lang/Object; in DEX,
-// not V. Using string anchor "handleAdBreakStarted" (confirmed in v7.5.102
-// DEX 2) plus class type to avoid access flag / return type mismatches.
-internal object HandleAdBreakStartedFingerprint : Fingerprint(
-    strings = listOf("handleAdBreakStarted"),
-    custom = { method, classDef ->
-        classDef.type ==
-            "Lcom/sky/core/player/sdk/playerEngine/playerBase/PlayerEngineItemImpl;"
-    },
-)
+// ── Layer 5 (PENDING) ─────────────────────────────────────────────────────────
+// PlayerEngineItemImpl.handleAdBreakStarted() — deferred.
+// "handleAdBreakStarted" only appears in Kotlin metadata class name strings,
+// not as a const-string instruction in any method body. Correct anchor
+// string needs to be identified from merged APK smali before re-adding.
