@@ -7,9 +7,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Disables ad delivery via three confirmed layers: MediaTailor SSAI proxy, " +
-        "MediaTailor ad service constructor, and SSAI configuration provider " +
-        "(forces AdvertisingStrategy.None for all playback types). Validated v7.5.102.",
+    description = "Disables ad delivery via three confirmed Sky SDK layers plus an OkHttp " +
+        "interceptor that blocks ad CDN and analytics domains at the network layer, " +
+        "replacing the AGH DNS dependency. Validated v7.5.102.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
@@ -45,6 +45,23 @@ val skipAdsPatch = bytecodePatch(
             """
                 const/4 v0, 0x0
                 return-object v0
+            """.trimIndent(),
+        )
+
+        // ── Layer 6 ─────────────────────────────────────────────────────────
+        // Inject AdBlockInterceptor into NetworkingKt.getOkHttpClient().
+        // Inserts before offset 5 (after Builder.<init>, before the existing
+        // OkHttpWorkaroundInterceptor new-instance) so both interceptors are
+        // chained — AdBlockInterceptor runs first, then OkHttpWorkaroundInterceptor.
+        // Suffix matching in AdBlockInterceptor covers future CDN group IDs
+        // (g007+) without any patch update.
+        GetOkHttpClientFingerprint.method.addInstructions(
+            5,
+            """
+                new-instance v1, Lajstrick81/morphe/extension/peacock/ads/AdBlockInterceptor;
+                invoke-direct {v1}, Lajstrick81/morphe/extension/peacock/ads/AdBlockInterceptor;-><init>()V
+                invoke-virtual {v0, v1}, Lokhttp3/OkHttpClient${'$'}Builder;->addInterceptor(Lokhttp3/Interceptor;)Lokhttp3/OkHttpClient${'$'}Builder;
+                move-result-object v0
             """.trimIndent(),
         )
     }
