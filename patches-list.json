@@ -1,5 +1,5 @@
 {
-  "version": "1.4.47",
+  "version": "1.4.48",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.foxsports.android": "Fox Sports Android TV",
@@ -31,6 +31,32 @@
           "targets": [
             {
               "version": "26.8.0+rc6-2026.05.20",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "GMB Diagnostic",
+      "description": "Logs all GMB message event types to logcat for ad event discovery. Temporary diagnostic patch — not for production use.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.amazon.amazonvideo.livingroom": [
+          "6.23.23+v15.5.0.70-armv7a"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Prime Video",
+          "packageName": "com.amazon.amazonvideo.livingroom",
+          "description": null,
+          "appIconColor": 1539022,
+          "targets": [
+            {
+              "version": "6.23.23+v15.5.0.70-armv7a",
               "experimental": false
             }
           ]
