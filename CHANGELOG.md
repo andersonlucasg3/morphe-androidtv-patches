@@ -1,3 +1,10 @@
+## [1.4.50](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.49...v1.4.50) (2026-06-09)
+
+
+### Bug Fixes
+
+* new version and enhance GMB diagnostic logging with inline smali ([c0da5ec](https://github.com/ajstrick81/morphe-androidtv-patches/commit/c0da5ec07a68a8966fd571d8d62b1c858a98f6a7))
+
 ## [1.4.49](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.48...v1.4.49) (2026-06-08)
 
 
