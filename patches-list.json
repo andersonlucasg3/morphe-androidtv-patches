@@ -1,5 +1,5 @@
 {
-  "version": "1.4.53",
+  "version": "1.4.54",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.foxsports.android": "Fox Sports Android TV",
@@ -276,7 +276,7 @@
     },
     {
       "name": "Skip ads (supplementary)",
-      "description": "Adds CSAI suppression, advertising opt-out, and interstitial ad hooks to complement the primary Skip ads patch.",
+      "description": "Adds CSAI suppression and advertising opt-out hooks to complement the primary Skip ads patch.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {

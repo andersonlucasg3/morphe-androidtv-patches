@@ -1,3 +1,10 @@
+## [1.4.54](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.53...v1.4.54) (2026-06-10)
+
+
+### Bug Fixes
+
+* Refactor supplementaryAdsPatch to remove interstitial ad hook ([89a5c12](https://github.com/ajstrick81/morphe-androidtv-patches/commit/89a5c125186db152ae7d30b5ab75d3475bdcc01a))
+
 ## [1.4.53](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.52...v1.4.53) (2026-06-10)
 
 
