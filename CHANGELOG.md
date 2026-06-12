@@ -1,3 +1,10 @@
+## [1.4.58](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.57...v1.4.58) (2026-06-12)
+
+
+### Bug Fixes
+
+* Refactor ad injection method to avoid VerifyErrors ([7598779](https://github.com/ajstrick81/morphe-androidtv-patches/commit/75987792f27a8049af5e1cea353faee062a601fb))
+
 ## [1.4.57](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.56...v1.4.57) (2026-06-12)
 
 
