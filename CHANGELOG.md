@@ -1,3 +1,10 @@
+## [1.4.57](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.56...v1.4.57) (2026-06-12)
+
+
+### Bug Fixes
+
+* Refactor AdBlockInterceptor injection method ([e5f4c43](https://github.com/ajstrick81/morphe-androidtv-patches/commit/e5f4c4382b6b70b00f78fc8bd5b4249918b6e73d))
+
 ## [1.4.56](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.55...v1.4.56) (2026-06-11)
 
 
