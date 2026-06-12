@@ -11,11 +11,6 @@
     public static *** skipAllExo2AdGroups(com.google.common.collect.ImmutableMap);
     public static *** isAdSegmentUrl(java.lang.String);
 }
-
--keep class ajstrick81.morphe.extension.tubi.ads.SkipAdsPatch {
-    public static *** onClearVodAds(java.lang.Object);
-    public static *** shouldBlock(java.lang.Object);
-}
 # Peacock — existing entry
 # emptyAdPlaybackState is called reflectively by the Sky SDK layer patches.
 -keep class ajstrick81.morphe.extension.peacock.ads.SkipAdsPatch {
@@ -29,10 +24,11 @@
     public <init>();
 }
 
-# Peacock — Layer 6: zero-register wrapper
-# PeacockAdPatchHelper.injectAdBlocker() is called directly from injected smali
-# via invoke-static. R8 must not rename or remove this method — the smali
-# descriptor is hardcoded and will not survive obfuscation.
+# Peacock — Layer 6: method-replacement wrapper
+# PeacockAdPatchHelper.buildOkHttpClient() is called directly from injected
+# smali via invoke-static {}. R8 must not rename or remove this method.
+# OkHttpWorkaroundInterceptor is also instantiated here — kept via its own
+# existing rule elsewhere; confirm it has one if the build strips it.
 -keep class ajstrick81.morphe.extension.peacock.ads.PeacockAdPatchHelper {
-    public static void injectAdBlocker(okhttp3.OkHttpClient$Builder);
+    public static okhttp3.OkHttpClient buildOkHttpClient();
 }
