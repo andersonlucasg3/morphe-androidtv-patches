@@ -32,3 +32,7 @@
 -keep class ajstrick81.morphe.extension.peacock.ads.PeacockAdPatchHelper {
     public static okhttp3.OkHttpClient buildOkHttpClient();
 }
+# Layer 7 — WebView shouldInterceptRequest wrapper
+-keep class ajstrick81.morphe.extension.peacock.ads.PeacockWebViewHelper {
+    public static android.webkit.WebViewClient wrapClient(android.webkit.WebViewClient);
+}
