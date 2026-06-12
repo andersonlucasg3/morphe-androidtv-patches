@@ -65,22 +65,20 @@ internal object GetOkHttpClientFingerprint : Fingerprint(
 
 // ── Layer 7 ──────────────────────────────────────────────────────────────────
 // Target: XTVWebView.<init>(Context)
-// Injection point: instruction index 54, immediately before the
-// setWebViewClient(xtvClient) call (bytecode offset 252).
+// Injection point: instruction index 54 (bytecode offset 252), immediately
+// before the setWebViewClient(xtvClient) call.
 //
 // PCAP/GREASE fingerprinting confirmed that ad segment delivery and all
 // FreeWheel/analytics traffic travels through the Chromium network stack
 // inside XTVWebView, bypassing OkHttp entirely. xtvClient (XTVWebView$xtvClient$1)
 // extends WebViewClient but does NOT override shouldInterceptRequest.
 //
-// We intercept v1 (xtvClient instance) before it reaches setWebViewClient(),
-// wrapping it via PeacockWebViewHelper.wrapClient() which adds
-// shouldInterceptRequest() to block confirmed ad CDN and analytics hostnames.
-// Anchor: unique string "WebViewClient.onLoadResource." exists in xtvClient$1
-// (same dex slice), plus custom guard on class and method name.
+// custom guard on class + method name + single Context parameter is sufficient —
+// XTVWebView has three <init> overloads; this selects only (Context).
+// No strings anchor: "WebViewClient.onLoadResource." lives in xtvClient$1,
+// not in this method body, and would cause a match failure.
 // Confirmed matching v7.5.102.
 internal object XtvClientWrapFingerprint : Fingerprint(
-    strings = listOf("WebViewClient.onLoadResource."),
     custom = { method, classDef ->
         method.name == "<init>" &&
             method.parameters.size == 1 &&
