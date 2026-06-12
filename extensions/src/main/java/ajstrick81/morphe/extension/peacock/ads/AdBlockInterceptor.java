@@ -11,9 +11,14 @@ import java.io.IOException;
 /**
  * Peacock ATV — OkHttp ad CDN interceptor.
  *
- * Returns an empty 200 for all known Peacock ad delivery CDN domains and
- * analytics endpoints before any connection is made. Mirrors what AGH does
- * at the DNS level but works standalone inside the app.
+ * Returns a 503 for all known Peacock ad delivery CDN domains and analytics
+ * endpoints before any connection is made. Using 503 (not 200) ensures
+ * ExoPlayer's error-handling path fires instead of the media parser, which
+ * would throw an UnrecognizedInputFormatException on a 0-byte body.
+ *
+ * Mirrors what AGH does at the DNS level but works standalone inside the app.
+ * Invoked via PeacockAdPatchHelper.injectAdBlocker() to avoid smali register
+ * manipulation entirely (zero-register wrapper pattern).
  *
  * Ad CDNs (identified via AGH DNS log, live ad break capture):
  *   *-prd-fy.cdn.peacocktv.com  (Fastly)
@@ -50,28 +55,35 @@ public class AdBlockInterceptor implements Interceptor {
 
         for (final String suffix : AD_CDN_SUFFIXES) {
             if (host.endsWith(suffix)) {
-                return emptyResponse(chain);
+                return blockedResponse(chain);
             }
         }
 
         for (final String domain : ANALYTICS_DOMAINS) {
             if (host.contains(domain)) {
-                return emptyResponse(chain);
+                return blockedResponse(chain);
             }
         }
 
         return chain.proceed(chain.request());
     }
 
-    private static Response emptyResponse(final Chain chain) {
+    /**
+     * Returns 503 Service Unavailable.
+     *
+     * 503 triggers the player's internal error/skip logic rather than the
+     * media parser. A 200 with a 0-byte body would cause the parser to throw
+     * an UnrecognizedInputFormatException, crashing the playback loop.
+     */
+    private static Response blockedResponse(final Chain chain) {
         return new Response.Builder()
             .request(chain.request())
             .protocol(Protocol.HTTP_1_1)
-            .code(200)
-            .message("OK")
+            .code(503)
+            .message("Service Unavailable")
             .body(ResponseBody.create(
-                MediaType.parse("application/octet-stream"),
-                new byte[0]))
+                MediaType.parse("text/plain; charset=utf-8"),
+                "Blocked"))
             .build();
     }
 }
