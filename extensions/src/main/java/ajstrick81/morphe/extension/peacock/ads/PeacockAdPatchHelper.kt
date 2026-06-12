@@ -3,26 +3,37 @@ package ajstrick81.morphe.extension.peacock.ads
 import okhttp3.OkHttpClient
 
 /**
- * Static wrapper invoked from smali to inject AdBlockInterceptor into the
- * OkHttp client builder without any smali register manipulation.
+ * Static wrapper invoked from smali to replace the entire body of
+ * NetworkingKt.getOkHttpClient() with a no-arg static call.
  *
- * Pattern: smali passes the Builder instance (v0) directly to injectAdBlocker()
- * via invoke-static {v0}, ...->injectAdBlocker(...)V — no v-register reads,
- * writes, or move-result-object needed. This avoids the VerifyError caused by
- * type-undefined registers when addInstructions() inserts mid-method.
+ * Strategy — method body replacement at offset 0:
+ *   invoke-static {}, PeacockAdPatchHelper;->buildOkHttpClient()LOkHttpClient;
+ *   move-result-object v0
+ *   return-object v0
  *
- * Injection point in smali (SkipAdsPatch.kt Layer 6):
- *   invoke-static {v0}, Lajstrick81/morphe/extension/peacock/ads/PeacockAdPatchHelper;
- *       ->injectAdBlocker(Lokhttp3/OkHttpClient$Builder;)V
+ * Why offset 0 with no args:
+ *   All previous attempts inserted mid-method (offset 5) and passed v0
+ *   (the Builder) as an argument. The ART verifier rejected this with
+ *   type=Undefined (v1.4.56) and type=Conflict (v1.4.57) because inserting
+ *   instructions mid-method leaves the verifier's register type-tracking
+ *   in an ambiguous state at the merge point.
  *
- * Inserted at offset 5 of NetworkingKt.getOkHttpClient() — after Builder.<init>,
- * before the existing OkHttpWorkaroundInterceptor new-instance — so both
- * interceptors are chained with AdBlockInterceptor running first.
+ *   Inserting at offset 0 with {} (no register arguments) is unconditionally
+ *   safe — no registers are live yet, so the verifier has nothing to conflict.
+ *   move-result-object v0 assigns a fresh object into an uninitialized register,
+ *   which the verifier always accepts. return-object v0 follows cleanly.
+ *
+ *   The original method body (Builder + OkHttpWorkaroundInterceptor + build())
+ *   is never reached. buildOkHttpClient() replicates it in full, adding
+ *   AdBlockInterceptor first so both interceptors are chained.
  */
 object PeacockAdPatchHelper {
 
     @JvmStatic
-    fun injectAdBlocker(builder: OkHttpClient.Builder) {
-        builder.addInterceptor(AdBlockInterceptor())
+    fun buildOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(AdBlockInterceptor())
+            .addInterceptor(OkHttpWorkaroundInterceptor())
+            .build()
     }
 }
