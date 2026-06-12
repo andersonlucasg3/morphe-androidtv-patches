@@ -16,13 +16,13 @@ I'm just like you — I enjoy watching TV and movies without being bored and ann
 
 | App | Status | Tested Version |
 |-----|--------|----------------|
-| 🟢 Disney+ | **Working** | v26.6.0+rc5-2026.04.21 |
-| 🟢 HBO Max | **Working** | v7.2.0.41 |
-| 🟢 Tubi | **Working** | v10.20.5000 |
-| 🟢 ViX | **Working** | v4.46.0_tv |
-| 🟡 Prime Video | **Partial / In Testing** | Use with DNS filtering (AdGuard Home or Pi-hole recommended) |
+| 🟢 Disney+ | **Working** | April 27, 2026 v26.6.0+rc5-2026.04.21 Package: com.disney.disneyplus |
+| 🟢 HBO Max | **Working** | May 5, 2026 v7.2.0.41 Package: com.wbd.hbomax |
+| 🟢 Tubi | **Working** | May 20, 2026 v10.20.5000 Package: com.tubitv |
+| 🟢 ViX | **Working** | May 19, 2026 v4.46.0_tv Package: com.univision.prendetv |
+| 🟡 Peacock | **Partial / In Testing** | May 11, 2026 v7.5.102 Package: com.peacocktv.peacockandroid |
+| 🟡 Prime Video | **Partial / In Testing** | May 5, 2026 6.23.23+v15.5.0.70-armv7a Package: com.amazon.amazonvideo.livingroom |
 | 🔴 Paramount+ | **Under Development** | v16.8 (v16.12 migration in progress) |
-| 🔴 Peacock | **Under Development** | — |
 | 🔴 Fox Sports | **Under Development** | — |
 | 🔴 Fox One | **Under Development** | — |
 
