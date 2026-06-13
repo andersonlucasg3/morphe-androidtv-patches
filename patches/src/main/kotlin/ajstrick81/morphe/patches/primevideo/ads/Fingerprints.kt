@@ -7,10 +7,8 @@ import com.android.tools.smali.dexlib2.AccessFlags
 // Primary target — media3 SSAI ad schedule entry point
 // classes.dex / smali/androidx/media3/exoplayer/source/ads/
 //
-// Called by the Ignite native layer (libignite.so + downloaded JS bundle)
-// when it pushes the SSAI ad schedule into ExoPlayer. The ImmutableMap
-// carries one AdPlaybackState per period UID, each containing the full set
-// of AdGroups with their timing, duration, and individual ad URIs.
+// Called by the Ignite native layer when it pushes the SSAI ad schedule
+// into ExoPlayer. Strips all AdGroups via withRemovedAdGroupCount().
 // ─────────────────────────────────────────────────────────────────────────────
 object SetAdPlaybackStatesMedia3Fingerprint : Fingerprint(
     definingClass = "Landroidx/media3/exoplayer/source/ads/ServerSideAdInsertionMediaSource;",
@@ -26,9 +24,6 @@ object SetAdPlaybackStatesMedia3Fingerprint : Fingerprint(
 // ─────────────────────────────────────────────────────────────────────────────
 // Secondary target — ExoPlayer2 SSAI ad schedule entry point
 // classes4.dex / smali/com/google/android/exoplayer2/source/ads/
-//
-// The ExoPlayer2 SSAI source is bundled inside the Google Mobile Ads SDK.
-// Same transformation applied. ExoPlayer2 variant takes only ImmutableMap.
 // ─────────────────────────────────────────────────────────────────────────────
 object SetAdPlaybackStatesExo2Fingerprint : Fingerprint(
     definingClass = "Lcom/google/android/exoplayer2/source/ads/ServerSideAdInsertionMediaSource;",
@@ -41,44 +36,45 @@ object SetAdPlaybackStatesExo2Fingerprint : Fingerprint(
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tertiary target — DefaultHttpDataSource.open(DataSpec)
-// classes2.dex / smali/androidx/media3/datasource/
+// Tertiary target — ServerSideAdInsertionUtil.getStreamPositionUs(Player, AdPlaybackState)
+// classes2.dex / smali/androidx/media3/exoplayer/source/ads/
 //
-// This is the media3 HTTP data source used to fetch ALL media segments —
-// both content and ad segments. Called every time a new segment URL is opened.
+// This is the ATV equivalent of hoodles' ServerInsertedAdBreakState.enter() hook
+// from Prime Video Mobile. The parallel is exact:
 //
-// The DataSpec parameter carries a public final uri:android.net.Uri field
-// containing the full URL being requested. At index 0 we read this URI,
-// check it against known ad CDN patterns (PCAP-validated), and return 0L
-// (zero bytes available) for ad segment URLs before any network connection
-// is established.
+//   Hoodles Mobile:              Our ATV:
+//   enter(state, trigger, player) getStreamPositionUs(player, adPlaybackState)
+//   trigger.getBreak().duration   adPlaybackState.getAdGroup(i).durationsUs
+//   player.seekTo(adBreakEnd)     player.seekTo(adBreakEndMs)
+//   doTrigger(NO_MORE_ADS)        withRemovedAdGroupCount() already handles this
 //
-// Returning 0L causes media3 to treat the segment as empty and advance the
-// playhead past it — the player never downloads or renders the ad content.
-// This operates at the segment fetch layer, BEFORE the WASM runtime can
-// pre-buffer content, which is why setAdPlaybackStates alone cannot stop
-// pre-roll ads that are buffered before the hook fires.
+// This method is called by media3 while isPlayingAd() == true to calculate
+// the current stream position relative to the ad timeline. At this point:
+//   p0 = Player (live reference — NOT a WeakRef, no capture needed)
+//   p1 = AdPlaybackState (contains ad group times and durations)
 //
-// Together with the two SSAI fingerprints above this provides defense in
-// depth across both the ad schedule layer and the segment delivery layer.
+// When isPlayingAd() is true we have everything needed to:
+//   1. Get current ad group index from the player
+//   2. Sum the remaining ad durations in that group from AdPlaybackState
+//   3. Seek the player to currentPosition + totalRemainingAdDuration
 //
-// Ad URL patterns matched (PCAP-confirmed from Onn 4K TV session):
-//   avoddashs3ww-a.akamaihd.net        — Akamai ad video segments
-//   aivottevtad-a.akamaihd.net         — Akamai ad event tracking
-//   vod-dash-pv-ta-amazon.akamaized.net — Amazon Akamai CDN ad segments
-//   ters-*.aiv-delivery.net            — SGAI ad stitching server
-//   vod-dash.main.amazon.pv-cdn.net    — Amazon PV-CDN ad segments
-//   pop-vod-dash.main.amazon.pv-cdn.net — Amazon PV-CDN pop variant
+// This fires at the segment playback layer — AFTER the WASM pre-buffers ads
+// but DURING playback, meaning it can skip even pre-buffered content.
+// Combined with setAdPlaybackStates (prevents new ad groups) this gives
+// defense in depth across both the scheduling and playback layers.
 //
-// Excluded from blocking (content delivery):
-//   cf-trickplay.aux.pv-cdn.net        — scrubber thumbnail CDN
-//   cf-timedtext.aux.pv-cdn.net        — subtitle/caption CDN
-//   api.us-east-1.aiv-delivery.net     — content manifest API
+// Parameters confirmed from smali:
+//   p0 = Player (interface: seekTo(J)V, isPlayingAd()Z,
+//                getCurrentAdGroupIndex()I, getCurrentPosition()J)
+//   p1 = AdPlaybackState (getAdGroup(I) -> AdGroup with durationsUs:[J, count:I)
 // ─────────────────────────────────────────────────────────────────────────────
-object DefaultHttpDataSourceOpenFingerprint : Fingerprint(
-    definingClass = "Landroidx/media3/datasource/DefaultHttpDataSource;",
-    name = "open",
-    parameters = listOf("Landroidx/media3/datasource/DataSpec;"),
+object GetStreamPositionUsFingerprint : Fingerprint(
+    definingClass = "Landroidx/media3/exoplayer/source/ads/ServerSideAdInsertionUtil;",
+    name = "getStreamPositionUs",
+    parameters = listOf(
+        "Landroidx/media3/common/Player;",
+        "Landroidx/media3/common/AdPlaybackState;"
+    ),
     returnType = "J",
-    accessFlags = listOf(AccessFlags.PUBLIC)
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC)
 )
