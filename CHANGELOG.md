@@ -1,3 +1,10 @@
+## [1.4.67](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.66...v1.4.67) (2026-06-13)
+
+
+### Bug Fixes
+
+* new version and Enhance AdBlockInterceptor with randomized responses ([007e8c6](https://github.com/ajstrick81/morphe-androidtv-patches/commit/007e8c6559bc40c538e66de6bb18d7d8b146055b))
+
 ## [1.4.66](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.65...v1.4.66) (2026-06-13)
 
 
