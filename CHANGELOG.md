@@ -1,3 +1,10 @@
+## [1.4.64](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.63...v1.4.64) (2026-06-13)
+
+
+### Bug Fixes
+
+* push new version and Update instruction index in SkipAdsPatch.kt ([056ade6](https://github.com/ajstrick81/morphe-androidtv-patches/commit/056ade686ff71319bcfbabf51c76b05128683c43))
+
 ## [1.4.63](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.62...v1.4.63) (2026-06-13)
 
 
