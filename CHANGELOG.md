@@ -1,3 +1,10 @@
+## [1.4.65](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.64...v1.4.65) (2026-06-13)
+
+
+### Bug Fixes
+
+* push version with update Fingerprints.kt for ad playback state handling ([055ad5f](https://github.com/ajstrick81/morphe-androidtv-patches/commit/055ad5fc7ce6ee8399f937943267f8bec3c8dc95))
+
 ## [1.4.64](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.63...v1.4.64) (2026-06-13)
 
 

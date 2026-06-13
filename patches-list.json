@@ -1,5 +1,5 @@
 {
-  "version": "1.4.64",
+  "version": "1.4.65",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.foxsports.android": "Fox Sports Android TV",
@@ -196,7 +196,7 @@
     },
     {
       "name": "Skip ads",
-      "description": "Prevents server-side inserted ads from playing by intercepting both the ad schedule and the segment delivery layer.",
+      "description": "Suppresses ad schedule and seeks past playing ads using the Player reference available in getStreamPositionUs.",
       "use": true,
       "dependencies": [
         "BytecodePatch"
