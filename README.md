@@ -20,7 +20,7 @@ I'm just like you — I enjoy watching TV and movies without being bored and ann
 | 🟢 HBO Max | `com.wbd.hbomax` | Working | `v7.2.0.41` | May 5, 2026 |
 | 🟢 Tubi | `com.tubitv` | Working | `v10.20.5000` | May 20, 2026 |
 | 🟢 ViX | `com.univision.prendetv` | Working | `v4.46.0_tv` | May 19, 2026 |
-| 🟢 Peacock | `com.peacocktv.peacockandroid` | Working | `v7.5.102` | Jun 13, 2026 |
+| 🟢 Peacock | `com.peacocktv.peacockandroid` | Working with a caveat - use in conjuction with DNS filters from here: https://github.com/ajstrick81/Peacock-Ads | `v7.5.102` | Jun 13, 2026 |
 | 🟡 Prime Video | `com.amazon.amazonvideo.livingroom` | In Testing | `6.23.23+v15.5.0.70-armv7a` | May 5, 2026 |
 | 🔴 Paramount+ | `com.cbs.ott` | In Development | `v16.8 → v16.12` | — |
 | 🔴 Fox Sports | **Under Development** | — |
