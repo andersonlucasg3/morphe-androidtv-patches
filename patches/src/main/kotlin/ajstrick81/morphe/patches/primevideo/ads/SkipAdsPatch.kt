@@ -8,7 +8,7 @@ import ajstrick81.morphe.patches.primevideo.shared.Constants
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Prevents server-side inserted ads from playing by intercepting both the ad schedule and the segment delivery layer.",
+    description = "Suppresses ad schedule and seeks past playing ads using the Player reference available in getStreamPositionUs.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
@@ -19,8 +19,8 @@ val skipAdsPatch = bytecodePatch(
         // ─────────────────────────────────────────────────────────────────────
         // Hook 1 — media3 ServerSideAdInsertionMediaSource.setAdPlaybackStates()
         //
-        // Intercepts the SSAI ad schedule before ExoPlayer sees it.
-        // Extension strips all AdGroups via withRemovedAdGroupCount().
+        // Strips all AdGroups from the incoming ImmutableMap before ExoPlayer
+        // sees the ad schedule. Prevents new mid-roll breaks from being scheduled.
         // ─────────────────────────────────────────────────────────────────────
         SetAdPlaybackStatesMedia3Fingerprint.method.addInstructions(
             0,
@@ -33,7 +33,7 @@ val skipAdsPatch = bytecodePatch(
         // ─────────────────────────────────────────────────────────────────────
         // Hook 2 — ExoPlayer2 ServerSideAdInsertionMediaSource.setAdPlaybackStates()
         //
-        // Same strategy as Hook 1 for the ExoPlayer2 / GMS Ads SDK variant.
+        // Same as Hook 1 for the GMS Ads SDK ExoPlayer2 variant.
         // ─────────────────────────────────────────────────────────────────────
         SetAdPlaybackStatesExo2Fingerprint.method.addInstructions(
             0,
@@ -44,37 +44,31 @@ val skipAdsPatch = bytecodePatch(
         )
 
         // ─────────────────────────────────────────────────────────────────────
-        // Hook 3 — DefaultHttpDataSource.open(DataSpec)
+        // Hook 3 — ServerSideAdInsertionUtil.getStreamPositionUs(Player, AdPlaybackState)
         //
-        // Intercepts every media segment fetch at the HTTP data source layer.
-        // Reads the URI from the DataSpec, checks it against PCAP-confirmed
-        // ad CDN domain patterns, and returns 0L (empty segment) for matches
-        // before any network connection is established.
+        // This is the ATV equivalent of hoodles' mobile FSM state hook.
+        // Called during active ad playback with live Player and AdPlaybackState
+        // references — both required to calculate and execute the seek.
         //
-        // This is the key hook for pre-roll suppression — it operates at the
-        // segment delivery layer which fires BEFORE the WASM runtime pre-buffers
-        // ad content, unlike setAdPlaybackStates which fires after buffering.
+        // Register layout (.locals 6):
+        //   p0 = Player (interface) — live player reference
+        //   p1 = AdPlaybackState   — contains ad group timing data
         //
-        // Register layout at index 0 (.locals 14):
-        //   p0 = this (DefaultHttpDataSource)
-        //   p1 = DataSpec  ← uri:android.net.Uri is a public final field
-        //   v0, v1 = scratch registers (safe to use before any original code)
+        // The extension seekToAdBreakEnd() is called with both references.
+        // It checks isPlayingAd() on the player — if true, calculates the
+        // total remaining ad duration from the AdPlaybackState and seeks
+        // the player forward past the ad break.
         //
-        // If URL matches ad pattern → return-wide 0x0 (empty, skip segment)
-        // If URL is content → :cond_not_ad falls through to original method
+        // If isPlayingAd() is false the method returns immediately (no-op)
+        // and the original getStreamPositionUs continues normally.
+        //
+        // Standard invoke-static is safe here — p0 and p1 are the first
+        // two parameters, well within the v0-v15 register range.
         // ─────────────────────────────────────────────────────────────────────
-        DefaultHttpDataSourceOpenFingerprint.method.addInstructions(
+        GetStreamPositionUsFingerprint.method.addInstructions(
             0,
             """
-                iget-object v0, p1, Landroidx/media3/datasource/DataSpec;->uri:Landroid/net/Uri;
-                invoke-virtual {v0}, Landroid/net/Uri;->toString()Ljava/lang/String;
-                move-result-object v0
-                invoke-static {v0}, Lajstrick81/morphe/extension/primevideo/ads/SkipAdsPatch;->isAdSegmentUrl(Ljava/lang/String;)Z
-                move-result v1
-                if-eqz v1, :cond_not_ad
-                const-wide/16 v0, 0x0
-                return-wide v0
-                :cond_not_ad
+                invoke-static {p0, p1}, Lajstrick81/morphe/extension/primevideo/ads/SkipAdsPatch;->seekToAdBreakEnd(Landroidx/media3/common/Player;Landroidx/media3/common/AdPlaybackState;)V
             """
         )
     }
