@@ -1,3 +1,10 @@
+## [1.4.62](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.61...v1.4.62) (2026-06-13)
+
+
+### Bug Fixes
+
+* new version Refactor WebViewClient interception logic ([1ae2b03](https://github.com/ajstrick81/morphe-androidtv-patches/commit/1ae2b0368f639dacb3f7e5a8a7f82a800ed2dae1))
+
 ## [1.4.61](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.60...v1.4.61) (2026-06-13)
 
 
