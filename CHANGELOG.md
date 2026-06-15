@@ -1,3 +1,10 @@
+## [1.4.71](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.70...v1.4.71) (2026-06-15)
+
+
+### Bug Fixes
+
+* Fix formatting of method reference in ParamountPatch.kt ([9d26013](https://github.com/ajstrick81/morphe-androidtv-patches/commit/9d2601368c34d6dea1528195c36ed61ae79ac886))
+
 ## [1.4.70](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.69...v1.4.70) (2026-06-15)
 
 

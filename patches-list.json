@@ -1,10 +1,10 @@
 {
-  "version": "1.4.70",
+  "version": "1.4.71",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.foxsports.android": "Fox Sports Android TV",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
-    "com.amazon.amazonvideo.livingroom": "Prime Video",
+    "com.amazon.amazonvideo.livingroom": "Prime Video Android TV",
     "com.tubitv": "Tubi Android TV",
     "com.univision.prendetv": "ViX Android TV",
     "com.disney.disneyplus": "Disney+ Android TV",
@@ -81,8 +81,8 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.cbs.ott": [
-          "16.8.0",
-          "16.12.0"
+          "16.12.0",
+          "16.8.0"
         ]
       },
       "compatibility": [
@@ -93,11 +93,11 @@
           "appIconColor": 25855,
           "targets": [
             {
-              "version": "16.8.0",
+              "version": "16.12.0",
               "experimental": false
             },
             {
-              "version": "16.12.0",
+              "version": "16.8.0",
               "experimental": false
             }
           ]
@@ -117,7 +117,7 @@
       },
       "compatibility": [
         {
-          "name": "Prime Video",
+          "name": "Prime Video Android TV",
           "packageName": "com.amazon.amazonvideo.livingroom",
           "description": null,
           "appIconColor": 1539022,
@@ -223,7 +223,7 @@
       },
       "compatibility": [
         {
-          "name": "Prime Video",
+          "name": "Prime Video Android TV",
           "packageName": "com.amazon.amazonvideo.livingroom",
           "description": null,
           "appIconColor": 1539022,
