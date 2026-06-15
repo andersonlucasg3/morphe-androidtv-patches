@@ -1,109 +1,97 @@
 /*
- * Paramount+ Android TV — Ad Patch Fingerprints
+ * Paramount+ Android TV — Ad Suppression Patch
  *
  * Validated against:
  *   v16.8.0  (versionCode 520000464) — com.cbs.ott
  *
- * AD SUPPRESSION MECHANISM (confirmed via APK analysis of v16.8.0):
+ * Coverage:
+ *   ✅ VOD SSAI ads  — createVodStreamRequest() returns empty zzcx →
+ *                      IMA SDK throws → ErrorCriticalEvent → nm0.c fallback
+ *                      → content plays from cbsaavideo.com without SSAI ads
+ *   ✅ Pause ads     — CbsPauseWithAdsOverlay state machine
+ *   ➡️ Live TV       — DAI untouched (live TV has no ek0.s fallback URL)
  *
- *   g1.c() builds the player media source (nm0.c) from ek0.s (content URI)
- *   BEFORE DAI initialization begins. This runs for all resource config types:
- *     Lwmg (simple URI), Ln27 (IMA resource), Luf3 (DAI/SSAI)
+ * EMPTY zzcx vs NULL:
+ *   NULL return:      vk0.C = null → null guard fires at pk0.run()[163-164]
+ *                     → silent retry loop → infinite spinner (NO fallback triggered)
  *
- *   For VOD:      uf3.ek0.s = cbsaavideo.com DASH manifest URL (non-null)
- *                 g1.c() → nm0.c = valid media source
- *                 DAI fails → AVIA uses nm0.c → content plays without SSAI ads
+ *   EMPTY zzcx:       vk0.C = non-null (passes null guard) → requestStream()
+ *                     called with unpopulated params → IMA SDK throws exception
+ *                     → caught by pk0.run() try-catch → ErrorCriticalEvent
+ *                     → AVIA error handler → nm0.c fallback fires ✅
  *
- *   For live TV:  uf3.ek0.s = null (no pre-DAI content URL exists)
- *                 g1.c() → nm0.c = null
- *                 DAI fails → nm0.c = null → black screen
+ * zzcx CONSTRUCTOR:
+ *   In v16.8.0, zzcx is constructed in createVodStreamRequest() as:
+ *     new-instance v0, Lcom/google/ads/interactivemedia/v3/impl/zzcx;
+ *     sget-object v1, zzafv;->zzd (VOD integration type)
+ *     invoke-direct v0, v1, zzcx;-><init>(zzafv)V
+ *   We replicate this without calling the setter chain (zze/zzf/zzo).
+ *   The object is valid but has no content parameters set.
  *
- *   Therefore: the fallback is inherently self-regulating. Causing DAI to
- *   fail gracefully suppresses VOD SSAI ads while live TV requires DAI to
- *   succeed (since it has no ek0.s fallback URL). Live TV is NOT patched.
- *
- * STRATEGY:
- *   Return an empty (but non-null) zzcx StreamRequest from createVodStreamRequest().
- *   vk0.C is non-null → passes null guard → requestStream(emptyZzcx) is called →
- *   IMA SDK throws (no content source or video ID set) → exception caught by
- *   pk0.run() try-catch → dispatched as ErrorCriticalEvent → AVIA error handler
- *   detects nm0.c is valid → falls back to cbsaavideo.com → VOD plays without ads.
- *
- *   Live TV uses createLiveStreamRequest() — completely separate code path at
- *   pk0.run()[147] — unaffected by these fingerprints.
- *
- *   NOTE: This approach was previously tested WITH AdStartedFingerprint and
- *   AdSkipFingerprint active, which corrupted player state and blocked the
- *   nm0.c fallback path. This build contains ONLY these two patches + pause ads.
- *
- * isLive check location in pk0.run():
- *   [135] invoke-virtual v3, Lek0;->b()Z
- *   [137] if-eqz v3, +1a   → if NOT live (VOD), goto VOD path [151]
- *   [147] createLiveStreamRequest()  ← live TV (untouched)
- *   [160] createVodStreamRequest()   ← VOD (patched)
- *
- * Stream type enum (k33):
- *   k33.b = VOD  (ek0.b() returns false)
- *   k33.c = LIVE (ek0.b() returns true)
- *   k33.d = DVR
+ *   Register note: .registers 5 for 3-arg (p0=this, p1..p3=strings).
+ *   v0 = new zzcx, v1 = integration type constant. Safe to use both.
  */
 
 package app.morphe.patches.paramount
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.shared.compat.AppCompatibilities
 
-// ---------------------------------------------------------------------------
-// Patch 1a: VOD SSAI — createVodStreamRequest (3-arg)
-//
-// Called by pk0.run()[160] for standard VOD content.
-// Returns a valid but empty zzcx object — no contentSourceId (zze),
-// no videoId (zzf), no apiKey (zzo) set. requestStream(emptyZzcx) throws
-// inside the IMA SDK, caught by pk0.run() try-catch, triggers the
-// ErrorCriticalEvent → AVIA falls back to nm0.c (cbsaavideo.com).
-//
-// Fully unobfuscated (IMA SDK public API). Parameters: 3 Strings.
-// ---------------------------------------------------------------------------
+@Suppress("unused")
+val paramountPatch = bytecodePatch(
+    name = "Paramount+ Android TV",
+    description = "Removes VOD ads and pause ads while preserving live TV.",
+) {
+    compatibleWith(AppCompatibilities.PARAMOUNT_TV)
 
-internal object VodStreamRequest3ArgFingerprint : Fingerprint(
-    returnType = "Lcom/google/ads/interactivemedia/v3/api/StreamRequest;",
-    custom = { method, _ ->
-        method.name == "createVodStreamRequest" &&
-            method.definingClass ==
-                "Lcom/google/ads/interactivemedia/v3/api/ImaSdkFactory;" &&
-            method.parameterTypes.size == 3 &&
-            method.parameterTypes.all { it == "Ljava/lang/String;" }
-    },
-)
+    execute {
+        // ------------------------------------------------------------------
+        // Patch 1: VOD SSAI — createVodStreamRequest (3-arg and 4-arg)
+        //
+        // Returns a valid but empty zzcx StreamRequest. No contentSourceId,
+        // videoId, or apiKey setters are called. When pk0.run() passes this
+        // to requestStream(), the IMA SDK throws because the request has no
+        // parameters. The exception is caught by pk0.run()'s try-catch and
+        // dispatched as ErrorCriticalEvent.
+        //
+        // AVIA's ErrorCriticalEvent handler then checks nm0.c (built earlier
+        // by g1.c() from ek0.s = cbsaavideo.com URL) and falls back to
+        // direct playback from that URL — content without SSAI ads.
+        //
+        // Live TV is unaffected: it uses createLiveStreamRequest() which is
+        // a completely separate code path in pk0.run() at instruction [147].
+        //
+        // zzcx constructor requires one parameter: zzafv integration type.
+        // sget-object Lvk0;->K holds the factory but we use the static
+        // integration type directly via zzafv->zzd (VOD mode).
+        // ------------------------------------------------------------------
+        arrayOf(
+            VodStreamRequest3ArgFingerprint,
+            VodStreamRequest4ArgFingerprint,
+        ).forEach { fingerprint ->
+            fingerprint.method.addInstructions(
+                0,
+                """
+                    new-instance v0, Lcom/google/ads/interactivemedia/v3/impl/zzcx;
+                    sget-object v1, Lcom/google/ads/interactivemedia/v3/internal/zzafv;->zzd Lcom/google/ads/interactivemedia/v3/internal/zzafv;
+                    invoke-direct {v0, v1}, Lcom/google/ads/interactivemedia/v3/impl/zzcx;-><init>(Lcom/google/ads/interactivemedia/v3/internal/zzafv;)V
+                    return-object v0
+                """.trimIndent(),
+            )
+        }
 
-// ---------------------------------------------------------------------------
-// Patch 1b: VOD SSAI — createVodStreamRequest (4-arg)
-//
-// Called by pk0.run() for VOD content with networkCode parameter.
-// Same strategy as 3-arg — empty zzcx, triggers IMA SDK exception.
-// ---------------------------------------------------------------------------
-
-internal object VodStreamRequest4ArgFingerprint : Fingerprint(
-    returnType = "Lcom/google/ads/interactivemedia/v3/api/StreamRequest;",
-    custom = { method, _ ->
-        method.name == "createVodStreamRequest" &&
-            method.definingClass ==
-                "Lcom/google/ads/interactivemedia/v3/api/ImaSdkFactory;" &&
-            method.parameterTypes.size == 4 &&
-            method.parameterTypes.all { it == "Ljava/lang/String;" }
-    },
-)
-
-// ---------------------------------------------------------------------------
-// Patch 2: Pause ads — CbsPauseWithAdsOverlay state machine
-//
-// Independent of IMA DAI — unaffected by the VOD stream request patches.
-// Anchored on stable log strings. endsWith() handles package path migration.
-// ---------------------------------------------------------------------------
-
-internal object PauseAdOverlayFingerprint : Fingerprint(
-    returnType = "V",
-    strings = listOf("renderState: ", " not updating overlay."),
-    custom = { method, _ ->
-        method.definingClass.endsWith("CbsPauseWithAdsOverlay;")
-    },
-)
+        // ------------------------------------------------------------------
+        // Patch 2: Pause ads — CbsPauseWithAdsOverlay state machine
+        //
+        // Independent of IMA DAI. return-void prevents Glide image fetch,
+        // alpha fade-in, and overlay render. Overlay stays at alpha=0.
+        // ------------------------------------------------------------------
+        PauseAdOverlayFingerprint.method.addInstructions(
+            0,
+            """
+                return-void
+            """.trimIndent(),
+        )
+    }
+}
