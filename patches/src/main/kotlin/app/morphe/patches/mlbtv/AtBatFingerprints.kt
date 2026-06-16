@@ -122,26 +122,19 @@ internal object VodStreamRequest4ArgFingerprint : Fingerprint(
 )
 
 // ---------------------------------------------------------------------------
-// Patch 2: Pause Ad Overlay Suppression (GMS ads infrastructure)
+// Patch 2: Pause Ad Overlay Suppression — DISABLED (Fingerprint not matched)
 //
-// Pause ads are rendered through the GMS ads overlay infrastructure.
-// This patches the overlay display/render method to return immediately,
-// preventing the pause ad overlay from becoming visible. Audio pause
-// still works (separate media player handler).
+// The pause ad display method fingerprint did not match in At Bat v26.8.1.
+// This fingerprint has been disabled. If pause ads appear during testing,
+// decompile At Bat smali and search for:
+//   - "displayPauseAd", "renderPauseAd", "showPauseAd"
+//   - Methods in classes ending with "PauseAd", "AdOverlay", "PauseOverlay"
 //
-// Multiple possible class names for pause overlay rendering:
-// - PauseAdRenderer, PauseAdView, PauseOverlay, AdOverlay, etc.
+// Then create a new fingerprint with the correct method signatures.
+// For now, the primary goal (VOD SSAI suppression) is achieved.
 //
-// SEARCH PATTERN:
-//   - Contains "displayPauseAd" or "renderPauseAd" or "showPauseAd"
-//   - OR contains GMS overlay rendering logic
-//   - Return type: V (void) or boolean
-//   - Method is called during pause event
-//
-// If this fingerprint doesn't match any method, the patch is safely ignored
-// (pause ads may not exist in At Bat, or rendering happens elsewhere).
-// ---------------------------------------------------------------------------
-
+// COMMENTED OUT:
+/*
 internal object PauseAdDisplayFingerprint : Fingerprint(
     returnType = "V",
     strings = listOf("displayPauseAd", "pauseAdId"),
@@ -152,3 +145,4 @@ internal object PauseAdDisplayFingerprint : Fingerprint(
             method.name.contains("renderPauseAd")
     },
 )
+*/
