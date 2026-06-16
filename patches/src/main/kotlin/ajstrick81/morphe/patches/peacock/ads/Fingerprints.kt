@@ -104,7 +104,6 @@ internal object XtvClientWrapFingerprint : Fingerprint(
 // customFingerprint guards on both method name and defining class.
 // Confirmed matching v7.5.102.
 internal object FreewheelModuleSkipFingerprint : Fingerprint(
-    strings = listOf("FreewheelModule"),
     custom = { method, classDef ->
         method.name == "di\$lambda\$0" &&
             classDef.type == "Lcom/sky/core/player/sdk/addon/di/AddonInjectorImpl;"
