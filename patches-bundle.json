@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-06-16T15:58:28",
-  "description": "## [1.4.73](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.72...v1.4.73) (2026-06-16)\n\n\n### Bug Fixes\n\n* Change compatibility from ATBAT_TV to MLB_TV ([6eb87fb](https://github.com/ajstrick81/morphe-androidtv-patches/commit/6eb87fb399625fc96ab9828a0ed5228e83ddea5f))\n* Modify AtBatPatch for MLB At Bat compatibility ([7638422](https://github.com/ajstrick81/morphe-androidtv-patches/commit/7638422dbbcedd9de3e4aea9b6925edf8a5afd83))",
-  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.73/patches-1.4.73.mpp",
+  "created_at": "2026-06-16T21:57:23",
+  "description": "## [1.4.74](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.73...v1.4.74) (2026-06-16)\n\n\n### Bug Fixes\n\n* Update FreewheelModuleSkipFingerprint definition ([5e0306e](https://github.com/ajstrick81/morphe-androidtv-patches/commit/5e0306e0a6f86d27da137d59bee17de66a585cbe))",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.74/patches-1.4.74.mpp",
   "signature_download_url": "",
-  "version": "1.4.73"
+  "version": "1.4.74"
 }

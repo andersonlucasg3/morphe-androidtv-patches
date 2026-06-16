@@ -1,3 +1,10 @@
+## [1.4.74](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.73...v1.4.74) (2026-06-16)
+
+
+### Bug Fixes
+
+* Update FreewheelModuleSkipFingerprint definition ([5e0306e](https://github.com/ajstrick81/morphe-androidtv-patches/commit/5e0306e0a6f86d27da137d59bee17de66a585cbe))
+
 ## [1.4.73](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.72...v1.4.73) (2026-06-16)
 
 
