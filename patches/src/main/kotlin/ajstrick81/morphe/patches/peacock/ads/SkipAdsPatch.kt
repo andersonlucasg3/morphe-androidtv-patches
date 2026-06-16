@@ -3,14 +3,14 @@ package ajstrick81.morphe.patches.peacock.ads
 import ajstrick81.morphe.patches.peacock.shared.Constants
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Disables ad delivery via three confirmed Sky SDK layers, an OkHttp " +
-        "interceptor that blocks ad CDN and analytics domains at the network layer, " +
-        "and a WebView shouldInterceptRequest wrapper that intercepts Chromium-routed " +
-        "ad segment and FreeWheel traffic. Validated v7.5.102.",
+    description = "Disables ad delivery via Sky SDK surgical targets (FreeWheel DI module " +
+        "skip, MediaTailor SSAI layers), OkHttp interceptor, and WebView " +
+        "shouldInterceptRequest wrapper. Validated v7.5.102.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
@@ -60,19 +60,11 @@ val skipAdsPatch = bytecodePatch(
         //             → type=Conflict at 0x10 (verifier ambiguous on v0 type
         //                at mid-method merge point)
         //
-        // Root cause: any insertion at offset 5 involves a register (v0) that
-        // the verifier is actively tracking mid-method. Even a single pass-through
-        // invoke causes a type conflict at the merge point.
-        //
         // Fix — offset 0, no register arguments:
         //   At offset 0 no registers are live. invoke-static {} touches nothing.
         //   move-result-object v0 assigns a fresh OkHttpClient into an
         //   uninitialized register — the verifier always accepts this.
         //   return-object v0 exits cleanly. Original method body unreachable.
-        //
-        // PeacockAdPatchHelper.buildOkHttpClient() replicates the original body
-        // in full (Builder + OkHttpWorkaroundInterceptor + build()) and prepends
-        // AdBlockInterceptor so both interceptors are chained.
         GetOkHttpClientFingerprint.method.addInstructions(
             0,
             """
@@ -85,29 +77,14 @@ val skipAdsPatch = bytecodePatch(
         // ── Layer 7 ─────────────────────────────────────────────────────────
         // WebView shouldInterceptRequest injection.
         //
-        // PCAP/GREASE analysis confirmed that ad segment delivery (prd-cf CDN)
-        // and all FreeWheel/analytics traffic travels through the Chromium network
-        // stack inside XTVWebView, completely bypassing OkHttp. Layer 6 alone
-        // cannot intercept this traffic.
+        // PCAP/GREASE analysis confirmed ad segment delivery and FreeWheel
+        // traffic travels through Chromium/WebView, bypassing OkHttp entirely.
+        // XTVWebView's xtvClient does not override shouldInterceptRequest.
         //
-        // XTVWebView is a full WebView subclass that loads:
-        //   https://tv.clients.peacocktv.com/android.html?containerVersion=7.5.102
-        // xtvClient (XTVWebView$xtvClient$1) extends WebViewClient but does NOT
-        // override shouldInterceptRequest — falls through to the no-op default.
-        //
-        // Injection point: instruction index 54 (bytecode offset 252) in
-        // XTVWebView.<init>(Context), immediately before setWebViewClient(xtvClient).
-        //   v5 = XTVWebView (this), v1 = xtvClient$1 instance
-        //
-        // Two instructions inserted before index 54 replace v1 with the wrapped
-        // client. No new registers allocated — v1 is already typed as WebViewClient
-        // at this point, so the verifier sees a legal same-type reassignment.
-        //
-        // PeacockWebViewHelper.wrapClient() delegates all existing xtvClient
-        // callbacks (onPageStarted, onPageFinished, onLoadResource, onReceivedError,
-        // onReceivedHttpError, onReceivedSslError, onRenderProcessGone) and adds
-        // shouldInterceptRequest() returning an empty 200 response for confirmed
-        // ad CDN and FreeWheel hostnames.
+        // Injection at instruction index 56 in XTVWebView.<init>(Context),
+        // immediately before setWebViewClient(xtvClient). Wraps xtvClient via
+        // PeacockWebViewHelper.wrapClient() which adds shouldInterceptRequest
+        // with randomized responses to avoid FreeWheel fraud detection.
         XtvClientWrapFingerprint.method.addInstructions(
             56,
             """
@@ -115,5 +92,36 @@ val skipAdsPatch = bytecodePatch(
                 move-result-object v1
             """.trimIndent(),
         )
+
+        // ── Layer 8 ─────────────────────────────────────────────────────────
+        // Sky SDK FreeWheel DI module surgical removal.
+        //
+        // AddonInjectorImpl.di$lambda$0() is the Kodein DI wiring method that
+        // imports all addon modules into the player container. The full module
+        // import sequence is:
+        //   coreAddonModule, coroutinesModule, contentProtectionModule,
+        //   eventBoundaryModule, videoAdsConfigModule, mediaTailorModule,
+        //   freewheelModule,  ← indices 16-17: iget-object + import$default
+        //   networkApiModule, urlEncoder, platformAddonModule, lateBindingAddonModule
+        //
+        // Removing indices 16 and 17 prevents FreeWheel from ever being
+        // registered in the DI container. The player has no FreeWheel addon:
+        //   - No VMAP ad break schedule fetched
+        //   - No VAST ad creative requested
+        //   - No impression/quartile/completion pixels fired
+        //   - No ad segments fetched or buffered
+        //
+        // This is the Sky SDK equivalent of Layer 4 (getSsaiConfigurationProvider
+        // → null) but targeting CSAI/FreeWheel rather than SSAI/MediaTailor.
+        // Works identically for VOD and live TV since the same DI wiring is
+        // used for all content types — live TV simply never had a FreeWheel
+        // module to begin with so removal is a no-op there.
+        //
+        // Note: removeInstruction is called twice on index 16 because after
+        // the first removal index 17 shifts down to become index 16.
+        FreewheelModuleSkipFingerprint.method.apply {
+            removeInstruction(16) // iget-object v0, freewheelModule
+            removeInstruction(16) // import$default(...) — now shifted to 16
+        }
     }
 }
