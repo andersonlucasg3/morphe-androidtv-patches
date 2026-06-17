@@ -1,5 +1,5 @@
 {
-  "version": "1.4.75",
+  "version": "1.4.76",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.foxsports.android": "Fox Sports Android TV",
@@ -7,9 +7,9 @@
     "com.amazon.amazonvideo.livingroom": "Prime Video Android TV",
     "com.tubitv": "Tubi Android TV",
     "com.univision.prendetv": "ViX Android TV",
-    "com.bamnetworks.mobile.android.gameday.atbat": "MLB.tv Android TV",
     "com.disney.disneyplus": "Disney+ Android TV",
     "com.wbd.hbomax": "HBO Max Android TV",
+    "com.bamnetworks.mobile.android.gameday.atbat": "MLB.tv Android TV",
     "com.cbs.ott": "Paramount+ Android TV"
   },
   "patches": [
@@ -77,7 +77,7 @@
     },
     {
       "name": "MLB At Bat Android TV",
-      "description": "Removes VOD ads, gambling promotions, and pause overlays while preserving live game playback.",
+      "description": "Removes VOD ads, between-innings gambling ads, and sportsbook promotions while preserving live game playback.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {

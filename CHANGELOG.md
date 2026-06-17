@@ -1,3 +1,11 @@
+## [1.4.76](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.75...v1.4.76) (2026-06-17)
+
+
+### Bug Fixes
+
+* push new version with Update ad patch fingerprints for MLB At Bat ([1aac811](https://github.com/ajstrick81/morphe-androidtv-patches/commit/1aac8110d104ea6ef5dfbf56179efe2189b568be))
+* Refactor AtBatPatch for clarity and structure ([fbcd024](https://github.com/ajstrick81/morphe-androidtv-patches/commit/fbcd024b288acb7343fdf5b4ee499f9d6b42db22))
+
 ## [1.4.75](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.74...v1.4.75) (2026-06-16)
 
 
