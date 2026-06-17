@@ -8,16 +8,24 @@
  *   ✅ VOD ads              — createVodStreamRequest() returns empty zzcx →
  *                             IMA SDK throws → fallback to pre-cached CDN URL
  *   ✅ Gambling ads (VOD)   — FanDuel, DraftKings, BetMGM via IMA SDK path
- *   ✅ Between-innings ads  — PublicaBidListener.onAdBreakStarted() blocked +
- *                             CreateMediaItemWithAdsUseCase blocked upstream
+ *   ✅ Between-innings ads  — CreateMediaItemWithAdsUseCase blocked upstream →
+ *                             DAI API and IMA SDK ad init both suppressed
  *   ➡️ Live games           — DAI untouched (createLiveStreamRequest path)
  *
  * SUSPEND FUNCTION STRATEGY:
- *   onAdBreakStarted and CreateMediaItemWithAdsUseCase are Kotlin coroutines.
- *   They compile to methods returning Ljava/lang/Object; with a Continuation
- *   parameter. return-void is invalid here — instead we return const/4 0x0
- *   (null Object), which causes the coroutine to complete with null result,
- *   effectively suppressing the ad break without crashing.
+ *   CreateMediaItemWithAdsUseCase is a Kotlin suspend function.
+ *   It compiles to a method returning Ljava/lang/Object; with a Continuation
+ *   parameter. return-void is invalid — instead inject:
+ *     const/4 v0, 0x0
+ *     return-object v0
+ *   This returns null Object, completing the coroutine without executing
+ *   the ad initialization body.
+ *
+ * NOTE ON PublicaAdBreakStartedFingerprint (REMOVED):
+ *   The log string "[MlbMediaPlayer] onAdBreakStarted" lives in a different
+ *   class than PublicaBidListener — the fingerprint never matched.
+ *   CreateMediaItemWithAdsUseCase is the cleaner upstream intercept and has
+ *   its own confirmed log strings directly in the method body.
  */
 
 package app.morphe.patches.mlbtv
@@ -62,36 +70,18 @@ val atbatPatch = bytecodePatch(
         )
 
         // ------------------------------------------------------------------
-        // Patch 3: Between-Innings Ad Break — PublicaBidListener
+        // Patch 3: DAI/IMA Stream Init — CreateMediaItemWithAdsUseCase
         //
-        // onAdBreakStarted is a Kotlin suspend function (returns Object).
-        // return-object v0 with const/4 v0, 0x0 returns null, completing
-        // the coroutine without executing the ad break body.
+        // Upstream intercept for between-innings commercial breaks.
+        // Controls both "Playing stream with DAI API" and "Playing stream
+        // with IMA SDK" paths. Returning null Object (0x0) completes the
+        // coroutine without initializing any ad stream.
         //
-        // Cancels: Publica auction → DAI pod metadata → dclk_video_ads
-        // Expected: "Commercial Break - We'll be right back" instead of ads.
+        // Confirmed unobfuscated in classes6.dex:
+        //   mlb.atbat.media.player.ads.CreateMediaItemWithAdsUseCase
         //
-        // If this fingerprint doesn't match (method signature differs),
-        // comment it out — Patch 4 handles the upstream intercept.
-        // ------------------------------------------------------------------
-        PublicaAdBreakStartedFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return-object v0
-            """.trimIndent(),
-        )
-
-        // ------------------------------------------------------------------
-        // Patch 4: DAI/IMA Stream Init — CreateMediaItemWithAdsUseCase
-        //
-        // Controls both DAI API and IMA SDK ad stream initialization paths.
-        // Sits upstream of between-innings ad segment requests.
-        //
-        // Also a suspend function — return null Object to suppress.
-        //
-        // NOTE: If this patch causes live game issues, comment it out.
-        // The VOD patches (1a/1b) are independent and safe to keep.
+        // If this causes live game issues, comment out this block only.
+        // VOD patches above are independent and unaffected.
         // ------------------------------------------------------------------
         CreateMediaItemWithAdsFingerprint.method.addInstructions(
             0,
