@@ -1,3 +1,10 @@
+## [1.4.82](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.81...v1.4.82) (2026-06-18)
+
+
+### Bug Fixes
+
+* Morphe patch error: Refactor FoxPlayerClearVodAdsFingerprint definition ([c3edc0c](https://github.com/ajstrick81/morphe-androidtv-patches/commit/c3edc0c9306ee724d4bab477b240bdf3ddb9213c))
+
 ## [1.4.81](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.80...v1.4.81) (2026-06-18)
 
 
