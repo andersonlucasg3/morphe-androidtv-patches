@@ -9,37 +9,30 @@
  *                             IMA SDK throws → fallback to pre-cached CDN URL
  *   ✅ Between-innings SSAI — Lb6/k;.b(Uri) empty zzdm →
  *                             ImaServerSideAdInsertionMediaSource fails
- *   ✅ MLB EVI ad segments  — Lz70/b;.o() TXXX cue handler blocked →
- *                             tv-gmc.mlb.com/EVI/ segments never dispatched
- *   ✅ Google DAI ad cues   — Lb6/h$c;.onMetadata() TXXX handler blocked →
- *                             dclk_video_ads segments never inserted
+ *   ✅ MLB EVI ad segments  — Lu70/i;.onMetadata() blocked → Lz70/b;.o()
+ *                             never called → EVI coroutines never launched
+ *   ✅ Google DAI ad cues   — Lu70/i;.onMetadata() blocked → Lb6/h$c;
+ *                             never called → dclk_video_ads never inserted
  *   ➡️ Live games           — Untouched (createLiveStreamRequest path)
- *   ➡️ Game stream          — Untouched (tv-gmc.mlb.com/{date}/{gameId}-HD
- *                             segments bypass all patched code paths)
+ *   ➡️ Game stream          — Untouched (game .ts segments don't use TXXX path)
  *
- * WHY TXXX PATCHING WORKS:
- *   tv-gmc.mlb.com serves both game content AND /EVI/ ad segments on the
- *   same domain — DNS blocking kills the stream. Path-level blocking is
- *   impossible at the DNS layer.
+ * PREVIOUS PATCH FAILURE (MlbTxxxAdCueFingerprint):
+ *   Used "method.name != onMetadata" to distinguish Lz70/b;.o from
+ *   Lb6/h$c;.onMetadata. This condition matched MANY empty stub delegates
+ *   (registers=2, no logic) that also implement Ly70/s;->o(Ll5/t;)V.
+ *   Morphe matched a stub → patch compiled and installed but did nothing.
  *
- *   The /EVI/ ad segments are scheduled via HLS TXXX timed metadata cues
- *   embedded in the DAI manifest. Both handlers must be blocked:
- *
- *   Lz70/b;.o() — MLB's handler:
- *     TXXX cue → parse ad timing → launch Lz70/d;/Lz70/e; coroutines
- *     → fetch pod metadata → dispatch EVI URLs to ExoPlayer
- *     return-void → ExoPlayer receives no EVI segment URLs → game continues
- *
- *   Lb6/h$c;.onMetadata() — IMA SSAI handler:
- *     TXXX cue → onUserTextReceived() callbacks → DAI segment insertion
- *     return-void → no dclk_video_ads segments inserted
+ * CORRECT APPROACH — SINGLE UPSTREAM PATCH:
+ *   Lu70/i;.onMetadata is the ExoMediaPlayer listener that receives ALL
+ *   HLS timed metadata from ExoPlayer and dispatches to all registered
+ *   Ly70/s; listeners via invoke-interface. Patching this single method
+ *   with return-void stops the entire TXXX chain before it reaches either
+ *   Lz70/b;.o (MLB EVI) or Lb6/h$c;.onMetadata (IMA DAI).
  *
  * BYTECODE VERIFIED:
  *   StreamRequest impl:  Lcom/google/ads/interactivemedia/v3/impl/zzdm;
  *   VOD type constant:   Lcom/google/ads/interactivemedia/v3/internal/zzafs;->zzd
  *   zzdm constructor:    <init>(Lcom/google/ads/interactivemedia/v3/internal/zzafs;)V
- *   VOD patch registers: .registers 6, v0=new zzdm, v1=zzafs type
- *   SSAI patch registers:.registers 8, p1=Uri input, v0=new zzdm, v1=zzafs type
  */
 
 package app.morphe.patches.mlbtv
@@ -59,7 +52,6 @@ val atbatPatch = bytecodePatch(
         // ------------------------------------------------------------------
         // Patch 1a: VOD SSAI — createVodStreamRequest (3-arg)
         // Empty zzdm → IMA SDK throws → fallback to pre-cached CDN URL.
-        // Live games use createLiveStreamRequest() — separate path, untouched.
         // ------------------------------------------------------------------
         VodStreamRequest3ArgFingerprint.method.addInstructions(
             0,
@@ -73,7 +65,6 @@ val atbatPatch = bytecodePatch(
 
         // ------------------------------------------------------------------
         // Patch 1b: VOD SSAI — createVodStreamRequest (4-arg)
-        // Same as 1a, extra networkCode param doesn't affect register layout.
         // ------------------------------------------------------------------
         VodStreamRequest4ArgFingerprint.method.addInstructions(
             0,
@@ -88,7 +79,6 @@ val atbatPatch = bytecodePatch(
         // ------------------------------------------------------------------
         // Patch 2: Between-Innings SSAI — Lb6/k;.b(Uri)→StreamRequest
         //
-        // Parses ssai://dai.google.com URIs for ImaServerSideAdInsertionMediaSource.
         // Empty zzdm → SSAI source fails init → ExoPlayer fallback to plain HLS.
         // Verified: registers=8, p0=this, p1=Uri, v0=new zzdm, v1=zzafs type.
         // ------------------------------------------------------------------
@@ -103,27 +93,18 @@ val atbatPatch = bytecodePatch(
         )
 
         // ------------------------------------------------------------------
-        // Patch 3: MLB TXXX Ad Cue Handler — Lz70/b;.o(Ll5/t;)V
+        // Patch 3: TXXX Metadata Dispatcher — Lu70/i;.onMetadata(Ll5/t;)V
         //
-        // Verified: registers=15, TXXX string, Ll5/t; param. Plain void method.
-        // Cancels MLB EVI ad dispatch: no pod metadata fetch, no EVI segment
-        // URLs delivered to ExoPlayer. Game stream continues uninterrupted.
-        // ------------------------------------------------------------------
-        MlbTxxxAdCueFingerprint.method.addInstructions(
-            0,
-            """
-                return-void
-            """.trimIndent(),
-        )
-
-        // ------------------------------------------------------------------
-        // Patch 4: IMA SSAI TXXX Handler — Lb6/h$c;.onMetadata(Ll5/t;)V
+        // Verified: registers=5, name=onMetadata, proto=(Ll5/t;)V
+        //   String: "[ExoMediaPlayer] metadata received from stream"
         //
-        // Verified: registers=11, TXXX string, Ll5/t; param, name=onMetadata.
-        // Cancels Google DAI (dclk_video_ads) segment insertion alongside
-        // MLB EVI. Belt-and-suspenders with Patch 3.
+        // Single upstream dispatcher for ALL HLS timed metadata.
+        // return-void stops all downstream listener dispatch:
+        //   → Lz70/b;.o() never called → MLB EVI coroutines never launched
+        //   → Lb6/h$c;.onMetadata() never called → DAI cues never processed
+        //   → tv-gmc.mlb.com/EVI/ and dclk_video_ads never dispatched
         // ------------------------------------------------------------------
-        ImaSsaiTxxxHandlerFingerprint.method.addInstructions(
+        ExoMediaPlayerMetadataFingerprint.method.addInstructions(
             0,
             """
                 return-void
