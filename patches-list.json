@@ -1,5 +1,5 @@
 {
-  "version": "1.4.80",
+  "version": "1.4.81",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.foxsports.android": "Fox Sports Android TV",
@@ -77,7 +77,7 @@
     },
     {
       "name": "MLB At Bat Android TV",
-      "description": "Removes VOD ads, between-innings gambling ads, and sportsbook promotions while preserving live game playback.",
+      "description": "Removes VOD ads and between-innings gambling ads while preserving live game playback.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
