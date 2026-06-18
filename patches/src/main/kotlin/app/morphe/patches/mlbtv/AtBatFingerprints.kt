@@ -5,27 +5,29 @@
  *   v26.8.1  (versionCode 1750000022) — com.bamnetworks.mobile.android.gameday
  *
  * ALL FINGERPRINTS VERIFIED via full APK bytecode analysis (androguard).
+ * All class names, method signatures, register counts, and string refs confirmed.
  *
- * BETWEEN-INNINGS AD ARCHITECTURE (confirmed via bytecode trace):
+ * IMA SDK StreamRequest implementation in this APK version:
+ *   Class:       Lcom/google/ads/interactivemedia/v3/impl/zzdm;
+ *   Constructor: <init>(Lcom/google/ads/interactivemedia/v3/internal/zzafs;)V
+ *   VOD type:    Lcom/google/ads/interactivemedia/v3/internal/zzafs;->zzd
+ *   Live type:   Lcom/google/ads/interactivemedia/v3/internal/zzafs;->zzc
  *
- *   IMA SDK fires AdEvent → Lv70/k;.onAdEvent(AdEvent)V
- *     ↓ dispatches "Ad Break Started" → calls Lv70/k;.e() (onAdStarted)
- *     ↓ dispatches "Ad Period Started" → calls Lv70/k;.b() (onAdBreakStarted)  ← WAS PATCHING HERE (too late)
- *     ↓ IMA SDK already scheduled googlevideo.com segments upstream
+ * NOTE: Earlier patch iterations used zzcx/zzafv — those classes still exist
+ * in the APK but serve different purposes (PauseAd and unrelated types).
+ * The correct StreamRequest impl is zzdm with zzafs integration type.
  *
- *   CORRECT intercept: Lv70/k;.onAdEvent(AdEvent)V
- *     return-void here prevents ALL ad event dispatching before any
- *     segment scheduling occurs.
+ * BETWEEN-INNINGS AD ROOT CAUSE (confirmed via logcat + bytecode):
+ *   Ads are delivered via Media3 ImaServerSideAdInsertionMediaSource (Lb6/h;).
+ *   The DAI HLS manifest (dai.google.com/linear/hls/...) has ad segments
+ *   server-side stitched in BEFORE ExoPlayer plays. All previous event-level
+ *   patches (onAdEvent, onAdBreakStarted, etc.) fired AFTER ExoPlayer was
+ *   already playing the ad — wrong layer.
  *
- *   SECONDARY intercept: Lz70/i;.z()V (pod metadata timer)
- *     Called by Lz70/i;.s()V and Lz70/i;.r(...)V
- *     Prevents DAI pod metadata fetch → no segment URLs generated
- *
- * PREVIOUS PATCH FAILURE REASON:
- *   Lv70/k;.b() logs "[MlbMediaPlayer] onAdBreakStarted" but is called
- *   AFTER IMA SDK has already dispatched the ad break and scheduled
- *   googlevideo.com dclk_video_ads segment downloads. Patching b() had
- *   no effect on ad playback because the segments were already en route.
+ *   Correct intercept: Lb6/k;.b(Uri)→StreamRequest
+ *   This is where ssai://dai.google.com URIs are parsed into StreamRequests
+ *   for ImaServerSideAdInsertionMediaSource. Return empty zzdm here and
+ *   the SSAI media source fails to init → ExoPlayer falls back to plain HLS.
  */
 
 package app.morphe.patches.mlbtv
@@ -33,8 +35,19 @@ package app.morphe.patches.mlbtv
 import app.morphe.patcher.Fingerprint
 
 // ---------------------------------------------------------------------------
-// Patch 1a: VOD SSAI & Gambling Ads — createVodStreamRequest (3-arg)
-// Unobfuscated IMA SDK public API — confirmed present in APK.
+// Patch 1a: VOD SSAI — createVodStreamRequest (3-arg)
+//
+// VERIFIED bytecode:
+//   new-instance v0, Lcom/google/ads/interactivemedia/v3/impl/zzdm;
+//   sget-object  v1, zzafs;->zzd (VOD type)
+//   invoke-direct v0, v1, zzdm;-><init>(zzafs)V
+//   invoke-virtual v0, v3, zzdm;->zze(String)V  [contentSourceId]
+//   invoke-virtual v0, v4, zzdm;->zzf(String)V  [videoId]
+//   invoke-virtual v0, v5, zzdm;->zzo(String)V  [apiKey]
+//   return-object v0
+//
+// Our patch: return empty zzdm (no setters) → IMA SDK throws → fallback.
+// .registers 6, p0=this, p1..p3=strings, v0=new zzdm, v1=zzafs type.
 // ---------------------------------------------------------------------------
 
 internal object VodStreamRequest3ArgFingerprint : Fingerprint(
@@ -49,7 +62,8 @@ internal object VodStreamRequest3ArgFingerprint : Fingerprint(
 )
 
 // ---------------------------------------------------------------------------
-// Patch 1b: VOD SSAI & Gambling Ads — createVodStreamRequest (4-arg)
+// Patch 1b: VOD SSAI — createVodStreamRequest (4-arg)
+// Same approach, extra networkCode String parameter.
 // ---------------------------------------------------------------------------
 
 internal object VodStreamRequest4ArgFingerprint : Fingerprint(
@@ -64,51 +78,43 @@ internal object VodStreamRequest4ArgFingerprint : Fingerprint(
 )
 
 // ---------------------------------------------------------------------------
-// Patch 3: IMA SDK Ad Event Dispatcher — Lv70/k;.onAdEvent
+// Patch 2: Between-Innings SSAI — Lb6/k;.b(Uri)→StreamRequest
 //
-// VERIFIED: Class Lv70/k; method onAdEvent(AdEvent)V
-// This is the IMA SDK AdEvent listener — the true upstream entry point
-// for ALL between-innings ad events including "Ad Break Started".
+// VERIFIED bytecode (Lb6/k;.b):
+//   Proto:     (Landroid/net/Uri;)Lcom/google/ads/interactivemedia/v3/api/StreamRequest;
+//   Return:    Lcom/google/ads/interactivemedia/v3/api/StreamRequest;
+//   Params:    Landroid/net/Uri; (p1)
+//   Registers: 8
+//   Strings:   "ssai", "dai.google.com", "assetKey", "apiKey",
+//              "contentSourceId", "videoId", "networkCode", "format",
+//              "adTagParameters", "manifestSuffix", "contentUrl",
+//              "authToken", "streamActivityMonitorId",
+//              "customUiOptionsSkippableSupport",
+//              "customUiOptionsAboutThisAdSupport",
+//              "Unsupported stream format:", "Invalid URI scheme or authority."
 //
-// return-void here prevents all ad event dispatching before IMA SDK
-// can schedule googlevideo.com dclk_video_ads segment downloads.
+// This method parses ssai://dai.google.com URIs for
+// ImaServerSideAdInsertionMediaSource (Lb6/h;). Returning an empty
+// zzdm StreamRequest here causes the SSAI media source to fail
+// initialization → ExoPlayer falls back to plain HLS without ads.
 //
-// Unique strings confirmed in bytecode:
-//   "Ad Break Started", "Ad Period Started", "Ad Completed",
-//   "Ad Buffering", "Ad Midpoint", "GSTREAM:DAI"
+// Callers confirmed:
+//   Lb6/h$d;.b(MediaSource)  — SSAI media source factory
+//   Lb6/h;.<init>(...)        — SSAI media source constructor
 //
-// Uses unobfuscated IMA SDK parameter type for precise matching.
+// Uses unique combination of Uri parameter + "ssai"/"dai.google.com" strings.
 // ---------------------------------------------------------------------------
 
-internal object AdEventListenerFingerprint : Fingerprint(
-    returnType = "V",
+internal object SsaiStreamRequestFingerprint : Fingerprint(
+    returnType = "Lcom/google/ads/interactivemedia/v3/api/StreamRequest;",
     strings = listOf(
-        "Ad Break Started",
-        "Ad Period Started",
-        "GSTREAM:DAI",
+        "ssai",
+        "dai.google.com",
+        "assetKey",
+        "Invalid URI scheme or authority.",
     ),
     custom = { method, _ ->
-        method.name == "onAdEvent" &&
-            method.parameterTypes.size == 1 &&
-            method.parameterTypes[0] ==
-                "Lcom/google/ads/interactivemedia/v3/api/AdEvent;"
-    },
-)
-
-// ---------------------------------------------------------------------------
-// Patch 4: DAI Pod Metadata Timer — Lz70/i;.z()V
-//
-// VERIFIED: Class Lz70/i; method z()V
-// No parameters, single string ref: "[LinearGoogleDaiListener] Starting pod metadata timer"
-// Called by Lz70/i;.s()V and Lz70/i;.r(...)V
-// Prevents DAI pod metadata fetch → no ad segment URLs generated.
-// Depth-of-defense below Patch 3.
-// ---------------------------------------------------------------------------
-
-internal object LinearDaiPodMetadataFingerprint : Fingerprint(
-    returnType = "V",
-    strings = listOf("[LinearGoogleDaiListener] Starting pod metadata timer"),
-    custom = { method, _ ->
-        method.parameterTypes.isEmpty()
+        method.parameterTypes.size == 1 &&
+            method.parameterTypes[0] == "Landroid/net/Uri;"
     },
 )
