@@ -6,37 +6,34 @@
  *
  * ALL FINGERPRINTS VERIFIED via full APK bytecode analysis (androguard).
  *
- * TXXX METADATA DISPATCH ARCHITECTURE (confirmed via bytecode trace):
+ * CURRENT STATE (confirmed via logcat 06-18):
+ *   ✅ MLB EVI (/EVI/ segments): BLOCKED — zero EVI segments in break log
+ *   ✅ TXXX dispatch: BLOCKED — zero TXXX entries in log
+ *   ❌ Google DAI (dclk_video_ads): STILL FETCHING — 22 segments in break
  *
- *   ExoPlayer fires onMetadata(Ll5/t;) on all registered listeners
- *       ↓
- *   Lu70/i;.onMetadata(Ll5/t;)V  ← SINGLE dispatch point
- *       Logs: "[ExoMediaPlayer] metadata received from stream"
- *       Iterates f0 ArrayList of Ly70/s; listeners
- *       Calls invoke-interface Ly70/s;->o(Ll5/t;)V on each
- *       ↓
- *   Lz70/b;.o(Ll5/t;)V  ← MLB TXXX handler (registers=15, has TXXX string)
- *       Reads TXXX cue → launches Lz70/d;/Lz70/e; coroutines
- *       → fetches pod metadata → dispatches tv-gmc.mlb.com/EVI/ URLs
- *       ↓
- *   Lb6/h$c;.onMetadata(Ll5/t;)V  ← IMA SSAI handler (registers=11, has TXXX)
- *       Calls onUserTextReceived() → DAI (dclk_video_ads) segment insertion
+ * WHY dclk_video_ads PERSISTS:
+ *   Lb6/k;.b(Uri) returns empty zzdm ✅ (our patch fires)
+ *   BUT zzan.requestStream(emptyZzdm) SUCCEEDS anyway — the IMA SDK uses
+ *   server-side session state from AdsLoader initialization, not just the
+ *   StreamRequest parameters. The empty zzdm passes the null check
+ *   ("StreamRequest cannot be null") and IMA SDK returns a valid DAI
+ *   manifest URL regardless of missing contentSourceId/videoId/assetKey.
  *
- * PREVIOUS PATCH FAILURE REASON:
- *   MlbTxxxAdCueFingerprint used "method.name != onMetadata" which matched
- *   empty stub delegates (registers=2) instead of Lz70/b;.o (registers=15).
- *   Morphe matched a stub — patch compiled but did nothing at runtime.
+ * CORRECT FIX — Lb6/h;.b0(Lq5/w;)V:
+ *   This is called when ImaServerSideAdInsertionMediaSource starts up.
+ *   It constructs Lb6/h$g; (which holds AdsLoader + StreamRequest) and
+ *   fires requestStream() via Ll6/l.f(). return-void here prevents the
+ *   entire SSAI media source from initializing — no requestStream() call,
+ *   no DAI manifest URL, no dclk_video_ads segments.
  *
- * CORRECT STRATEGY:
- *   Patch Lu70/i;.onMetadata — the single upstream dispatcher.
- *   return-void here stops ALL downstream listener dispatch in one shot.
- *   No need to patch Lz70/b;.o or Lb6/h$c;.onMetadata separately.
+ *   VERIFIED: string "ImaServerSideAdInsertionMediaSource" is UNIQUE to
+ *   this method in the entire APK. proto=(Lq5/w;)V, registers=10.
  *
- *   VERIFIED UNIQUE: Only method in APK with:
- *     - name = "onMetadata"
- *     - string = "[ExoMediaPlayer] metadata received from stream"
- *     - proto = (Ll5/t;)V
- *     - registers = 5
+ *   Also patching Lb6/h;.m0(StreamManager)V — the DAI StreamManager
+ *   event handler ("IMA DAI Stream Event: ", "GSTREAM:DAI"). Belt-and-
+ *   suspenders: even if b0() is somehow bypassed, m0() returning void
+ *   prevents the StreamManager from processing the DAI stream and
+ *   scheduling ad segments.
  *
  * IMA SDK StreamRequest (verified from createVodStreamRequest bytecode):
  *   Class:       Lcom/google/ads/interactivemedia/v3/impl/zzdm;
@@ -79,43 +76,65 @@ internal object VodStreamRequest4ArgFingerprint : Fingerprint(
 )
 
 // ---------------------------------------------------------------------------
-// Patch 2: Between-Innings SSAI — Lb6/k;.b(Uri)→StreamRequest
+// Patch 2: SSAI MediaSource Startup — Lb6/h;.b0(Lq5/w;)V
 //
-// VERIFIED: registers=8, strings include "ssai", "dai.google.com",
-//   "assetKey", "Invalid URI scheme or authority."
-// Parses ssai://dai.google.com URIs for ImaServerSideAdInsertionMediaSource.
-// Empty zzdm → SSAI source fails init → ExoPlayer falls back to plain HLS.
+// VERIFIED: proto=(Lq5/w;)V, registers=10
+//   String: "ImaServerSideAdInsertionMediaSource" (UNIQUE in entire APK)
+//
+// Called when ImaServerSideAdInsertionMediaSource (Lb6/h;) starts up.
+// Constructs Lb6/h$g; (AdsLoader + StreamRequest holder) and fires
+// requestStream() via Ll6/l.f(). return-void prevents the SSAI source
+// from initializing — no requestStream() call, no DAI manifest URL,
+// no dclk_video_ads segments fetched.
+//
+// This replaces the previous SsaiStreamRequestFingerprint (Lb6/k;.b())
+// which returned empty zzdm but IMA SDK still generated a valid manifest
+// via server-side session state regardless of empty StreamRequest params.
 // ---------------------------------------------------------------------------
 
-internal object SsaiStreamRequestFingerprint : Fingerprint(
-    returnType = "Lcom/google/ads/interactivemedia/v3/api/StreamRequest;",
-    strings = listOf(
-        "ssai",
-        "dai.google.com",
-        "assetKey",
-        "Invalid URI scheme or authority.",
-    ),
+internal object SsaiMediaSourceStartupFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf("ImaServerSideAdInsertionMediaSource"),
     custom = { method, _ ->
         method.parameterTypes.size == 1 &&
-            method.parameterTypes[0] == "Landroid/net/Uri;"
+            method.parameterTypes[0] == "Lq5/w;"
     },
 )
 
 // ---------------------------------------------------------------------------
-// Patch 3: TXXX Metadata Dispatcher — Lu70/i;.onMetadata(Ll5/t;)V
+// Patch 3: DAI StreamManager Event Handler — Lb6/h;.m0(StreamManager)V
 //
-// VERIFIED: name=onMetadata, proto=(Ll5/t;)V, registers=5
-//   String: "[ExoMediaPlayer] metadata received from stream"
-//   Class:  Lu70/i; (ExoMediaPlayer listener wrapper)
+// VERIFIED: proto=(StreamManager)V, registers confirmed present in Lb6/h;
+//   Strings: "IMA DAI Stream Event: ", "GSTREAM:DAI", ", streamId: "
 //
-// UNIQUE: Only method in APK with this string + name + proto combination.
+// Called when the IMA SDK StreamManager fires events (stream initialized,
+// ad started, etc.). return-void prevents the StreamManager from processing
+// the DAI stream, scheduling ad segments, or updating player state.
+// Belt-and-suspenders with Patch 2.
+// ---------------------------------------------------------------------------
+
+internal object DaiStreamManagerHandlerFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf(
+        "IMA DAI Stream Event: ",
+        "GSTREAM:DAI",
+    ),
+    custom = { method, _ ->
+        method.parameterTypes.size == 1 &&
+            method.parameterTypes[0] ==
+                "Lcom/google/ads/interactivemedia/v3/api/StreamManager;"
+    },
+)
+
+// ---------------------------------------------------------------------------
+// Patch 4: TXXX Metadata Dispatcher — Lu70/i;.onMetadata(Ll5/t;)V
 //
-// Single upstream dispatch point for ALL HLS timed metadata.
-// Iterates f0 ArrayList of Ly70/s; listeners and calls o(Ll5/t;) on each.
-// return-void here stops ALL downstream TXXX processing:
-//   - Lz70/b;.o()     → MLB EVI ad coroutines never launched
-//   - Lb6/h$c;.onMetadata() → IMA DAI segment insertion never triggered
-//   - tv-gmc.mlb.com/EVI/ and dclk_video_ads segments never dispatched
+// VERIFIED: registers=5, string="[ExoMediaPlayer] metadata received from stream"
+// UNIQUE: only onMetadata in APK with this exact string.
+//
+// Upstream dispatcher for ALL HLS timed metadata. return-void stops all
+// downstream listener dispatch — MLB EVI coroutines and IMA SSAI callbacks
+// never fire. Confirmed working: zero TXXX and zero EVI in logcat.
 // ---------------------------------------------------------------------------
 
 internal object ExoMediaPlayerMetadataFingerprint : Fingerprint(
