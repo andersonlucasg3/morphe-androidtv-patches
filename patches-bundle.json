@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-06-18T23:15:42",
-  "description": "## [1.4.83](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.82...v1.4.83) (2026-06-18)\n\n\n### Bug Fixes\n\n* push new version: Enhance documentation for ad delivery and SSAI handling ([8fe99d7](https://github.com/ajstrick81/morphe-androidtv-patches/commit/8fe99d78ad8a2405f9a81ef98829b5cbfba53a12))\n* Refactor ad delivery architecture comments in AtBatFingerprints.kt ([84da6e7](https://github.com/ajstrick81/morphe-androidtv-patches/commit/84da6e776d86f759931d49c292a3727b80535699))",
-  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.83/patches-1.4.83.mpp",
+  "created_at": "2026-06-19T00:01:35",
+  "description": "## [1.4.84](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.83...v1.4.84) (2026-06-19)\n\n\n### Bug Fixes\n\n* Refactor TXXX metadata dispatch handling ([520358e](https://github.com/ajstrick81/morphe-androidtv-patches/commit/520358ef3c8b6bfa0e82fa29da39109ee4218cba))",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.84/patches-1.4.84.mpp",
   "signature_download_url": "",
-  "version": "1.4.83"
+  "version": "1.4.84"
 }

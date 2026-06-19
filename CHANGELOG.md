@@ -1,3 +1,10 @@
+## [1.4.84](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.83...v1.4.84) (2026-06-19)
+
+
+### Bug Fixes
+
+* Refactor TXXX metadata dispatch handling ([520358e](https://github.com/ajstrick81/morphe-androidtv-patches/commit/520358ef3c8b6bfa0e82fa29da39109ee4218cba))
+
 ## [1.4.83](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.82...v1.4.83) (2026-06-18)
 
 
