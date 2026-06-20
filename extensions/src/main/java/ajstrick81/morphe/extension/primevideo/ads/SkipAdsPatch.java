@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
 /**
- * Prime Video ATV — ad suppression extension.
+ * Prime Video ATV — multi-layer ad suppression extension.
  *
  * Entry points called from patched bytecode:
  *
@@ -12,13 +12,23 @@ import java.util.Map;
  *   skipAllExo2AdGroups   — same for ExoPlayer2 / GMS Ads variant
  *   seekToAdBreakEnd      — seeks player past current ad break (hoodles-inspired)
  *
- * --- seekToAdBreakEnd: The Hoodles-Inspired Seek Technique ---
+ * Note: Hook 4 (MetricsTransporter.transmit) uses pure inline smali to
+ * construct a fake UploadResult("SUCCESS", "ok") directly — no Java extension
+ * method needed since UploadResult lives in the app's own DEX.
+ *
+ * --- AdPlaybackState suppression (Hooks 1 & 2) ---
+ *
+ * withRemovedAdGroupCount(adGroupCount) physically removes all ad groups
+ * from the AdPlaybackState before ExoPlayer sees the map. Operates at the
+ * SSAI schedule layer — primary suppression for standard ad delivery.
+ *
+ * --- seekToAdBreakEnd: Hoodles-Inspired Seek Technique (Hook 3) ---
  *
  * Inspired by hoodles' Prime Video Mobile patch which hooks
  * ServerInsertedAdBreakState.enter(state, trigger, player) to seek past
  * ad breaks using direct player control.
  *
- * The ATV equivalent hook point is
+ * The ATV equivalent hook point is:
  * ServerSideAdInsertionUtil.getStreamPositionUs(Player, AdPlaybackState)
  * which is called during active ad playback with live references to both
  * the Player and the AdPlaybackState.
@@ -30,18 +40,9 @@ import java.util.Map;
  *   Hoodles mobile: player.seekTo(adBreakEndMs)
  *   Our ATV:        player.seekTo(currentPositionMs + remainingAdDurationMs)
  *
- * Algorithm:
- *   1. Check isPlayingAd() — return immediately if not in an ad
- *   2. Get currentAdGroupIndex from player
- *   3. Get currentAdIndexInAdGroup from player
- *   4. Sum remaining ad durations in the group starting from current ad
- *   5. Convert microseconds to milliseconds (durationsUs → durationMs)
- *   6. seekTo(currentPosition + remainingDuration)
- *
- * This operates DURING ad playback — after the WASM pre-buffers segments
- * but while they're playing. Combined with setAdPlaybackStates (prevents
- * new ad groups from being scheduled) this covers both pre-roll timing
- * gap and active mid-roll playback.
+ * This operates DURING ad playback regardless of which WASM delivery path
+ * initiated the ad — covers both standard SSAI and the new
+ * PromoPlaybackExperience path confirmed in logcat analysis (June 2026).
  *
  * All methods wrapped in try/catch — any failure is a silent no-op.
  */
@@ -77,7 +78,8 @@ public class SkipAdsPatch {
     }
 
     /**
-     * Transforms an AdPlaybackState map for the ExoPlayer2 SSAI pipeline.
+     * Transforms an AdPlaybackState map for the ExoPlayer2 SSAI pipeline
+     * bundled inside the Google Mobile Ads SDK (classes4.dex).
      *
      * Called at index 0 of:
      *   com.google.android.exoplayer2.source.ads.ServerSideAdInsertionMediaSource
@@ -110,17 +112,13 @@ public class SkipAdsPatch {
      * Called at index 0 of:
      *   ServerSideAdInsertionUtil.getStreamPositionUs(Player, AdPlaybackState)
      *
-     * This method is only called when media3 needs to calculate the stream
-     * position during ad playback — meaning isPlayingAd() is true and we
-     * have a live player reference to seek with.
+     * Fires during active ad playback regardless of which WASM delivery path
+     * initiated the ad. When isPlayingAd() is true, sums the remaining ad
+     * durations in the current group and seeks the player forward past them.
      *
-     * The seek target is:
-     *   currentPosition + sum of remaining ad durations in the current group
-     *   (in milliseconds, converted from microseconds)
-     *
-     * After seeking, the WASM playback::machine's setAdPlaybackStates hook
-     * (Hook 1) will fire with the new position's AdPlaybackState, where
-     * withRemovedAdGroupCount() will clean up any remaining ad groups.
+     * Covers the new PromoPlaybackExperience path (confirmed June 2026) that
+     * partially bypasses setAdPlaybackStates — this hook operates at the
+     * playback layer after segments are already buffered.
      *
      * @param player          Live Player interface reference from p0
      * @param adPlaybackState Current AdPlaybackState from p1
