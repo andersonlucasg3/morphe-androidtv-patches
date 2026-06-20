@@ -6,9 +6,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 // ─────────────────────────────────────────────────────────────────────────────
 // Primary target — media3 SSAI ad schedule entry point
 // classes.dex / smali/androidx/media3/exoplayer/source/ads/
-//
-// Called by the Ignite native layer when it pushes the SSAI ad schedule
-// into ExoPlayer. Strips all AdGroups via withRemovedAdGroupCount().
 // ─────────────────────────────────────────────────────────────────────────────
 object SetAdPlaybackStatesMedia3Fingerprint : Fingerprint(
     definingClass = "Landroidx/media3/exoplayer/source/ads/ServerSideAdInsertionMediaSource;",
@@ -39,34 +36,17 @@ object SetAdPlaybackStatesExo2Fingerprint : Fingerprint(
 // Tertiary target — ServerSideAdInsertionUtil.getStreamPositionUs(Player, AdPlaybackState)
 // classes2.dex / smali/androidx/media3/exoplayer/source/ads/
 //
-// This is the ATV equivalent of hoodles' ServerInsertedAdBreakState.enter() hook
-// from Prime Video Mobile. The parallel is exact:
+// Hoodles-inspired seek hook. Called during active ad playback with live
+// Player and AdPlaybackState references. When isPlayingAd() is true, seeks
+// the player past the current ad break duration.
 //
-//   Hoodles Mobile:              Our ATV:
-//   enter(state, trigger, player) getStreamPositionUs(player, adPlaybackState)
-//   trigger.getBreak().duration   adPlaybackState.getAdGroup(i).durationsUs
-//   player.seekTo(adBreakEnd)     player.seekTo(adBreakEndMs)
-//   doTrigger(NO_MORE_ADS)        withRemovedAdGroupCount() already handles this
+// Covers the PromoPlaybackExperience path and any other ad delivery mechanism
+// that bypasses setAdPlaybackStates — operates during active playback
+// regardless of which delivery path initiated the ad.
 //
-// This method is called by media3 while isPlayingAd() == true to calculate
-// the current stream position relative to the ad timeline. At this point:
-//   p0 = Player (live reference — NOT a WeakRef, no capture needed)
-//   p1 = AdPlaybackState (contains ad group times and durations)
-//
-// When isPlayingAd() is true we have everything needed to:
-//   1. Get current ad group index from the player
-//   2. Sum the remaining ad durations in that group from AdPlaybackState
-//   3. Seek the player to currentPosition + totalRemainingAdDuration
-//
-// This fires at the segment playback layer — AFTER the WASM pre-buffers ads
-// but DURING playback, meaning it can skip even pre-buffered content.
-// Combined with setAdPlaybackStates (prevents new ad groups) this gives
-// defense in depth across both the scheduling and playback layers.
-//
-// Parameters confirmed from smali:
-//   p0 = Player (interface: seekTo(J)V, isPlayingAd()Z,
-//                getCurrentAdGroupIndex()I, getCurrentPosition()J)
-//   p1 = AdPlaybackState (getAdGroup(I) -> AdGroup with durationsUs:[J, count:I)
+// p0 = Player (interface: seekTo(J)V, isPlayingAd()Z,
+//              getCurrentAdGroupIndex()I, getCurrentPosition()J)
+// p1 = AdPlaybackState (getAdGroup(I) -> AdGroup with durationsUs:[J)
 // ─────────────────────────────────────────────────────────────────────────────
 object GetStreamPositionUsFingerprint : Fingerprint(
     definingClass = "Landroidx/media3/exoplayer/source/ads/ServerSideAdInsertionUtil;",
@@ -77,4 +57,37 @@ object GetStreamPositionUsFingerprint : Fingerprint(
     ),
     returnType = "J",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC)
+)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Quaternary target — MetricsTransporter.transmit(SerializedBatch)
+// classes2.dex / smali/com/amazon/minerva/client/thirdparty/transport/
+//
+// The Java-layer impression reporting pipeline that successfully uploads
+// ad metrics to Amazon's servers (HTTP 200 OK, 224 uploads in a single
+// ad session). Confirmed in logcat: "Successfully uploaded metrics; code: 200"
+//
+// Returning a fake SUCCESS UploadResult prevents Amazon from receiving
+// impression delivery reports — without impression data, Amazon's ad server
+// cannot accurately track whether ads are being viewed, which should reduce
+// ad scheduling pressure over time (the impression deficit effect).
+//
+// Strategy: construct a fake UploadResult(SUCCESS, "ok") and return it
+// without making any network request. The caller sees a successful upload
+// and moves on normally.
+//
+// UploadResult constructor: <init>(String uploadStatus, String uploadMessage)
+// SUCCESS constant: UploadResult.SUCCESS = "SUCCESS"
+//
+// This is the deception-over-brute-force approach applied to the metrics
+// layer — Amazon's ad server thinks impressions are being reported normally.
+// ─────────────────────────────────────────────────────────────────────────────
+object MetricsTransporterTransmitFingerprint : Fingerprint(
+    definingClass = "Lcom/amazon/minerva/client/thirdparty/transport/MetricsTransporter;",
+    name = "transmit",
+    parameters = listOf(
+        "Lcom/amazon/minerva/client/thirdparty/transport/SerializedBatch;"
+    ),
+    returnType = "Lcom/amazon/minerva/client/thirdparty/transport/UploadResult;",
+    accessFlags = listOf(AccessFlags.PUBLIC)
 )
