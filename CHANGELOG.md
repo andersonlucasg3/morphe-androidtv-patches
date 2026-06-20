@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.9...v1.1.0) (2026-06-20)
+
+
+### Features
+
+* **youtubetv:** add working video ad blocking via OS spoofing ([d0e2e6e](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/d0e2e6ebbe236b7c8c17e90559e2bf1ff520b672))
+
 ## [1.0.9](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.8...v1.0.9) (2026-06-20)
 
 
