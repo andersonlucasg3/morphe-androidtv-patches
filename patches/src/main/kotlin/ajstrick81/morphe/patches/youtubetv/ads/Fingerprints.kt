@@ -23,22 +23,13 @@ import app.morphe.patcher.Fingerprint
 // "Android Automotive". YouTube does not serve video ads on
 // Android Automotive (stricter automotive ad policies).
 //
-// Target: a method returning String that references both the
-// InnerTube TV client ID ("ANDROID_TV") and the "Android" OS
-// identifier in its string table — typical of a method that
-// builds the InnerTube client context.
+// DIAGNOSTIC: stripped to strings-only to identify which constraint
+// (returnType or custom) is blocking the match. Will add back
+// one at a time based on test results.
 //
-// Evidence: "ANDROID_TV" (3 DEX matches), "Android", "clientName",
-//           "platformDetails" confirmed in APK.
+// Evidence: "ANDROID_TV" (3 DEX matches) confirmed in APK.
 object YouTubeTvOsNameFingerprint : Fingerprint(
     strings = listOf("ANDROID_TV"),
-    returnType = "Ljava/lang/String;",
-    custom = { method, _ ->
-        // Structural check only — exclude toString/equals/hashCode.
-        method.name != "toString" &&
-            method.name != "equals" &&
-            method.name != "hashCode"
-    },
 )
 
 // Hook 2 — VAST/VMAP Ad Request Short-Circuit
