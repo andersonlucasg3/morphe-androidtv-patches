@@ -10,7 +10,8 @@
     "com.disney.disneyplus": "Disney+ Android TV",
     "com.wbd.hbomax": "HBO Max Android TV",
     "com.bamnetworks.mobile.android.gameday.atbat": "MLB.tv Android TV",
-    "com.cbs.ott": "Paramount+ Android TV"
+    "com.cbs.ott": "Paramount+ Android TV",
+    "com.google.android.youtube.tv": "YouTube Android TV"
   },
   "patches": [
     {
@@ -310,6 +311,78 @@
             {
               "version": "4.46.0_tv",
               "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Skip ads",
+      "description": "Suppresses video ads and ad overlays in YouTube Android TV. Includes OS name spoofing, video ad interception, coroutine-based ad fetch cancellation, and ad state machine interception.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.google.android.youtube.tv": ["7.05.301"]
+      },
+      "compatibility": [
+        {
+          "name": "YouTube Android TV",
+          "packageName": "com.google.android.youtube.tv",
+          "description": null,
+          "appIconColor": 16711680,
+          "targets": [
+            {
+              "version": "7.05.301",
+              "experimental": true
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "GmsCore support",
+      "description": "Rewrites Google Mobile Services references to use MicroG RE (app.revanced.android.gms). Includes string replacement across DEX, permission rewrites, and intent action rewrites. Enables sign-in and GMS-dependent features without Google Play Services.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.google.android.youtube.tv": ["7.05.301"]
+      },
+      "compatibility": [
+        {
+          "name": "YouTube Android TV",
+          "packageName": "com.google.android.youtube.tv",
+          "description": null,
+          "appIconColor": 16711680,
+          "targets": [
+            {
+              "version": "7.05.301",
+              "experimental": true
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Change package name",
+      "description": "Changes the package name from com.google.android.youtube.tv to app.morphe.android.youtube.tv. Enables side-by-side installation with the official YouTube TV app and provides spoofed package metadata for MicroG.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.google.android.youtube.tv": ["7.05.301"]
+      },
+      "compatibility": [
+        {
+          "name": "YouTube Android TV",
+          "packageName": "com.google.android.youtube.tv",
+          "description": null,
+          "appIconColor": 16711680,
+          "targets": [
+            {
+              "version": "7.05.301",
+              "experimental": true
             }
           ]
         }

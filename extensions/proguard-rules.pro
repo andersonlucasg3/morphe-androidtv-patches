@@ -34,3 +34,9 @@
 -keep class ajstrick81.morphe.extension.peacock.ads.PeacockWebViewHelper {
     public static android.webkit.WebViewClient wrapClient(android.webkit.WebViewClient);
 }
+
+# YouTube TV — GMS core availability check
+# Called via invoke-static from injected smali in main activity onCreate.
+-keep class ajstrick81.morphe.extension.youtubetv.patches.GmsCoreSupportPatch {
+    public static void checkGmsCore(java.lang.Object);
+}

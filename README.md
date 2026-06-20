@@ -26,6 +26,7 @@ I'm just like you — I enjoy watching TV and movies without being bored and ann
 | 🔴 Fox Sports | **Under Development** | — |
 | 🔴 Fox One | **Under Development** | — |
 | 🔴 MLB TV | **Under Development** | — |
+| 🔴 YouTube TV | `com.google.android.youtube.tv` | In Development | `v7.05.301` | — |
 
 > 🟢 Working &nbsp;&nbsp; 🟡 Partial/Testing &nbsp;&nbsp; 🔴 Under Development / Broken
 
