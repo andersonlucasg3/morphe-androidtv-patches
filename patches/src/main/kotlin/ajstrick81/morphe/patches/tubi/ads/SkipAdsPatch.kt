@@ -13,29 +13,19 @@ val skipAdsPatch = bytecodePatch(
 
     execute {
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 1 — FoxImaAdListeners.adEventListener_delegate$lambda$10$lambda$9
-        // ─────────────────────────────────────────────────────────────────────
         FoxImaAdEventListenerFingerprint.method.addInstructions(0, "return-void")
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 2 — FoxImaAdListeners.adsLoadedListener_delegate$lambda$4$lambda$3
-        // ─────────────────────────────────────────────────────────────────────
         FoxImaAdsLoadedListenerFingerprint.method.addInstructions(0, "return-void")
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 3 — FoxPlayer.clearVodAds()
-        // ─────────────────────────────────────────────────────────────────────
         FoxPlayerClearVodAdsFingerprint.method.addInstructions(0, "return-void")
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 4 — ImagePauseAds.l(VideoApi, long)
-        // ─────────────────────────────────────────────────────────────────────
         TubiPauseAdsFingerprint.method.addInstructions(0, "return-void")
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 5 — FoxImaStreamIdLoader.requestVODDAIUrl
-        // ─────────────────────────────────────────────────────────────────────
         FoxImaVodStreamRequestFingerprint.method.addInstructions(
             0,
             """
@@ -45,9 +35,7 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 6 — FoxImaStreamIdLoader.requestImaStreamId
-        // ─────────────────────────────────────────────────────────────────────
         FoxImaLiveStreamRequestFingerprint.method.addInstructions(
             0,
             """
@@ -57,13 +45,11 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 7 — xo/C$c.shouldInterceptRequest(WebView, WebResourceRequest)
         //
-        // WebView-layer ad domain interception. Blocks XHR/fetch requests
-        // to ad orchestration endpoints from the Tubi SPA. Cannot intercept
-        // media element (<video> src) requests — those require Hook 9.
-        // ─────────────────────────────────────────────────────────────────────
+        // WebView-layer ad domain interception. Blocks XHR/fetch requests from
+        // the Tubi SPA to ad orchestration endpoints. Cannot intercept media
+        // element (<video> src) requests — those require AGH DNS rules.
         TubiWebClientInterceptFingerprint.method.addInstructions(
             0,
             """
@@ -122,13 +108,10 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 8 — xo/C$c.onPageFinished(WebView, String)
         //
         // JavaScript fetch override injected into the SPA after page load.
-        // Intercepts fetch() calls to ad orchestration endpoints in JS context
-        // before they can initiate network requests.
-        // ─────────────────────────────────────────────────────────────────────
+        // Intercepts fetch() calls to ad orchestration endpoints in JS context.
         TubiWebClientPageFinishedFingerprint.method.addInstructions(
             0,
             """
@@ -138,23 +121,13 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // ─────────────────────────────────────────────────────────────────────
-        // Hook 9 — qf/c.suspendGetAdBreaks(String, String, String, Map, Continuation)
-        //
-        // NATIVE OKHTTP ROOT CAUSE — the final piece.
-        // R8-obfuscated RainmakerAdsFetcher.suspendGetAdBreaks() makes a direct
-        // OkHttp call to rainmaker.production-public.tubi.io — bypassing the
-        // WebView entirely. This is why the first pre-roll survived Hook 7.
-        //
-        // Returns COROUTINE_SUSPENDED sentinel (Lai/q;.a) immediately.
-        // The ad manifest never arrives. Tubi's timeout fires, content plays.
-        // ─────────────────────────────────────────────────────────────────────
-        RainmakerSuspendGetAdBreaksFingerprint.method.addInstructions(
-            0,
-            """
-                sget-object v0, Lai/q;->a:Lai/q;
-                return-object v0
-            """
-        )
+        // NOTE: Hook 9 (qf/c.suspendGetAdBreaks coroutine sentinel) was removed.
+        // Returning COROUTINE_SUSPENDED caused TubiNewPlayerImpl coroutine to hang
+        // indefinitely, blocking the entire content pipeline (confirmed via logcat:
+        // TubiCoroutineGuard MISSING_HANDLER at TubiNewPlayerImpl.kt:102).
+        // The rainmaker native OkHttp call is suppressed at DNS level instead:
+        //   AGH rule: ||rainmaker.production-public.tubi.io^
+        // DNS blocking allows the coroutine to complete with a network error,
+        // which Tubi handles gracefully and proceeds to content playback.
     }
 }
