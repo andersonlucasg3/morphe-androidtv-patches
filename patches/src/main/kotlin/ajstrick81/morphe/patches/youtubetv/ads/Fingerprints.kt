@@ -53,42 +53,29 @@ object YouTubeTvLoadVideoAdsFingerprint : Fingerprint(
 
 // Hook 3 — Ad Break Parser Short-Circuit
 //
-// Finds the method that parses ad break data from the InnerTube
-// player response protobuf. Returns an empty ArrayList to prevent
-// any ad breaks from being scheduled.
-//
+// Finds the method that parses ad break data. Returns an empty
+// ArrayList to prevent ad breaks from being scheduled.
 // Pattern from Disney Insertion.getPoints / Insertion.getRanges.
 //
-// Evidence: "AdBreakClipInfo", "AdBreakStatus", "adBreak" (3 DEX
-//           matches) all confirmed in APK.
+// Evidence: "AdBreakClipInfo" confirmed in APK v7.05.301.
 //
-// DIAGNOSTIC: stripped to strings-only to identify which constraint
-// is blocking the match. Will add back based on test results.
+// DIAGNOSTIC: single string, no constraints — "adBreak" +
+// "AdBreakClipInfo" did not co-occur in one method.
 object YouTubeTvAdBreakParserFingerprint : Fingerprint(
-    strings = listOf("adBreak", "AdBreakClipInfo"),
+    strings = listOf("AdBreakClipInfo"),
 )
 
 // Hook 4 — Coroutine Ad Fetch Stall
 //
-// Targets the Kotlin coroutine-based VAST/VMAP ad fetch method.
-// Returns the COROUTINE_SUSPENDED sentinel to suspend the coroutine
-// without completing it: the ad manifest never arrives, YouTube's
-// timeout logic fires, and content plays without pre-roll ads.
+// Targets the VMAP ad fetch method. Returns COROUTINE_SUSPENDED
+// sentinel to stall the ad manifest coroutine.
+// Pattern from Tubi Hook 9.
 //
-// Pattern from Tubi Hook 9 (RainmakerSuspendGetAdBreaksFingerprint):
-// suspend function with Continuation as last parameter, returning
-// COROUTINE_SUSPENDED to stall the fetch.
+// Evidence: "vmapAdsRequest" confirmed in APK v7.05.301.
+// Uses different string than Hook 2 ("vmapAdsRequest" vs "vastAdsRequest")
+// to avoid collision with Hook 2 on the same method.
 //
-// Evidence: "COROUTINE_SUSPENDED" and "vastAdsRequest" confirmed
-//           in APK. Kotlin coroutines are used in YouTube TV.
+// DIAGNOSTIC: stripped to strings-only.
 object YouTubeTvSuspendGetAdsFingerprint : Fingerprint(
-    strings = listOf("vastAdsRequest"),
-    returnType = "Ljava/lang/Object;",
-    custom = { method, _ ->
-        // Must accept a Kotlin coroutine Continuation as last parameter
-        // (the compiler-generated parameter of every suspend function).
-        method.parameterTypes.any {
-            it.contains("Continuation")
-        }
-    },
+    strings = listOf("vmapAdsRequest"),
 )
