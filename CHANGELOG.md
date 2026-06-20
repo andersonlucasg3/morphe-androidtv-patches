@@ -1,3 +1,10 @@
+## [1.0.8](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.7...v1.0.8) (2026-06-20)
+
+
+### Bug Fixes
+
+* **youtubetv:** switch Hook 1 from ANDROID_TV to youtubei/v1 ([7ada1b6](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/7ada1b6d30db155c9e403a38c42fae85622a3b08))
+
 ## [1.0.7](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.6...v1.0.7) (2026-06-20)
 
 
