@@ -61,13 +61,11 @@ object YouTubeTvLoadVideoAdsFingerprint : Fingerprint(
 //
 // Evidence: "AdBreakClipInfo", "AdBreakStatus", "adBreak" (3 DEX
 //           matches) all confirmed in APK.
+//
+// DIAGNOSTIC: stripped to strings-only to identify which constraint
+// is blocking the match. Will add back based on test results.
 object YouTubeTvAdBreakParserFingerprint : Fingerprint(
     strings = listOf("adBreak", "AdBreakClipInfo"),
-    custom = { method, _ ->
-        // Must return a List/Collection type to substitute empty ArrayList.
-        val rt = method.returnType
-        rt != null && (rt.contains("List") || rt.contains("Collection"))
-    },
 )
 
 // Hook 4 — Coroutine Ad Fetch Stall
