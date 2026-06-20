@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.5...v1.0.6) (2026-06-20)
+
+
+### Bug Fixes
+
+* **youtubetv:** split Hook 3 to single string, Hook 4 to vmapAdsRequest ([ae94e4f](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/ae94e4fbca2b870bee62be8e28e307f9b198c116))
+
 ## [1.0.5](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.4...v1.0.5) (2026-06-20)
 
 
