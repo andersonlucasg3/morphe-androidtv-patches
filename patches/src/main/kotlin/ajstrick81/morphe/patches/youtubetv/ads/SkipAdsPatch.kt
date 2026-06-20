@@ -23,7 +23,8 @@ val skipAdsPatch = bytecodePatch(
         // Ported from Morphe mobile YouTube: hideVideoAds(String osName)
         // returning "Android Automotive".
         //
-        // Status: PLACEHOLDER — requires Phase 0 RE to find exact method
+        // Evidence: "ANDROID_TV" (3 DEX matches), "Android", "clientName",
+        //           "platformDetails" confirmed in APK v7.05.301.
         // ─────────────────────────────────────────────────────────────────────
         YouTubeTvOsNameFingerprint.method.addInstructions(
             0,
@@ -34,12 +35,14 @@ val skipAdsPatch = bytecodePatch(
         )
 
         // ─────────────────────────────────────────────────────────────────────
-        // Hook 2 — Video Ad Loading Interception
+        // Hook 2 — VAST/VMAP Ad Request Short-Circuit
         //
-        // Short-circuits the video ad loading method. Based on ReVanced's
-        // LoadVideoAdsFingerprint which uses distinctive slot/adapter strings.
+        // Short-circuits the video ad request method. YouTube TV fetches
+        // ads via VAST/VMAP protocol, not the slot/adapter system used
+        // in mobile YouTube. Setting a 0 return prevents the ad manifest
+        // from being loaded.
         //
-        // Status: PLACEHOLDER — requires Phase 0 RE to verify strings exist
+        // Evidence: "vastAdsRequest" confirmed in APK v7.05.301.
         // ─────────────────────────────────────────────────────────────────────
         YouTubeTvLoadVideoAdsFingerprint.method.addInstructions(
             0,
@@ -56,7 +59,8 @@ val skipAdsPatch = bytecodePatch(
         // any ad breaks from being scheduled. Pattern from Disney's
         // Insertion.getPoints/getRanges.
         //
-        // Status: PLACEHOLDER — requires Phase 0 RE to find exact method
+        // Evidence: "adBreak" (3 DEX matches), "AdBreakClipInfo" confirmed
+        //           in APK v7.05.301.
         // ─────────────────────────────────────────────────────────────────────
         YouTubeTvAdBreakParserFingerprint.method.addInstructions(
             0,
@@ -68,15 +72,17 @@ val skipAdsPatch = bytecodePatch(
         )
 
         // ─────────────────────────────────────────────────────────────────────
-        // Hook 4 — Ad Fetch Coroutine Suspension
+        // Hook 4 — Coroutine Ad Fetch Stall
         //
-        // Returns COROUTINE_SUSPENDED sentinel to stall Kotlin coroutine-based
-        // ad fetching. The coroutine suspends, the ad manifest never arrives,
-        // and YouTube's timeout proceeds to play content.
+        // Returns COROUTINE_SUSPENDED sentinel to stall the Kotlin coroutine
+        // that fetches VAST/VMAP ad manifests. The coroutine suspends, the
+        // ad manifest never arrives, and YouTube's timeout proceeds to
+        // play content without pre-roll ads.
         //
         // Pattern from Tubi Hook 9 (RainmakerSuspendGetAdBreaksFingerprint).
         //
-        // Status: PLACEHOLDER — requires Phase 0 RE to find exact method
+        // Evidence: "vastAdsRequest" + COROUTINE_SUSPENDED confirmed in APK.
+        //           Uses Continuation parameter detection (suspend function).
         // ─────────────────────────────────────────────────────────────────────
         YouTubeTvSuspendGetAdsFingerprint.method.addInstructions(
             0,
@@ -86,18 +92,5 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // ─────────────────────────────────────────────────────────────────────
-        // Hook 5 — Ad State Machine Transition Interception
-        //
-        // Short-circuits the transition into ad playback mode in YouTube's
-        // player state machine. Prevents the player from entering the
-        // ad-playing state entirely.
-        //
-        // Status: PLACEHOLDER — requires Phase 0 RE to find exact method
-        // ─────────────────────────────────────────────────────────────────────
-        YouTubeTvAdStateTransitionFingerprint.method.addInstructions(
-            0,
-            "return-void"
-        )
     }
 }
