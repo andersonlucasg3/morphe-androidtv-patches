@@ -14,27 +14,6 @@ val skipAdsPatch = bytecodePatch(
     execute {
 
         // ─────────────────────────────────────────────────────────────────────
-        // Hook 1 — OS Name Spoofing
-        //
-        // Replaces the OS name in the InnerTube client context with
-        // "Android Automotive". YouTube does not serve video ads on the
-        // Android Automotive platform (stricter automotive ad policies).
-        //
-        // Ported from Morphe mobile YouTube: hideVideoAds(String osName)
-        // returning "Android Automotive".
-        //
-        // Evidence: "ANDROID_TV" (3 DEX matches), "Android", "clientName",
-        //           "platformDetails" confirmed in APK v7.05.301.
-        // ─────────────────────────────────────────────────────────────────────
-        YouTubeTvOsNameFingerprint.method.addInstructions(
-            0,
-            """
-                const-string v0, "Android Automotive"
-                return-object v0
-            """
-        )
-
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 2 — VAST/VMAP Ad Request Short-Circuit
         //
         // Short-circuits the video ad request method. YouTube TV fetches

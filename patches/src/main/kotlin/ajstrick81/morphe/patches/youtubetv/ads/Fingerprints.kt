@@ -12,22 +12,6 @@ import app.morphe.patcher.Fingerprint
  * class load time — instant crash on app startup).
  */
 
-// Hook 1 — OS Name Spoofing
-//
-// Replaces the OS name in the InnerTube client context with
-// "Android Automotive". YouTube does not serve video ads on
-// Android Automotive (stricter automotive ad policies).
-//
-// Evidence: "youtubei/v1" (1 DEX match) confirmed in APK.
-// "ANDROID_TV" only exists in <clinit> — can't inject there.
-// "youtubei/v1" is in URL construction, not a static initializer.
-object YouTubeTvOsNameFingerprint : Fingerprint(
-    strings = listOf("youtubei/v1"),
-    custom = { method, _ ->
-        method.name != "<clinit>" && method.name != "<init>"
-    },
-)
-
 // Hook 2 — VAST/VMAP Ad Request Short-Circuit
 //
 // Short-circuits the video ad request method. YouTube TV fetches
