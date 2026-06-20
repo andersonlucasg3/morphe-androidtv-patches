@@ -22,6 +22,7 @@ I'm just like you — I enjoy watching TV and movies without being bored and ann
 | 🟢 Peacock | `com.peacocktv.peacockandroid` | Working - [Use with DNS filters:](https://github.com/ajstrick81/Peacock-Ads) | `v7.5.102` | 6/13/26 |
 | 🟢 Tubi | `com.tubitv` | Working | `v10.20.5000` | 5/20/26 |
 | 🟢 ViX | `com.univision.prendetv` | Working | `v4.46.0_tv` | 5/19/26 |
+| 🔴 YouTube TV | `com.google.android.youtube.tv` | In Development | `v7.05.301` | — |
 | 🔴 Paramount+ | `com.cbs.ott` | In Development | `v16.8 → v16.12` | — |
 | 🔴 Fox Sports | **Under Development** | — |
 | 🔴 Fox One | **Under Development** | — |

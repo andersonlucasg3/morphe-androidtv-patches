@@ -129,3 +129,4 @@ node_modules/
 .idea/
 local.properties
 .apk-decompile/
+morphe-temporary-files/
