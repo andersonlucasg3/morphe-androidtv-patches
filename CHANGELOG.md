@@ -1,3 +1,10 @@
+## [1.4.88](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.87...v1.4.88) (2026-06-20)
+
+
+### Bug Fixes
+
+* Implement fingerprints for ad playback and metrics ([65a6878](https://github.com/ajstrick81/morphe-androidtv-patches/commit/65a6878006cbddd90b7e7b953b82c65ce1e8c865))
+
 ## [1.4.87](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.86...v1.4.87) (2026-06-20)
 
 
