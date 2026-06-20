@@ -7,22 +7,27 @@ import ajstrick81.morphe.patches.foxone.shared.Constants
 @Suppress("unused")
 val foxOneSkipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Suppresses all ad delivery systems in Fox One Android TV.",
+    description = "Suppresses all ad delivery systems in Fox One Android TV: " +
+        "Google IMA/DAI for VOD, Yospace SSAI for live content.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
+
+        // Hook 1 — FoxImaAdListeners.adEventListener_delegate$lambda$0$0
+        // Lambda numbering changed from lambda$10$lambda$9 in v1.9.2 to
+        // lambda$0$0 in this version. Verified: contains "adEvent" string.
         FoxImaAdEventListenerFingerprint.method.addInstructions(0, "return-void")
+
+        // Hook 2 — FoxImaAdListeners.adsLoadedListener_delegate$lambda$0$0
+        // Lambda numbering changed from lambda$4$lambda$3 in v1.9.2 to
+        // lambda$0$0 in this version. Verified: contains "onAdsManagerLoaded".
         FoxImaAdsLoadedListenerFingerprint.method.addInstructions(0, "return-void")
-        FoxPlayerClearVodAdsFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                iput-object v0, p0, Lcom/fox/android/video/player/FoxPlayer;->vodAds:Lcom/fox/android/video/player/args/StreamAds;
-                iput-object v0, p0, Lcom/fox/android/video/player/FoxPlayer;->vodAdMarkers:[J
-                iput-object v0, p0, Lcom/fox/android/video/player/FoxPlayer;->vodPlayedAdGroups:[Z
-            """
-        )
+
+        // Hook 3 — FoxPlayer.clearVodAds()
+        FoxPlayerClearVodAdsFingerprint.method.addInstructions(0, "return-void")
+
+        // Hook 4 — FoxImaStreamIdLoader.requestVODDAIUrl
         FoxImaVodStreamRequestFingerprint.method.addInstructions(
             0,
             """
@@ -31,6 +36,8 @@ val foxOneSkipAdsPatch = bytecodePatch(
                 return-void
             """
         )
+
+        // Hook 5 — FoxImaStreamIdLoader.requestImaStreamId
         FoxImaLiveStreamRequestFingerprint.method.addInstructions(
             0,
             """
@@ -39,8 +46,14 @@ val foxOneSkipAdsPatch = bytecodePatch(
                 return-void
             """
         )
+
+        // Hook 6 — YospaceAnalyticEventObserver.dispatchAdEvent — LIVE CONTENT
         YospaceDispatchAdEventFingerprint.method.addInstructions(0, "return-void")
+
+        // Hook 7 — YospaceAnalyticEventObserver.dispatchSlateEvent — LIVE CONTENT
         YospaceDispatchSlateEventFingerprint.method.addInstructions(0, "return-void")
+
+        // Hook 8 — YospaceSeekablePlaybackPolicyHandler.setHandleFastForwardSeek
         YospaceSeekPolicyFingerprint.method.addInstructions(0, "return-void")
     }
 }

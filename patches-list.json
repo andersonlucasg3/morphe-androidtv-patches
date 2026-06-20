@@ -1,8 +1,7 @@
 {
-  "version": "1.4.85",
+  "version": "1.4.87",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
-    "com.foxsports.android": "Fox Sports Android TV",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
     "com.amazon.amazonvideo.livingroom": "Prime Video Android TV",
     "com.tubitv": "Tubi Android TV",
@@ -161,7 +160,7 @@
     },
     {
       "name": "Skip ads",
-      "description": "Suppresses all ad delivery systems in Fox One Android TV.",
+      "description": "Suppresses all ad delivery systems in Fox One Android TV: Google IMA/DAI for VOD, Yospace SSAI for live content.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -178,32 +177,6 @@
           "targets": [
             {
               "version": "1.9.2",
-              "experimental": false
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Skip ads",
-      "description": "Suppresses all ad delivery systems in Fox Sports Android TV.",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "com.foxsports.android": [
-          "5.152.0"
-        ]
-      },
-      "compatibility": [
-        {
-          "name": "Fox Sports Android TV",
-          "packageName": "com.foxsports.android",
-          "description": null,
-          "appIconColor": 84368,
-          "targets": [
-            {
-              "version": "5.152.0",
               "experimental": false
             }
           ]
@@ -267,7 +240,7 @@
     },
     {
       "name": "Skip ads",
-      "description": "Eliminates all Tubi ad types: intercepts DAI stream requests before they reach dai.google.com to prevent pre-roll stitching, blocks IMA ad events from reaching FoxPlayer, prevents AdsManager from priming the cold-launch pre-roll, and suppresses the pause-screen image overlay ad.",
+      "description": "Suppresses all ad delivery systems in Tubi Android TV.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
