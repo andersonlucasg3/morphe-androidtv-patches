@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.1...v1.0.2) (2026-06-20)
+
+
+### Bug Fixes
+
+* **youtubetv:** replace placeholder fingerprints with APK-confirmed strings ([fe3d2b1](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/fe3d2b11e5a399cf79495e977db5da4d0edf08ac))
+
 ## [1.0.1](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.0...v1.0.1) (2026-06-20)
 
 
