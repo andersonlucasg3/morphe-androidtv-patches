@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.3...v1.0.4) (2026-06-20)
+
+
+### Bug Fixes
+
+* **youtubetv:** strip Hook 1 to strings-only for diagnostic ([ab14d67](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/ab14d67b38481ac74957489bc719f226244854c5))
+
 ## [1.0.3](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.2...v1.0.3) (2026-06-20)
 
 
