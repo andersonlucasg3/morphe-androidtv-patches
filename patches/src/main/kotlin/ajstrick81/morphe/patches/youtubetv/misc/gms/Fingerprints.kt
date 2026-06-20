@@ -128,7 +128,7 @@ object PrimeMethodFingerprint : Fingerprint(
 // inject the GMS check call before any GMS-dependent initialization.
 // ═════════════════════════════════════════════════════════════════════════════
 object MainActivityOnCreateFingerprint : Fingerprint(
-    accessFlags = AccessFlags.PUBLIC.value,
+    accessFlags = listOf(AccessFlags.PUBLIC),
     custom = { method, classDef ->
         // TODO Phase 0: find the main activity class in the YouTube TV APK.
         // Look for classes that extend Activity or FragmentActivity and
