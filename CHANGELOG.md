@@ -1,3 +1,10 @@
+## [1.0.7](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.6...v1.0.7) (2026-06-20)
+
+
+### Bug Fixes
+
+* **youtubetv:** exclude <clinit> and <init> from all hooks ([d2408db](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/d2408db95d6bd1457ee06969ba80296438d0fd48))
+
 ## [1.0.6](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.5...v1.0.6) (2026-06-20)
 
 
