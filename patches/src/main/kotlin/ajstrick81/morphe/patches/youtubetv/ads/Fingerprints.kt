@@ -6,15 +6,10 @@ import app.morphe.patcher.Fingerprint
  * Ad-related method fingerprints for YouTube Android TV
  * (com.google.android.youtube.tv v7.05.301).
  *
- * All strings are confirmed present in the decompiled APK DEX files.
- * Custom lambdas use structural checks only — no R8-obfuscated
- * class-name assumptions.
- *
- * Targeted ad delivery channels:
- * - Hook 1: InnerTube client OS spoofing
- * - Hook 2: VAST/VMAP video ad request short-circuit
- * - Hook 3: Ad break parser short-circuit (Disney pattern)
- * - Hook 4: Coroutine-based ad fetch stall (Tubi Hook 9 pattern)
+ * All strings confirmed present in APK v7.05.301 DEX.
+ * All hooks exclude <clinit> and <init> to prevent injecting
+ * into static/instance initializers (causes VerifyError at
+ * class load time — instant crash on app startup).
  */
 
 // Hook 1 — OS Name Spoofing
@@ -23,30 +18,26 @@ import app.morphe.patcher.Fingerprint
 // "Android Automotive". YouTube does not serve video ads on
 // Android Automotive (stricter automotive ad policies).
 //
-// DIAGNOSTIC: stripped to strings-only to identify which constraint
-// (returnType or custom) is blocking the match. Will add back
-// one at a time based on test results.
-//
 // Evidence: "ANDROID_TV" (3 DEX matches) confirmed in APK.
 object YouTubeTvOsNameFingerprint : Fingerprint(
     strings = listOf("ANDROID_TV"),
+    custom = { method, _ ->
+        method.name != "<clinit>" && method.name != "<init>"
+    },
 )
 
 // Hook 2 — VAST/VMAP Ad Request Short-Circuit
 //
 // Short-circuits the video ad request method. YouTube TV fetches
-// ads via VAST/VMAP protocol (vastAdsRequest), not the slot/adapter
-// system used in mobile YouTube. Setting a null/0 return prevents
-// the ad manifest from being loaded.
+// ads via VAST/VMAP protocol, not the slot/adapter system used
+// in mobile YouTube.
 //
 // Evidence: "vastAdsRequest", "vmapAdsRequest" confirmed in APK.
-//           Ad CDN strings ("googleads.g.doubleclick.net",
-//           "pagead2.googlesyndication.com") also confirmed.
 object YouTubeTvLoadVideoAdsFingerprint : Fingerprint(
     strings = listOf("vastAdsRequest"),
     custom = { method, _ ->
-        // Structural: non-void ad fetch that is NOT a coroutine suspend function.
-        method.returnType != "V" &&
+        method.name != "<clinit>" && method.name != "<init>" &&
+            method.returnType != "V" &&
             !method.parameterTypes.any { it.contains("Continuation") }
     },
 )
@@ -58,11 +49,11 @@ object YouTubeTvLoadVideoAdsFingerprint : Fingerprint(
 // Pattern from Disney Insertion.getPoints / Insertion.getRanges.
 //
 // Evidence: "AdBreakClipInfo" confirmed in APK v7.05.301.
-//
-// DIAGNOSTIC: single string, no constraints — "adBreak" +
-// "AdBreakClipInfo" did not co-occur in one method.
 object YouTubeTvAdBreakParserFingerprint : Fingerprint(
     strings = listOf("AdBreakClipInfo"),
+    custom = { method, _ ->
+        method.name != "<clinit>" && method.name != "<init>"
+    },
 )
 
 // Hook 4 — Coroutine Ad Fetch Stall
@@ -72,10 +63,9 @@ object YouTubeTvAdBreakParserFingerprint : Fingerprint(
 // Pattern from Tubi Hook 9.
 //
 // Evidence: "vmapAdsRequest" confirmed in APK v7.05.301.
-// Uses different string than Hook 2 ("vmapAdsRequest" vs "vastAdsRequest")
-// to avoid collision with Hook 2 on the same method.
-//
-// DIAGNOSTIC: stripped to strings-only.
 object YouTubeTvSuspendGetAdsFingerprint : Fingerprint(
     strings = listOf("vmapAdsRequest"),
+    custom = { method, _ ->
+        method.name != "<clinit>" && method.name != "<init>"
+    },
 )
