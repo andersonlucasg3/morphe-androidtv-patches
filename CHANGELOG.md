@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.0...v1.0.1) (2026-06-20)
+
+
+### Bug Fixes
+
+* remove YouTube TV patches from active registration ([33ba698](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/33ba698ac596043539142a0018c642e2bc5e4410))
+
 # 1.0.0 (2026-06-20)
 
 
