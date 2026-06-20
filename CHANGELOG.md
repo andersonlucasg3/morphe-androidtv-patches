@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.2...v1.0.3) (2026-06-20)
+
+
+### Bug Fixes
+
+* **youtubetv:** use only ANDROID_TV string for OS spoof fingerprint ([a7a0171](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/a7a01712cc2041f2a392753fcb7cc6575e92b9a4))
+
 ## [1.0.2](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.1...v1.0.2) (2026-06-20)
 
 
