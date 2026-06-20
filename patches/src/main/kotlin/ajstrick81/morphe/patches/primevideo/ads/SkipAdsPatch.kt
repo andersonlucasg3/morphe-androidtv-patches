@@ -8,7 +8,7 @@ import ajstrick81.morphe.patches.primevideo.shared.Constants
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Suppresses ad schedule and seeks past playing ads using the Player reference available in getStreamPositionUs.",
+    description = "Multi-layer ad suppression targeting SSAI schedule, active ad playback, and impression reporting.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
@@ -19,8 +19,8 @@ val skipAdsPatch = bytecodePatch(
         // ─────────────────────────────────────────────────────────────────────
         // Hook 1 — media3 ServerSideAdInsertionMediaSource.setAdPlaybackStates()
         //
-        // Strips all AdGroups from the incoming ImmutableMap before ExoPlayer
-        // sees the ad schedule. Prevents new mid-roll breaks from being scheduled.
+        // Strips all AdGroups from the incoming SSAI ad schedule before
+        // ExoPlayer sees it. Primary suppression for standard SSAI path.
         // ─────────────────────────────────────────────────────────────────────
         SetAdPlaybackStatesMedia3Fingerprint.method.addInstructions(
             0,
@@ -33,7 +33,7 @@ val skipAdsPatch = bytecodePatch(
         // ─────────────────────────────────────────────────────────────────────
         // Hook 2 — ExoPlayer2 ServerSideAdInsertionMediaSource.setAdPlaybackStates()
         //
-        // Same as Hook 1 for the GMS Ads SDK ExoPlayer2 variant.
+        // Same strategy for the GMS Ads SDK ExoPlayer2 variant.
         // ─────────────────────────────────────────────────────────────────────
         SetAdPlaybackStatesExo2Fingerprint.method.addInstructions(
             0,
@@ -46,29 +46,54 @@ val skipAdsPatch = bytecodePatch(
         // ─────────────────────────────────────────────────────────────────────
         // Hook 3 — ServerSideAdInsertionUtil.getStreamPositionUs(Player, AdPlaybackState)
         //
-        // This is the ATV equivalent of hoodles' mobile FSM state hook.
-        // Called during active ad playback with live Player and AdPlaybackState
-        // references — both required to calculate and execute the seek.
+        // Hoodles-inspired seek hook. Fires during active ad playback with
+        // live Player and AdPlaybackState references. Seeks past current ad
+        // break duration when isPlayingAd() returns true.
         //
-        // Register layout (.locals 6):
-        //   p0 = Player (interface) — live player reference
-        //   p1 = AdPlaybackState   — contains ad group timing data
+        // Covers PromoPlaybackExperience and any delivery path that bypasses
+        // setAdPlaybackStates — operates at the playback layer regardless of
+        // which WASM path initiated the ad.
         //
-        // The extension seekToAdBreakEnd() is called with both references.
-        // It checks isPlayingAd() on the player — if true, calculates the
-        // total remaining ad duration from the AdPlaybackState and seeks
-        // the player forward past the ad break.
-        //
-        // If isPlayingAd() is false the method returns immediately (no-op)
-        // and the original getStreamPositionUs continues normally.
-        //
-        // Standard invoke-static is safe here — p0 and p1 are the first
-        // two parameters, well within the v0-v15 register range.
+        // p0 = Player (live reference)
+        // p1 = AdPlaybackState (current ad timing data)
         // ─────────────────────────────────────────────────────────────────────
         GetStreamPositionUsFingerprint.method.addInstructions(
             0,
             """
                 invoke-static {p0, p1}, Lajstrick81/morphe/extension/primevideo/ads/SkipAdsPatch;->seekToAdBreakEnd(Landroidx/media3/common/Player;Landroidx/media3/common/AdPlaybackState;)V
+            """
+        )
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Hook 4 — MetricsTransporter.transmit(SerializedBatch)
+        //
+        // Returns a fake SUCCESS UploadResult without making any network
+        // request. Amazon's ad server receives no impression delivery data,
+        // preventing it from accurately tracking ad viewing and reducing
+        // scheduled ad load over time.
+        //
+        // Deception-over-brute-force: Amazon thinks impressions are being
+        // reported normally — no retaliation triggered, no impression deficit
+        // detection, no ad surge response.
+        //
+        // Inline smali constructs UploadResult("SUCCESS", "ok") directly:
+        //   new-instance v0, UploadResult
+        //   const-string v1, "SUCCESS"
+        //   const-string v2, "ok"
+        //   invoke-direct {v0, v1, v2}, UploadResult.<init>(String, String)
+        //   return-object v0
+        //
+        // No extension class needed — UploadResult is in the app's own DEX
+        // and is always accessible.
+        // ─────────────────────────────────────────────────────────────────────
+        MetricsTransporterTransmitFingerprint.method.addInstructions(
+            0,
+            """
+                new-instance v0, Lcom/amazon/minerva/client/thirdparty/transport/UploadResult;
+                const-string v1, "SUCCESS"
+                const-string v2, "ok"
+                invoke-direct {v0, v1, v2}, Lcom/amazon/minerva/client/thirdparty/transport/UploadResult;-><init>(Ljava/lang/String;Ljava/lang/String;)V
+                return-object v0
             """
         )
     }
