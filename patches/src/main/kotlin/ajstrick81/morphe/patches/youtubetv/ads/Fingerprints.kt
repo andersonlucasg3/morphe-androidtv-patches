@@ -18,9 +18,11 @@ import app.morphe.patcher.Fingerprint
 // "Android Automotive". YouTube does not serve video ads on
 // Android Automotive (stricter automotive ad policies).
 //
-// Evidence: "ANDROID_TV" (3 DEX matches) confirmed in APK.
+// Evidence: "youtubei/v1" (1 DEX match) confirmed in APK.
+// "ANDROID_TV" only exists in <clinit> — can't inject there.
+// "youtubei/v1" is in URL construction, not a static initializer.
 object YouTubeTvOsNameFingerprint : Fingerprint(
-    strings = listOf("ANDROID_TV"),
+    strings = listOf("youtubei/v1"),
     custom = { method, _ ->
         method.name != "<clinit>" && method.name != "<init>"
     },
