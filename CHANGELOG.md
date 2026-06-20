@@ -1,3 +1,10 @@
+## [1.4.87](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.86...v1.4.87) (2026-06-20)
+
+
+### Bug Fixes
+
+* Revise ad suppression fingerprints for Fox One ([dad7e6f](https://github.com/ajstrick81/morphe-androidtv-patches/commit/dad7e6fcd07829e5abeee1239fc8264bdc26549a))
+
 ## [1.4.86](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.85...v1.4.86) (2026-06-20)
 
 

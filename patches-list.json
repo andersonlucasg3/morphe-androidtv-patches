@@ -1,8 +1,7 @@
 {
-  "version": "1.4.86",
+  "version": "1.4.87",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
-    "com.foxsports.android": "Fox Sports Android TV",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
     "com.amazon.amazonvideo.livingroom": "Prime Video Android TV",
     "com.tubitv": "Tubi Android TV",
@@ -160,7 +159,7 @@
     },
     {
       "name": "Skip ads",
-      "description": "Suppresses all ad delivery systems in Fox One Android TV.",
+      "description": "Suppresses all ad delivery systems in Fox One Android TV: Google IMA/DAI for VOD, Yospace SSAI for live content.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -177,32 +176,6 @@
           "targets": [
             {
               "version": "1.9.2",
-              "experimental": false
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Skip ads",
-      "description": "Suppresses all Yospace SSAI ad delivery in Fox Sports Android TV.",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "com.foxsports.android": [
-          "5.152.0"
-        ]
-      },
-      "compatibility": [
-        {
-          "name": "Fox Sports Android TV",
-          "packageName": "com.foxsports.android",
-          "description": null,
-          "appIconColor": 84368,
-          "targets": [
-            {
-              "version": "5.152.0",
               "experimental": false
             }
           ]
