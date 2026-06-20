@@ -1,3 +1,10 @@
+## [1.0.9](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.8...v1.0.9) (2026-06-20)
+
+
+### Bug Fixes
+
+* **youtubetv:** remove broken Hook 1 (OS spoofing) ([06ca648](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/06ca648fd6347b52093c7406abf7542eafd7bff4))
+
 ## [1.0.8](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.7...v1.0.8) (2026-06-20)
 
 
