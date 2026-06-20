@@ -31,7 +31,7 @@ import app.morphe.patcher.Fingerprint
 // Evidence: "ANDROID_TV" (3 DEX matches), "Android", "clientName",
 //           "platformDetails" confirmed in APK.
 object YouTubeTvOsNameFingerprint : Fingerprint(
-    strings = listOf("ANDROID_TV", "Android"),
+    strings = listOf("ANDROID_TV"),
     returnType = "Ljava/lang/String;",
     custom = { method, _ ->
         // Structural check only — exclude toString/equals/hashCode.
