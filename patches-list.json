@@ -1,18 +1,96 @@
 {
-  "version": "1.4.87",
+  "version": "1.0.0",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
     "com.amazon.amazonvideo.livingroom": "Prime Video Android TV",
     "com.tubitv": "Tubi Android TV",
     "com.univision.prendetv": "ViX Android TV",
+    "com.google.android.youtube.tv": "YouTube Android TV",
     "com.disney.disneyplus": "Disney+ Android TV",
     "com.wbd.hbomax": "HBO Max Android TV",
     "com.bamnetworks.mobile.android.gameday.atbat": "MLB.tv Android TV",
-    "com.cbs.ott": "Paramount+ Android TV",
-    "com.google.android.youtube.tv": "YouTube Android TV"
+    "com.cbs.ott": "Paramount+ Android TV"
   },
   "patches": [
+    {
+      "name": "Auth hook",
+      "description": "Injects MicroG auth hooks for sign-in with app.revanced.android.gms.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.google.android.youtube.tv": [
+          "7.05.301"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "YouTube Android TV",
+          "packageName": "com.google.android.youtube.tv",
+          "description": null,
+          "appIconColor": 16711680,
+          "targets": [
+            {
+              "version": "7.05.301",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Change package name",
+      "description": "Changes package name from com.google.android.youtube.tv to app.morphe.android.youtube.tv for MicroG support.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.google.android.youtube.tv": [
+          "7.05.301"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "YouTube Android TV",
+          "packageName": "com.google.android.youtube.tv",
+          "description": null,
+          "appIconColor": 16711680,
+          "targets": [
+            {
+              "version": "7.05.301",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Check environment",
+      "description": "Injects GMS core availability check into YouTube TV main activity.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.google.android.youtube.tv": [
+          "7.05.301"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "YouTube Android TV",
+          "packageName": "com.google.android.youtube.tv",
+          "description": null,
+          "appIconColor": 16711680,
+          "targets": [
+            {
+              "version": "7.05.301",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Disney+ Android TV",
       "description": "Removes mid-roll / pre-roll ads and pause ads.",
@@ -42,6 +120,32 @@
             },
             {
               "version": "26.9.2+rc1-2026.06.12",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "GmsCore support",
+      "description": "Replaces Google Mobile Services references with MicroG-compatible app.revanced.android.gms strings across all DEX methods for YouTube Android TV.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.google.android.youtube.tv": [
+          "7.05.301"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "YouTube Android TV",
+          "packageName": "com.google.android.youtube.tv",
+          "description": null,
+          "appIconColor": 16711680,
+          "targets": [
+            {
+              "version": "7.05.301",
               "experimental": false
             }
           ]
@@ -292,11 +396,13 @@
     },
     {
       "name": "Skip ads",
-      "description": "Suppresses video ads and ad overlays in YouTube Android TV. Includes OS name spoofing, video ad interception, coroutine-based ad fetch cancellation, and ad state machine interception.",
+      "description": "Suppresses video ads and ad overlays in YouTube Android TV.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
-        "com.google.android.youtube.tv": ["7.05.301"]
+        "com.google.android.youtube.tv": [
+          "7.05.301"
+        ]
       },
       "compatibility": [
         {
@@ -307,55 +413,7 @@
           "targets": [
             {
               "version": "7.05.301",
-              "experimental": true
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "GmsCore support",
-      "description": "Rewrites Google Mobile Services references to use MicroG RE (app.revanced.android.gms). Includes string replacement across DEX, permission rewrites, and intent action rewrites. Enables sign-in and GMS-dependent features without Google Play Services.",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "com.google.android.youtube.tv": ["7.05.301"]
-      },
-      "compatibility": [
-        {
-          "name": "YouTube Android TV",
-          "packageName": "com.google.android.youtube.tv",
-          "description": null,
-          "appIconColor": 16711680,
-          "targets": [
-            {
-              "version": "7.05.301",
-              "experimental": true
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Change package name",
-      "description": "Changes the package name from com.google.android.youtube.tv to app.morphe.android.youtube.tv. Enables side-by-side installation with the official YouTube TV app and provides spoofed package metadata for MicroG.",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "com.google.android.youtube.tv": ["7.05.301"]
-      },
-      "compatibility": [
-        {
-          "name": "YouTube Android TV",
-          "packageName": "com.google.android.youtube.tv",
-          "description": null,
-          "appIconColor": 16711680,
-          "targets": [
-            {
-              "version": "7.05.301",
-              "experimental": true
+              "experimental": false
             }
           ]
         }
