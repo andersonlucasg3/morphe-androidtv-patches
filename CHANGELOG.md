@@ -1,3 +1,10 @@
+## [1.4.96](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.95...v1.4.96) (2026-06-21)
+
+
+### Bug Fixes
+
+* Update app.morphe.patches plugin version to 1.3.2 ([a625d8f](https://github.com/ajstrick81/morphe-androidtv-patches/commit/a625d8f6aacd5b541ee958c5f304039f68982ba5))
+
 ## [1.4.95](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.94...v1.4.95) (2026-06-21)
 
 
