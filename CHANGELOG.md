@@ -1,3 +1,10 @@
+## [1.4.92](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.91...v1.4.92) (2026-06-21)
+
+
+### Bug Fixes
+
+* push new version via Refine skipAdsPatch description and add comments ([f92dcc3](https://github.com/ajstrick81/morphe-androidtv-patches/commit/f92dcc3278094e1ffc86431b4cafffc7bc0f10ce))
+
 ## [1.4.91](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.90...v1.4.91) (2026-06-21)
 
 

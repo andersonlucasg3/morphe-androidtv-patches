@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-06-21T00:36:15",
-  "description": "## [1.4.91](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.90...v1.4.91) (2026-06-21)\n\n\n### Bug Fixes\n\n* Refactor URL blocking logic in PeacockWebViewHelper ([beac284](https://github.com/ajstrick81/morphe-androidtv-patches/commit/beac284f95904045745a59d94dfd26b8b1a4d524))",
-  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.91/patches-1.4.91.mpp",
+  "created_at": "2026-06-21T00:48:29",
+  "description": "## [1.4.92](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.91...v1.4.92) (2026-06-21)\n\n\n### Bug Fixes\n\n* push new version via Refine skipAdsPatch description and add comments ([f92dcc3](https://github.com/ajstrick81/morphe-androidtv-patches/commit/f92dcc3278094e1ffc86431b4cafffc7bc0f10ce))",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.92/patches-1.4.92.mpp",
   "signature_download_url": "",
-  "version": "1.4.91"
+  "version": "1.4.92"
 }
