@@ -1,5 +1,6 @@
 package ajstrick81.morphe.extension.primevideo.ads;
 
+import android.util.Log;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
@@ -32,10 +33,14 @@ import java.util.Map;
  * as dead code — it never executed and was not providing the
  * PromoPlaybackExperience coverage its comments claimed.
  *
- * All methods wrapped in try/catch — any failure is a silent no-op.
+ * All methods wrapped in try/catch — failures are logged to TAG below instead
+ * of silently swallowed, so logcat can confirm whether the hook fired and
+ * whether the strip actually took effect.
  */
 @SuppressWarnings({"unused", "unchecked", "rawtypes"})
 public class SkipAdsPatch {
+
+    private static final String TAG = "SkipAdsPatch";
 
     // ── AdPlaybackState suppression ───────────────────────────────────────────
 
@@ -49,18 +54,23 @@ public class SkipAdsPatch {
     public static ImmutableMap skipAllMedia3AdGroups(ImmutableMap adPlaybackStates) {
         try {
             ImmutableMap.Builder builder = ImmutableMap.builder();
+            int strippedGroups = 0;
             for (Object o : adPlaybackStates.entrySet()) {
                 Map.Entry entry = (Map.Entry) o;
                 Object key = entry.getKey();
                 androidx.media3.common.AdPlaybackState state =
                         (androidx.media3.common.AdPlaybackState) entry.getValue();
                 if (state.adGroupCount > state.removedAdGroupCount) {
+                    strippedGroups += state.adGroupCount - state.removedAdGroupCount;
                     state = state.withRemovedAdGroupCount(state.adGroupCount);
                 }
                 builder.put(key, state);
             }
+            Log.i(TAG, "skipAllMedia3AdGroups: entries=" + adPlaybackStates.size()
+                    + " strippedGroups=" + strippedGroups);
             return builder.build();
         } catch (Exception e) {
+            Log.e(TAG, "skipAllMedia3AdGroups failed", e);
             return adPlaybackStates;
         }
     }
@@ -76,18 +86,23 @@ public class SkipAdsPatch {
     public static ImmutableMap skipAllExo2AdGroups(ImmutableMap adPlaybackStates) {
         try {
             ImmutableMap.Builder builder = ImmutableMap.builder();
+            int strippedGroups = 0;
             for (Object o : adPlaybackStates.entrySet()) {
                 Map.Entry entry = (Map.Entry) o;
                 Object key = entry.getKey();
                 com.google.android.exoplayer2.source.ads.AdPlaybackState state =
                         (com.google.android.exoplayer2.source.ads.AdPlaybackState) entry.getValue();
                 if (state.adGroupCount > state.removedAdGroupCount) {
+                    strippedGroups += state.adGroupCount - state.removedAdGroupCount;
                     state = state.withRemovedAdGroupCount(state.adGroupCount);
                 }
                 builder.put(key, state);
             }
+            Log.i(TAG, "skipAllExo2AdGroups: entries=" + adPlaybackStates.size()
+                    + " strippedGroups=" + strippedGroups);
             return builder.build();
         } catch (Exception e) {
+            Log.e(TAG, "skipAllExo2AdGroups failed", e);
             return adPlaybackStates;
         }
     }
