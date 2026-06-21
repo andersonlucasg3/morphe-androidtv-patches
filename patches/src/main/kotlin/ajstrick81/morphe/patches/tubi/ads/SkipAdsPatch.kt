@@ -121,13 +121,33 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // NOTE: Hook 9 (qf/c.suspendGetAdBreaks coroutine sentinel) was removed.
-        // Returning COROUTINE_SUSPENDED caused TubiNewPlayerImpl coroutine to hang
-        // indefinitely, blocking the entire content pipeline (confirmed via logcat:
-        // TubiCoroutineGuard MISSING_HANDLER at TubiNewPlayerImpl.kt:102).
-        // The rainmaker native OkHttp call is suppressed at DNS level instead:
-        //   AGH rule: ||rainmaker.production-public.tubi.io^
-        // DNS blocking allows the coroutine to complete with a network error,
-        // which Tubi handles gracefully and proceeds to content playback.
+        // Hook 9 — qf/c.suspendGetAdBreaks(String, String, String, Map, Continuation)
+        //
+        // Rainmaker ad-break fetch coroutine. Returns Lwm/d; (sealed result),
+        // with the caller (Lpf/a;->c) branching on instance-of Lwm/d$e
+        // (success) vs Lwm/d$b (error) and converging afterward either way.
+        //
+        // Previous attempt returned COROUTINE_SUSPENDED directly to fake a
+        // no-op, which broke the suspend-function contract: nothing ever
+        // called continuation.resumeWith(), so the caller's coroutine parked
+        // forever (confirmed via logcat: TubiCoroutineGuard MISSING_HANDLER
+        // at TubiNewPlayerImpl.kt:102), hanging the entire content pipeline.
+        //
+        // Fix: skip the network call and the continuation machinery entirely,
+        // returning a real, immediate Lwm/d$d (generic error) result. The
+        // caller takes its existing error branch — the same one a genuine
+        // network failure already triggers gracefully — and the coroutine
+        // completes normally, with no DNS-layer workaround required.
+        QfcSuspendGetAdBreaksFingerprint.method.addInstructions(
+            0,
+            """
+                new-instance v0, Ljava/io/IOException;
+                const-string v1, "ads_blocked"
+                invoke-direct {v0, v1}, Ljava/io/IOException;-><init>(Ljava/lang/String;)V
+                new-instance v2, Lwm/d${"$"}d;
+                invoke-direct {v2, v0}, Lwm/d${"$"}d;-><init>(Ljava/lang/Throwable;)V
+                return-object v2
+            """
+        )
     }
 }
