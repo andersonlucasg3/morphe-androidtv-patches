@@ -1,3 +1,10 @@
+## [1.4.90](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.89...v1.4.90) (2026-06-21)
+
+
+### Bug Fixes
+
+* Refactor ad-break fetch coroutine handling ([7f1bb26](https://github.com/ajstrick81/morphe-androidtv-patches/commit/7f1bb26b6b2ddc3e39fb56c671383c4146295ad6))
+
 ## [1.4.89](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.88...v1.4.89) (2026-06-20)
 
 
