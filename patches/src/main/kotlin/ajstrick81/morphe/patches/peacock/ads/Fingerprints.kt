@@ -41,11 +41,32 @@ internal object SsaiConfigurationProviderFingerprint : Fingerprint(
     },
 )
 
-// ── Layer 5 (PENDING) ─────────────────────────────────────────────────────────
-// PlayerEngineItemImpl.handleAdBreakStarted() — deferred.
-// "handleAdBreakStarted" only appears in Kotlin metadata class name strings,
-// not as a const-string instruction in any method body. Correct anchor
-// string needs to be identified from merged APK smali before re-adding.
+// ── Layer 5 ──────────────────────────────────────────────────────────────────
+// Target: PlayerEngineItemImpl.handleAdBreakStarted(AdBreakStartedEvent)
+//
+// No string anchor exists in this method body — confirmed via direct dex
+// disassembly that the entire method is a one-liner that constructs a
+// synthetic continuation (PlayerEngineItemImpl$handleAdBreakStarted$1) and
+// launches it via kotlinx.coroutines.BuildersKt.e(...). The real work lives
+// in that synthetic class's invokeSuspend, which has no stable anchor of
+// its own (Kotlin-compiler-generated name, could shift between builds).
+//
+// Fingerprinted structurally instead of by string: exact defining class +
+// method name + single parameter of the uniquely-named type
+// Lcom/comcast/helio/subscription/AdBreakStartedEvent; — this type only
+// appears in this one method signature in the entire APK, making the
+// combination of class + name + parameter type as reliable as a string
+// anchor would be, without depending on synthetic naming.
+// Confirmed matching v7.5.102 (private final, returns void).
+internal object HandleAdBreakStartedFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Lcom/comcast/helio/subscription/AdBreakStartedEvent;"),
+    custom = { method, classDef ->
+        method.name == "handleAdBreakStarted" &&
+            classDef.type == "Lcom/sky/core/player/sdk/playerEngine/playerBase/PlayerEngineItemImpl;"
+    },
+)
 
 // ── Layer 6 ──────────────────────────────────────────────────────────────────
 // Target: NetworkingKt.getOkHttpClient()
