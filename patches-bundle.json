@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-06-20T18:17:35",
-  "description": "# [1.1.0](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.9...v1.1.0) (2026-06-20)\n\n\n### Features\n\n* **youtubetv:** add working video ad blocking via OS spoofing ([d0e2e6e](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/d0e2e6ebbe236b7c8c17e90559e2bf1ff520b672))",
-  "download_url": "https://github.com/andersonlucasg3/morphe-androidtv-patches/releases/download/v1.1.0/patches-1.1.0.mpp",
+  "created_at": "2026-06-21T19:45:09",
+  "description": "## [1.4.97](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.96...v1.4.97) (2026-06-21)\n\n\n### Bug Fixes\n\n* Add extendWith call in SkipAdsPatch.kt ([f0abe0d](https://github.com/ajstrick81/morphe-androidtv-patches/commit/f0abe0d531c519426610de3c0e6b8bc25480c9da))\n* Update dependencies in build.gradle.kts ([be68275](https://github.com/ajstrick81/morphe-androidtv-patches/commit/be6827510874c3a39f05f86bd2c6c9d133b6e88b))\n* Update Gradle wrapper to version 9.5.0 ([7fbf2d7](https://github.com/ajstrick81/morphe-androidtv-patches/commit/7fbf2d7471ef75333df59ecf5483e6ac66bc2823))\n* Update Prime Video extension patch for merging DEX ([8a93773](https://github.com/ajstrick81/morphe-androidtv-patches/commit/8a93773fbff409f08929ff9e45022d66596e63be))",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.97/patches-1.4.97.mpp",
   "signature_download_url": "",
-  "version": "1.1.0"
+  "version": "1.4.97"
 }

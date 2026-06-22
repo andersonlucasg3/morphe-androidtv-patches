@@ -6,7 +6,6 @@
     "com.amazon.amazonvideo.livingroom": "Prime Video Android TV",
     "com.tubitv": "Tubi Android TV",
     "com.univision.prendetv": "ViX Android TV",
-    "com.google.android.youtube.tv": "YouTube Android TV",
     "com.disney.disneyplus": "Disney+ Android TV",
     "com.wbd.hbomax": "HBO Max Android TV",
     "com.bamnetworks.mobile.android.gameday.atbat": "MLB.tv Android TV",
@@ -68,32 +67,6 @@
             },
             {
               "version": "26.9.2+rc1-2026.06.12",
-              "experimental": false
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "GmsCore support",
-      "description": "Replaces Google Mobile Services references with MicroG-compatible app.revanced.android.gms strings across all DEX methods for YouTube Android TV.",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "com.google.android.youtube.tv": [
-          "7.05.301"
-        ]
-      },
-      "compatibility": [
-        {
-          "name": "YouTube Android TV",
-          "packageName": "com.google.android.youtube.tv",
-          "description": null,
-          "appIconColor": 16711680,
-          "targets": [
-            {
-              "version": "7.05.301",
               "experimental": false
             }
           ]
@@ -361,34 +334,6 @@
           "targets": [
             {
               "version": "4.46.0_tv",
-              "experimental": false
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Skip ads",
-      "description": "Suppresses video ads in YouTube Android TV by spoofing the OS name.",
-      "use": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
-      "compatiblePackages": {
-        "com.google.android.youtube.tv": [
-          "7.05.301"
-        ]
-      },
-      "compatibility": [
-        {
-          "name": "YouTube Android TV",
-          "packageName": "com.google.android.youtube.tv",
-          "description": null,
-          "appIconColor": 16711680,
-          "targets": [
-            {
-              "version": "7.05.301",
               "experimental": false
             }
           ]
