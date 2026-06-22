@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.4.97",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
@@ -14,102 +14,24 @@
   },
   "patches": [
     {
-      "name": "Auth hook",
-      "description": "Injects MicroG auth hooks for sign-in with app.revanced.android.gms.",
+      "name": "Disable auto-updates",
+      "description": "Prevents Google Play Store from automatically replacing the patched APK with the official unpatched version.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
-        "com.google.android.youtube.tv": [
-          "7.05.301"
+        "com.amazon.amazonvideo.livingroom": [
+          "6.23.23+v15.5.0.70-armv7a"
         ]
       },
       "compatibility": [
         {
-          "name": "YouTube Android TV",
-          "packageName": "com.google.android.youtube.tv",
+          "name": "Prime Video Android TV",
+          "packageName": "com.amazon.amazonvideo.livingroom",
           "description": null,
-          "appIconColor": 16711680,
+          "appIconColor": 1539022,
           "targets": [
             {
-              "version": "7.05.301",
-              "experimental": false
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Change package name",
-      "description": "Changes package name from com.google.android.youtube.tv to app.morphe.android.youtube.tv for MicroG support.",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "com.google.android.youtube.tv": [
-          "7.05.301"
-        ]
-      },
-      "compatibility": [
-        {
-          "name": "YouTube Android TV",
-          "packageName": "com.google.android.youtube.tv",
-          "description": null,
-          "appIconColor": 16711680,
-          "targets": [
-            {
-              "version": "7.05.301",
-              "experimental": false
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Check environment",
-      "description": "Injects GMS core availability check into YouTube TV main activity.",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "com.google.android.youtube.tv": [
-          "7.05.301"
-        ]
-      },
-      "compatibility": [
-        {
-          "name": "YouTube Android TV",
-          "packageName": "com.google.android.youtube.tv",
-          "description": null,
-          "appIconColor": 16711680,
-          "targets": [
-            {
-              "version": "7.05.301",
-              "experimental": false
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Client context hook",
-      "description": "Spoofs the OS name to Android Automotive to suppress video ads.",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "com.google.android.youtube.tv": [
-          "7.05.301"
-        ]
-      },
-      "compatibility": [
-        {
-          "name": "YouTube Android TV",
-          "packageName": "com.google.android.youtube.tv",
-          "description": null,
-          "appIconColor": 16711680,
-          "targets": [
-            {
-              "version": "7.05.301",
+              "version": "6.23.23+v15.5.0.70-armv7a",
               "experimental": false
             }
           ]
@@ -232,6 +154,32 @@
       "options": []
     },
     {
+      "name": "Override certificate pinning",
+      "description": "Allows HTTPS traffic inspection tools like AdGuard Premium to intercept app connections. Enables consistent pre-roll suppression when used alongside AdGuard Premium.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.amazon.amazonvideo.livingroom": [
+          "6.23.23+v15.5.0.70-armv7a"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Prime Video Android TV",
+          "packageName": "com.amazon.amazonvideo.livingroom",
+          "description": null,
+          "appIconColor": 1539022,
+          "targets": [
+            {
+              "version": "6.23.23+v15.5.0.70-armv7a",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Paramount+ Android TV",
       "description": "Removes VOD ads and pause ads while preserving live TV.",
       "use": true,
@@ -316,7 +264,7 @@
     },
     {
       "name": "Skip ads",
-      "description": "Disables ad delivery via Sky SDK surgical targets (FreeWheel DI module skip, MediaTailor SSAI layers), OkHttp interceptor, and WebView shouldInterceptRequest wrapper. Validated v7.5.102.",
+      "description": "Disables ad delivery via Sky SDK surgical targets (FreeWheel DI module skip, MediaTailor SSAI layers, ad-break-started no-op), OkHttp interceptor, and WebView shouldInterceptRequest wrapper. Validated v7.5.102.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -342,7 +290,7 @@
     },
     {
       "name": "Skip ads",
-      "description": "Suppresses ad schedule and seeks past playing ads using the Player reference available in getStreamPositionUs.",
+      "description": "Multi-layer ad suppression targeting the SSAI schedule and impression reporting.",
       "use": true,
       "dependencies": [
         "BytecodePatch"

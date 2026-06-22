@@ -3,6 +3,9 @@
 # All three methods are called directly from patched smali via invoke-static.
 # Without these rules R8 may inline or remove them since they appear
 # unreferenced from the extension module's own code graph.
+#
+# Note: MetricsTransporter.transmit() hook uses pure inline smali to
+# construct UploadResult directly — no extension method needed there.
 
 -keep class ajstrick81.morphe.extension.primevideo.ads.SkipAdsPatch {
     public static *** skipAllMedia3AdGroups(com.google.common.collect.ImmutableMap);

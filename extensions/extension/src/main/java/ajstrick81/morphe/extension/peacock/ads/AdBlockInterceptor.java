@@ -29,6 +29,12 @@ import java.util.Random;
  * Safe CDNs — never intercepted:
  *   *-prd-mc.cdn.peacocktv.com  (slate/fallback content)
  *   *-prd-ns.prd.pck.netskrt.net (content delivery)
+ *   *-prd-fy.cdn.peacocktv.com  (confirmed via AGH DNS testing to break
+ *                                 sports highlights and game replays — see
+ *                                 "USE With Caution" section of the AdGuard
+ *                                 user rules; the DNS-layer rule for this
+ *                                 shard is disabled for the same reason, so
+ *                                 it must not be blocked here either)
  *
  * PCAP confirmed: ad segment traffic is primarily Chromium/WebView (Layer 7).
  * This interceptor catches OkHttp-reachable ad traffic — manifest fetches,
@@ -40,10 +46,14 @@ public class AdBlockInterceptor implements Interceptor {
 
     private static final Random RANDOM = new Random();
 
-    // Ad CDN shards confirmed via PCAP/AGH log analysis
-    // Suffix matching covers future group IDs (g007, g008, etc.) automatically
+    // Ad CDN shards confirmed via PCAP/AGH log analysis.
+    // Suffix matching covers future group IDs (g007, g008, etc.) automatically.
+    //
+    // "prd-fy" is intentionally NOT included here — AGH DNS testing confirmed
+    // blocking that shard breaks sports highlights and game replay playback.
+    // See the AdGuard user rules' "USE With Caution" section, where the
+    // equivalent DNS rule was disabled for the same reason.
     private static final String[] AD_CDN_SUFFIXES = {
-        "prd-fy.cdn.peacocktv.com",
         "prd-ak.cdn.peacocktv.com",
         "prd-cf.cdn.peacocktv.com",
     };

@@ -107,45 +107,15 @@ object TubiWebClientPageFinishedFingerprint : Fingerprint(
 
 // Hook 9 — qf/c.suspendGetAdBreaks(String, String, String, Map, Continuation)
 //
-// This is the ROOT CAUSE of the surviving initial pre-roll ad.
-//
-// Through binary analysis of the original Tubi v10.20.5000 APK we traced
-// the rainmaker.production-public.tubi.io call chain:
-//
-//   com.tubitv.common.api.MainApisInterface.r()
-//     → returns RainmakerInterface (Retrofit service accessor)
-//   pf/K.e() — Retrofit service builder for rainmaker
-//     → builds Retrofit instance with base URL rainmaker.production-public.tubi.io
-//     → calls retrofit.create(RainmakerInterface.class)
-//   com.tubitv.common.api.interfaces.RainmakerInterface.suspendGetAdBreaks()
-//     → Retrofit-generated abstract interface (no code, proxy generated at runtime)
-//   qf/c.suspendGetAdBreaks(String, String, String, Map, Continuation) ← THIS CLASS
-//     → R8-obfuscated RainmakerAdsFetcher implementation
-//     → Contains full retry logic, timeout handling, success/failure logging
-//     → Makes the actual OkHttp request to:
-//        https://rainmaker.production-public.tubi.io/api/v2/rev/vod/ANDROID
-//     → Fetches VAST ad manifest with pre-roll break data
-//
-// WHY HOOK 7 (shouldInterceptRequest) MISSED THIS:
-//   shouldInterceptRequest only intercepts WebView network requests.
-//   This is a native OkHttp call made by the Java layer directly —
-//   it bypasses the WebView entirely. AGH DNS blocking stopped it
-//   because DNS resolution is system-wide. Our bytecode hook stops it
-//   at the source before any socket is opened.
-//
-// Hook: return COROUTINE_SUSPENDED sentinel at index 0.
-//   Lai/q; = R8-minified kotlin.coroutines.intrinsics.CoroutineSingletons
-//   Lai/q;.a = COROUTINE_SUSPENDED field
-//   Returning this sentinel causes the coroutine caller to suspend.
-//   The Continuation is never completed → ad manifest never arrives →
-//   Tubi's timeout logic fires → content plays without pre-roll.
-//
-// Unique fingerprint string: "suspendGetAdBreaks failed (attempt "
-// (appears in retry logic logging, highly specific to this method)
-object RainmakerSuspendGetAdBreaksFingerprint : Fingerprint(
+// Rainmaker ad-break fetch coroutine. Confirmed via classes7.dex analysis:
+// returns Lwm/d; (sealed result wrapper) — Lwm/d$e for success, Lwm/d$b
+// subtypes (Lwm/d$c / Lwm/d$d) for error. The caller (Lpf/a;->c) branches
+// on instance-of Lwm/d$e vs Lwm/d$b and converges afterward either way,
+// so a synchronously-returned error result is sufficient — no suspension
+// needed.
+object QfcSuspendGetAdBreaksFingerprint : Fingerprint(
     definingClass = "Lqf/c;",
     name = "suspendGetAdBreaks",
-    strings = listOf("suspendGetAdBreaks failed (attempt "),
     parameters = listOf(
         "Ljava/lang/String;",
         "Ljava/lang/String;",

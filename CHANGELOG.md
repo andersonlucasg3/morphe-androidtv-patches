@@ -1,200 +1,76 @@
-# [1.1.0](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.9...v1.1.0) (2026-06-20)
-
-
-### Features
-
-* **youtubetv:** add working video ad blocking via OS spoofing ([d0e2e6e](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/d0e2e6ebbe236b7c8c17e90559e2bf1ff520b672))
-
-## [1.0.9](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.8...v1.0.9) (2026-06-20)
+## [1.4.97](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.96...v1.4.97) (2026-06-21)
 
 
 ### Bug Fixes
 
-* **youtubetv:** remove broken Hook 1 (OS spoofing) ([06ca648](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/06ca648fd6347b52093c7406abf7542eafd7bff4))
+* Add extendWith call in SkipAdsPatch.kt ([f0abe0d](https://github.com/ajstrick81/morphe-androidtv-patches/commit/f0abe0d531c519426610de3c0e6b8bc25480c9da))
+* Update dependencies in build.gradle.kts ([be68275](https://github.com/ajstrick81/morphe-androidtv-patches/commit/be6827510874c3a39f05f86bd2c6c9d133b6e88b))
+* Update Gradle wrapper to version 9.5.0 ([7fbf2d7](https://github.com/ajstrick81/morphe-androidtv-patches/commit/7fbf2d7471ef75333df59ecf5483e6ac66bc2823))
+* Update Prime Video extension patch for merging DEX ([8a93773](https://github.com/ajstrick81/morphe-androidtv-patches/commit/8a93773fbff409f08929ff9e45022d66596e63be))
 
-## [1.0.8](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.7...v1.0.8) (2026-06-20)
-
-
-### Bug Fixes
-
-* **youtubetv:** switch Hook 1 from ANDROID_TV to youtubei/v1 ([7ada1b6](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/7ada1b6d30db155c9e403a38c42fae85622a3b08))
-
-## [1.0.7](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.6...v1.0.7) (2026-06-20)
+## [1.4.96](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.95...v1.4.96) (2026-06-21)
 
 
 ### Bug Fixes
 
-* **youtubetv:** exclude <clinit> and <init> from all hooks ([d2408db](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/d2408db95d6bd1457ee06969ba80296438d0fd48))
+* Update app.morphe.patches plugin version to 1.3.2 ([a625d8f](https://github.com/ajstrick81/morphe-androidtv-patches/commit/a625d8f6aacd5b541ee958c5f304039f68982ba5))
 
-## [1.0.6](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.5...v1.0.6) (2026-06-20)
-
-
-### Bug Fixes
-
-* **youtubetv:** split Hook 3 to single string, Hook 4 to vmapAdsRequest ([ae94e4f](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/ae94e4fbca2b870bee62be8e28e307f9b198c116))
-
-## [1.0.5](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.4...v1.0.5) (2026-06-20)
+## [1.4.95](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.94...v1.4.95) (2026-06-21)
 
 
 ### Bug Fixes
 
-* **youtubetv:** strip Hook 3 to strings-only for diagnostic ([2c4f978](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/2c4f97848ae81bc34a9b0864ca3c0a29cc917407))
+* Enhance logging for ad group stripping methods ([b1a7381](https://github.com/ajstrick81/morphe-androidtv-patches/commit/b1a7381761476bc7644d7527f11c6a18b0f8fde0))
 
-## [1.0.4](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.3...v1.0.4) (2026-06-20)
-
-
-### Bug Fixes
-
-* **youtubetv:** strip Hook 1 to strings-only for diagnostic ([ab14d67](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/ab14d67b38481ac74957489bc719f226244854c5))
-
-## [1.0.3](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.2...v1.0.3) (2026-06-20)
+## [1.4.94](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.93...v1.4.94) (2026-06-21)
 
 
 ### Bug Fixes
 
-* **youtubetv:** use only ANDROID_TV string for OS spoof fingerprint ([a7a0171](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/a7a01712cc2041f2a392753fcb7cc6575e92b9a4))
+* Refactor SkipAdsPatch documentation and remove seek method ([20cf0bd](https://github.com/ajstrick81/morphe-androidtv-patches/commit/20cf0bd5f59af60f09d85311fd50d49eb015a9b5))
 
-## [1.0.2](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.1...v1.0.2) (2026-06-20)
-
-
-### Bug Fixes
-
-* **youtubetv:** replace placeholder fingerprints with APK-confirmed strings ([fe3d2b1](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/fe3d2b11e5a399cf79495e977db5da4d0edf08ac))
-
-## [1.0.1](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.0.0...v1.0.1) (2026-06-20)
+## [1.4.93](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.92...v1.4.93) (2026-06-21)
 
 
 ### Bug Fixes
 
-* remove YouTube TV patches from active registration ([33ba698](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/33ba698ac596043539142a0018c642e2bc5e4410))
+* push new version via Update ParamountPatch for v16.12.0 compatibility ([8ae32cc](https://github.com/ajstrick81/morphe-androidtv-patches/commit/8ae32ccd5070f2ce69841e3de2947819f49b55fc))
 
-# 1.0.0 (2026-06-20)
+## [1.4.92](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.91...v1.4.92) (2026-06-21)
 
 
 ### Bug Fixes
 
-* Add ad suppression hooks for Tubi video player ([13b66fa](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/13b66fa1a4b5d62e5e6ef9beb4a6257c4ae904e7))
-* add AppTarget for Disney and update HBO Max compatibility name for Android TV ([bacee4a](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/bacee4a39555170a79cecb391bd57e9d3ae3fc18))
-* Add client cert request handling and improve comments ([c60a808](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/c60a808c522d1df1e1a761cd7bc0331a0ab572bd))
-* Add fingerprints for FoxIma stream requests ([d435003](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/d43500327ac868bb454defa76427b2d6acbed29f))
-* Add four new hooks for ad suppression and opt-out ([daafb60](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/daafb606f3f96bb73cd30d3c35c87cea75cdb2e4))
-* Add Gradle credentials setup in release workflow via Morphe tutorial ([cdc695e](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/cdc695e0b72e1e24d16d15769553b2ec023376a9))
-* add Tubi ad domains block in SkipAdsPatch ([bca79ee](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/bca79ee15d39d7ffb64563b8d17ca9e009758247))
-* Change compatibility from ATBAT_TV to MLB_TV ([6eb87fb](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/6eb87fb399625fc96ab9828a0ed5228e83ddea5f))
-* Change compatibility from PARAMOUNT_PLUS_TV to PARAMOUNT_TV ([96dc1a8](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/96dc1a873621549517c28df0b2cbcc7be501553d))
-* Change default namespace for extensions ([d4b6334](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/d4b63344b26ecaf15cb7ba1903789ac33664afd0))
-* Clarify patch compatibility for Paramount versions ([6dfb89d](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/6dfb89d875afbdbec3a1392d16544d7ed42cc336))
-* correct AccessFlags usage in YT TV GMS fingerprints ([b475579](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/b4755792eeb9ff242e371a2f6ba8316dbfb934a5))
-* Delete obsolete ProGuard rules for extensions ([40f15c6](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/40f15c6579a2007d1967e67554a66ebe487c3939))
-* Delete patches/src/main/kotlin/ajstrick81/morphe/patches/primevideo/misc/permissions directory ([65515b9](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/65515b92873265ae44faefc96e061c25b52fe33e))
-* Enhance Skip Ads patch with compatibility check ([2158994](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/215899498531185b6799ef8e6a465f183c68edb4))
-* Fix check-cast for shouldBlock return type to stop app crash ([090bbc0](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/090bbc0a049a2d5ff9741ade374c69594a9342ca))
-* Fix formatting of method reference in ParamountPatch.kt ([9d26013](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/9d2601368c34d6dea1528195c36ed61ae79ac886))
-* Fix typo in SSAI parsing failure string ([38c04a6](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/38c04a6962b3b275b23d9f0fe4419dc3f9fe8c09))
-* force new version update Fingerprints.kt ([a4747fb](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/a4747fb1e2a789ce72c6c58c15bdbfdba0e25308))
-* force new version update Fingerprints.kt ([201af65](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/201af65cb7aa8251c5da327e503fbf7138ae23a5))
-* force new version with update Fingerprints.kt ([a9028f7](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/a9028f7f6b6919a28929b2c7adfc2aeb5084a581))
-* force version update via SkipAdsPatch.kt ([4c5bf0d](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/4c5bf0d82e8389e21e0d6ac4411e30d1cf6662b5))
-* Implement ad request interception in TubiWebClient ([a7342b1](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/a7342b1e2784859010b669b2add0e69c13e651f8))
-* Implement comprehensive ad suppression mechanisms ([421f039](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/421f0391c5b6d4179f550560d0fea757e2a158b2))
-* Implement Nowtilus kill switch in HBOAdsPatch ([c95084b](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/c95084b2beea95de31216169dfe5362999b229de))
-* Make gradlew executable in release workflow ([e0bc1ff](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/e0bc1fff7a0b5985b69436fb15ced00b07b9909e))
-* Modify AtBatPatch for MLB At Bat compatibility ([7638422](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/7638422dbbcedd9de3e4aea9b6925edf8a5afd83))
-* Modify BoltNonLinearAdsRequest fingerprint for JSON key ([fb28017](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/fb28017b792ed5b0278df849e58206578f0ee6d6))
-* Morphe patch error: Refactor FoxPlayerClearVodAdsFingerprint definition ([c3edc0c](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/c3edc0c9306ee724d4bab477b240bdf3ddb9213c))
-* new version and Enhance AdBlockInterceptor with randomized responses ([007e8c6](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/007e8c6559bc40c538e66de6bb18d7d8b146055b))
-* new version and enhance GMB diagnostic logging with inline smali ([c0da5ec](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/c0da5ec07a68a8966fd571d8d62b1c858a98f6a7))
-* new version and Enhance skipAdsPatch with WebView interception ([9fab827](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/9fab8275292d6f0c24b38530f12bd94efcc6cc85))
-* new version push by adding target version to PARAMOUNT_TV compatibility ([ac43dd1](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/ac43dd1dbb4c92abc96f717beb5c1fc8c944dd1f))
-* new version Refactor WebViewClient interception logic ([1ae2b03](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/1ae2b0368f639dacb3f7e5a8a7f82a800ed2dae1))
-* pin Paramount+ to v16.8.0 ([250eae2](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/250eae26bf5da15fa8b19d69306e5fe4b417c953))
-* push new version and Update instruction index in SkipAdsPatch.kt ([056ade6](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/056ade686ff71319bcfbabf51c76b05128683c43))
-* push new version Refactor PeacockWebViewHelper for clarity and safety ([060680f](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/060680fac74817f05a2d331b622b1ff544fc7402))
-* push new version through update of SkipAdsPatch.kt ([f58ac6b](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/f58ac6be345a9589f05f43d127d427eca512edb9))
-* push new version update Fingerprints.kt ([15fabeb](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/15fabebf35794d7fa356e93286aaba9ee2ad7cdd))
-* push new version update Fingerprints.kt ([79c0575](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/79c057584f444f6a682241685bd90230f4d22f0f))
-* push new version with refactor comments and logic in PeacockWebViewHelper ([2fa200f](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/2fa200ff70dbf1d62f22659c1e3bfbdbc6db5ce4))
-* push new version with refactor SkipAdsPatch for clarity and efficiency ([a3ab178](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/a3ab178ffde8d9ba8af3bc511b9ce3d27102cef5))
-* push new version with Update ad patch fingerprints for MLB At Bat ([1aac811](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/1aac8110d104ea6ef5dfbf56179efe2189b568be))
-* push new version with Update ad suppression patch for Yospace SSAI ([38d9168](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/38d916832cea3945eced94a7f5b6de83879ae63d))
-* push new version with Update Disney+ compatibility targets ([ef74d13](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/ef74d136763c00195ca18390dad3fbff64eaa147))
-* push new version with update Fingerprints.kt ([5ec69a7](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/5ec69a72b9f5df4014124047d5684cfae1b23f53))
-* push new version: Enhance documentation for ad delivery and SSAI handling ([8fe99d7](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/8fe99d78ad8a2405f9a81ef98829b5cbfba53a12))
-* push update for addition of MLB.tv to repo ([af7d735](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/af7d735729e017aeb2328c4eda836f1230b60847))
-* push Update SkipAdsPatch.kt to test Peacock ([903c74d](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/903c74d68a5462ecd14cd98c4dc10958fd27dfc4))
-* push updated and enhance comments for SkipAdsPatch functionality ([9dbad4a](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/9dbad4a8d3cb4552037e02784d4f5b0daad16243))
-* push version update through Fingerprints.kt ([54336ae](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/54336aed6019be759d1664c5eea888a05c0af523))
-* push version update through Fingerprints.kt ([b20232e](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/b20232e4f539ad026dc91e661b5567674443fb82))
-* push version with update Fingerprints.kt for ad playback state handling ([055ad5f](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/055ad5fc7ce6ee8399f937943267f8bec3c8dc95))
-* pushing new version by updating Fingerprints.kt ([ab4ba28](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/ab4ba28d2266e2851aaa8f5cc41ca92cef79099e))
-* Refactor ad break logic and update comments ([f8e340e](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/f8e340e2e48b415e83c392e4a608b9c3862c725a))
-* Refactor ad delivery architecture comments in AtBatFingerprints.kt ([84da6e7](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/84da6e776d86f759931d49c292a3727b80535699))
-* Refactor ad injection method to avoid VerifyErrors ([7598779](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/75987792f27a8049af5e1cea353faee062a601fb))
-* Refactor ad playback state handling in SkipAdsPatch ([cb0b454](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/cb0b454f85b9cef1e8b8625f425320d8fc160686))
-* Refactor ad playback strategy for improved performance ([aafdbcd](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/aafdbcdd5bdbfa00bfadf071015d8b96bbef11d5))
-* Refactor AdBlockInterceptor injection method ([e5f4c43](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/e5f4c4382b6b70b00f78fc8bd5b4249918b6e73d))
-* Refactor AtBatPatch for clarity and structure ([fbcd024](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/fbcd024b288acb7343fdf5b4ee499f9d6b42db22))
-* Refactor code for 'HBO Max - Disable Ads' ([f55ebc2](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/f55ebc29dd0f128d647b1a84c463a88aa5d42c3a))
-* Refactor comments and patch descriptions in AtBatPatch ([aafcfe5](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/aafcfe5b8514d0408bf2dc7b01e85cf697db2a78))
-* Refactor comments for clarity in SkipAdsPatch.kt ([2114aa6](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/2114aa6b1307cbc99ccc1c5945b4d763ce4e6543))
-* Refactor comments in SkipAdsPatch.kt to avoid app crash ([0b1bd23](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/0b1bd2393740d099e0c4b2d793933dfca79f5706))
-* Refactor DisneyPatch for clarity and updates ([b626bd1](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/b626bd175b1029a6dd1c0b433987c464b19167c1))
-* Refactor Fingerprints for ad request and timeline builders ([506a49c](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/506a49cde31a23c1a284445edfe2888d17dd5ea6))
-* Refactor Fingerprints.kt for ad event suppression ([eec1fd6](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/eec1fd6082f207602ce496818d70bd24aceb4809))
-* Refactor Fingerprints.kt for Fox One integration ([23bdb4e](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/23bdb4eab64959710996db57ac23758424634d5f))
-* Refactor Fingerprints.kt package and imports ([e39c4d6](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/e39c4d626b6261c529a89cf6dfb78d1e7205279d))
-* Refactor Fingerprints.kt with updated patch strategies ([4c45180](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/4c4518027d6d711475e22d932e8c777ef3bece45))
-* Refactor HBOAdsPatch for clarity and efficiency ([2a47b14](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/2a47b14538e338e83f7e06edd8bada1afc44975f))
-* Refactor Helio ad fingerprints and coroutine handling ([04c817e](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/04c817ea310e65b8cebb922a9b6a2962cc3ce1d9))
-* Refactor imports in Fingerprints.kt ([07ae48c](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/07ae48c9b0a4e5d0dbc70d591ed99fcd71097e42))
-* Refactor metadata handling and patch DAI events ([ec8c6cc](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/ec8c6cc9d17d6617f80c4359616d56cb0afac6ed))
-* Refactor MLB At Bat ad patches for clarity and functionality ([42f0d5a](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/42f0d5a67c56ab8b7f9cf3f51a75bfd9257d6c93))
-* Refactor MLB At Bat ad suppression patches ([0532f64](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/0532f6487570ef419f180f5043f8cc82c412497b))
-* Refactor ParamountPatch for ad suppression mechanism ([7f8f06f](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/7f8f06fa5befef65dfde245e56e67ab1f1de06fb))
-* Refactor patches and update fingerprint comments ([8bee5e3](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/8bee5e3d66f4d33d79f31fc9e51e428a126e1257))
-* Refactor PauseAdOverlayFingerprint custom logic ([70c4804](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/70c4804acd3c9785271dbb878df5e9a3899558b2))
-* Refactor SkipAdsPatch to simplify ad handling ([7eaede7](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/7eaede7510ae55a56a1c58d77d16e41c32bd0dec))
-* Refactor supplementaryAdsPatch to remove interstitial ad hook ([89a5c12](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/89a5c125186db152ae7d30b5ab75d3475bdcc01a))
-* Refactor TXXX metadata dispatch handling ([520358e](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/520358ef3c8b6bfa0e82fa29da39109ee4218cba))
-* Refactor VOD SSAI and pause ads fingerprint strategies ([cbb0117](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/cbb0117efda945e60b3fa78dcc11277f3f26ae69))
-* Refine Paramount patch for ad handling ([cbe5e59](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/cbe5e5904f2dfcb1ebeb4f53bf065c35da7ebb2c))
-* Rename package in Fingerprints.kt ([4f6bd18](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/4f6bd18da4714f42140a956d4c9a4458eb99409a))
-* Rename patch from 'MLB At Bat' to 'MLB.tv' ([07af607](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/07af607dea512607de8210118b1af78d319c06c8))
-* Rename patch from Fox One to Fox Sports ([ae60e8b](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/ae60e8bf98ed90cb54e322a0abdfa0f14fd28807))
-* resolve Gradle credentials for publish step ([0a3e95b](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/0a3e95b0b595453727c6496c7a08a16e440e3494))
-* return null from ImaSdkFactory.zzb to prevent AdsLoader creation ([71d02aa](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/71d02aab549dd01bc00176b3af0e9f32f8f43c50))
-* Revise ad suppression fingerprints for Fox One ([dad7e6f](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/dad7e6fcd07829e5abeee1239fc8264bdc26549a))
-* rollback update Fingerprints.kt ([556efdd](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/556efdd3bb60043e2b434db97006fe22fe12c356))
-* Simplify SkipAdsPatch description and clean up code ([ab3e2bf](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/ab3e2bfa268071f85c4a1636a687a0b036f5a0b6))
-* trigger initial patch release ([b9ec362](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/b9ec3621e4ff462492d2d6f081a9370239f712c5))
-* trigger release with Gradle credentials fix ([26459d4](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/26459d44339e1dc5e541c1afb1981decea348639))
-* update and Improve comments in Fingerprints.kt for XTVWebView ([bc4d815](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/bc4d81536923685d624639ead1772d96d6231ea5))
-* Update AppCompatibilities.kt to include HBOmax ([99bee43](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/99bee43fc262767c630cd293e5d286d4fe317b0d))
-* Update comments and add new ad server checks ([a39195d](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/a39195d92bd3ea1810c8672a8642771f92aac4b5))
-* Update comments and method name for ad pause patch ([1a06d95](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/1a06d95ee5b293e1e52b49d66f1abfc6565a0817))
-* Update Fingerprints: Remove and add SDK fingerprints ([36f3bd5](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/36f3bd5e023e55a49473ad5f92451f4f4a076597))
-* Update Fingerprints.kt for Disney+ Android TV v26.8.0rc6 ([5140813](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/5140813ad11756cbd3134f92b243a5d3d08fbb7e))
-* Update FreewheelModuleSkipFingerprint definition ([5e0306e](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/5e0306e0a6f86d27da137d59bee17de66a585cbe))
-* update Gradle wrapper to 9.4.1 ([a0c8799](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/a0c8799e4dbbb0bbd69fb8221a2f572d63fa1205))
-* Update HBO Max package name in AppCompatibilities ([b374810](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/b374810cb92206b34b8bb5725afe54e51711ce5a))
-* Update HBO Max package name to com.wbd.stream ([6b0c55d](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/6b0c55d26300ab774e3d65fd7598382011624e84))
-* Update method invocation in SkipAdsPatch.kt to avoid app crash on startup ([8bd5c84](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/8bd5c84e2dc44a3cfdf36b2a828ec4bbda9cb04a))
-* Update package name for HBO Max Android TV compatibility ([9e033ad](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/9e033adb2bf4312e00948dd2e704e08ab0687cd7))
-* update package-lock.json and bump Node to 22 ([899748f](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/899748f0a2924f27714201ce18f4a6412a2c831a))
-* Update ParamountPatch to suppress VOD and pause ads ([2bd6988](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/2bd698808bbfde794ca2adb347849b85543d86ff))
-* Update patch notes and adjust return types for suspend functions ([c8eb1f5](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/c8eb1f5cfc5ce86c0669671b3e7aeb78c6b1e17b))
-* Update release workflow permissions and build steps ([bdc2476](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/bdc24760520ed7cf6b1d0db742f8910dda9372a2))
-* Update returnType in ImaSdkFactoryFingerprint ([ed7ed27](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/ed7ed2744626527d2755ca426d0555fdc37a8b41))
-* Update SkipAdsPatch to use invoke-static/range ([a3ca8bf](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/a3ca8bfd260ce363617cdce103bc037542c2bba8))
-* Update SkipAdsPatch.kt ([b1abecd](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/b1abecdca6419abd6c32bc84baa4efed79fe7157))
+* push new version via Refine skipAdsPatch description and add comments ([f92dcc3](https://github.com/ajstrick81/morphe-androidtv-patches/commit/f92dcc3278094e1ffc86431b4cafffc7bc0f10ce))
+
+## [1.4.91](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.90...v1.4.91) (2026-06-21)
 
 
-### Features
+### Bug Fixes
 
-* initial Paramount+ and Disney+ ad blocking patches ([dca286e](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/dca286eea91711f896674136521435cf74bb208d))
-* initial Paramount+ and Disney+ ad blocking release ([9ae71e6](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/9ae71e63c3060b2b495e49591d3d7c81efe01d18))
-* restructure Paramount+ patch with separate Fingerprints file ([badd2c2](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/badd2c281981becff17d529d58961ec2caa10d59))
-* update app names for Paramount and Disney Plus ([a6450cf](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/a6450cfdfc489ef645afd69922ef770210150669))
+* Refactor URL blocking logic in PeacockWebViewHelper ([beac284](https://github.com/ajstrick81/morphe-androidtv-patches/commit/beac284f95904045745a59d94dfd26b8b1a4d524))
+
+## [1.4.90](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.89...v1.4.90) (2026-06-21)
+
+
+### Bug Fixes
+
+* Refactor ad-break fetch coroutine handling ([7f1bb26](https://github.com/ajstrick81/morphe-androidtv-patches/commit/7f1bb26b6b2ddc3e39fb56c671383c4146295ad6))
+
+## [1.4.89](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.88...v1.4.89) (2026-06-20)
+
+
+### Bug Fixes
+
+* Refactor SkipAdsPatch by removing unused hooks ([e1c3302](https://github.com/ajstrick81/morphe-androidtv-patches/commit/e1c3302bf7751b18a96df444ea3c7a5740fc04e7))
+* Remove unnecessary closing parentheses in Fingerprints.kt ([8f211f3](https://github.com/ajstrick81/morphe-androidtv-patches/commit/8f211f3c237f40f48280af5a332b4c63127bd558))
+
+## [1.4.88](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.87...v1.4.88) (2026-06-20)
+
+
+### Bug Fixes
+
+* Implement fingerprints for ad playback and metrics ([65a6878](https://github.com/ajstrick81/morphe-androidtv-patches/commit/65a6878006cbddd90b7e7b953b82c65ce1e8c865))
 
 ## [1.4.87](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.86...v1.4.87) (2026-06-20)
 

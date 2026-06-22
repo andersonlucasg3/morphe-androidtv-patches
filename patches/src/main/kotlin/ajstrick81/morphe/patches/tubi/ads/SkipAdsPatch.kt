@@ -13,29 +13,19 @@ val skipAdsPatch = bytecodePatch(
 
     execute {
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 1 — FoxImaAdListeners.adEventListener_delegate$lambda$10$lambda$9
-        // ─────────────────────────────────────────────────────────────────────
         FoxImaAdEventListenerFingerprint.method.addInstructions(0, "return-void")
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 2 — FoxImaAdListeners.adsLoadedListener_delegate$lambda$4$lambda$3
-        // ─────────────────────────────────────────────────────────────────────
         FoxImaAdsLoadedListenerFingerprint.method.addInstructions(0, "return-void")
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 3 — FoxPlayer.clearVodAds()
-        // ─────────────────────────────────────────────────────────────────────
         FoxPlayerClearVodAdsFingerprint.method.addInstructions(0, "return-void")
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 4 — ImagePauseAds.l(VideoApi, long)
-        // ─────────────────────────────────────────────────────────────────────
         TubiPauseAdsFingerprint.method.addInstructions(0, "return-void")
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 5 — FoxImaStreamIdLoader.requestVODDAIUrl
-        // ─────────────────────────────────────────────────────────────────────
         FoxImaVodStreamRequestFingerprint.method.addInstructions(
             0,
             """
@@ -45,9 +35,7 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 6 — FoxImaStreamIdLoader.requestImaStreamId
-        // ─────────────────────────────────────────────────────────────────────
         FoxImaLiveStreamRequestFingerprint.method.addInstructions(
             0,
             """
@@ -57,13 +45,11 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 7 — xo/C$c.shouldInterceptRequest(WebView, WebResourceRequest)
         //
-        // WebView-layer ad domain interception. Blocks XHR/fetch requests
-        // to ad orchestration endpoints from the Tubi SPA. Cannot intercept
-        // media element (<video> src) requests — those require Hook 9.
-        // ─────────────────────────────────────────────────────────────────────
+        // WebView-layer ad domain interception. Blocks XHR/fetch requests from
+        // the Tubi SPA to ad orchestration endpoints. Cannot intercept media
+        // element (<video> src) requests — those require AGH DNS rules.
         TubiWebClientInterceptFingerprint.method.addInstructions(
             0,
             """
@@ -122,13 +108,10 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 8 — xo/C$c.onPageFinished(WebView, String)
         //
         // JavaScript fetch override injected into the SPA after page load.
-        // Intercepts fetch() calls to ad orchestration endpoints in JS context
-        // before they can initiate network requests.
-        // ─────────────────────────────────────────────────────────────────────
+        // Intercepts fetch() calls to ad orchestration endpoints in JS context.
         TubiWebClientPageFinishedFingerprint.method.addInstructions(
             0,
             """
@@ -138,22 +121,32 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // ─────────────────────────────────────────────────────────────────────
         // Hook 9 — qf/c.suspendGetAdBreaks(String, String, String, Map, Continuation)
         //
-        // NATIVE OKHTTP ROOT CAUSE — the final piece.
-        // R8-obfuscated RainmakerAdsFetcher.suspendGetAdBreaks() makes a direct
-        // OkHttp call to rainmaker.production-public.tubi.io — bypassing the
-        // WebView entirely. This is why the first pre-roll survived Hook 7.
+        // Rainmaker ad-break fetch coroutine. Returns Lwm/d; (sealed result),
+        // with the caller (Lpf/a;->c) branching on instance-of Lwm/d$e
+        // (success) vs Lwm/d$b (error) and converging afterward either way.
         //
-        // Returns COROUTINE_SUSPENDED sentinel (Lai/q;.a) immediately.
-        // The ad manifest never arrives. Tubi's timeout fires, content plays.
-        // ─────────────────────────────────────────────────────────────────────
-        RainmakerSuspendGetAdBreaksFingerprint.method.addInstructions(
+        // Previous attempt returned COROUTINE_SUSPENDED directly to fake a
+        // no-op, which broke the suspend-function contract: nothing ever
+        // called continuation.resumeWith(), so the caller's coroutine parked
+        // forever (confirmed via logcat: TubiCoroutineGuard MISSING_HANDLER
+        // at TubiNewPlayerImpl.kt:102), hanging the entire content pipeline.
+        //
+        // Fix: skip the network call and the continuation machinery entirely,
+        // returning a real, immediate Lwm/d$d (generic error) result. The
+        // caller takes its existing error branch — the same one a genuine
+        // network failure already triggers gracefully — and the coroutine
+        // completes normally, with no DNS-layer workaround required.
+        QfcSuspendGetAdBreaksFingerprint.method.addInstructions(
             0,
             """
-                sget-object v0, Lai/q;->a:Lai/q;
-                return-object v0
+                new-instance v0, Ljava/io/IOException;
+                const-string v1, "ads_blocked"
+                invoke-direct {v0, v1}, Ljava/io/IOException;-><init>(Ljava/lang/String;)V
+                new-instance v2, Lwm/d${"$"}d;
+                invoke-direct {v2, v0}, Lwm/d${"$"}d;-><init>(Ljava/lang/Throwable;)V
+                return-object v2
             """
         )
     }

@@ -9,10 +9,16 @@ import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Disables ad delivery via Sky SDK surgical targets (FreeWheel DI module " +
-        "skip, MediaTailor SSAI layers), OkHttp interceptor, and WebView " +
-        "shouldInterceptRequest wrapper. Validated v7.5.102.",
+        "skip, MediaTailor SSAI layers, ad-break-started no-op), OkHttp interceptor, and " +
+        "WebView shouldInterceptRequest wrapper. Validated v7.5.102.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
+
+    // extendWith populates Patch.extensionInputStream — without this call the
+    // PeacockAdPatchHelper/PeacockWebViewHelper/AdBlockInterceptor classes
+    // referenced below via invoke-static never get merged into the patched
+    // APK's dex, even though the smali calling them assembles fine.
+    extendWith("extensions/extension.mpe")
 
     execute {
         // ── Layer 1 ─────────────────────────────────────────────────────────
@@ -46,6 +52,23 @@ val skipAdsPatch = bytecodePatch(
             """
                 const/4 v0, 0x0
                 return-object v0
+            """.trimIndent(),
+        )
+
+        // ── Layer 5 ─────────────────────────────────────────────────────────
+        // PlayerEngineItemImpl.handleAdBreakStarted(AdBreakStartedEvent) is a
+        // void method whose entire body launches a coroutine to handle an
+        // already-started ad break. With Layers 1/3/4/8 preventing any ad
+        // break from ever being scheduled in the first place, this should be
+        // unreachable in practice — but making it a no-op at offset 0 closes
+        // the gap defensively in case any ad-break event still reaches the
+        // player engine (e.g. a stale/cached SSAI manifest reference).
+        // Void return — no register setup needed, return-void is always
+        // verifier-safe at offset 0 regardless of live registers.
+        HandleAdBreakStartedFingerprint.method.addInstructions(
+            0,
+            """
+                return-void
             """.trimIndent(),
         )
 

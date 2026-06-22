@@ -31,6 +31,13 @@ import java.util.Random;
  *
  * Critical: onReceivedClientCertRequest MUST be delegated — Peacock uses
  * mutual TLS with a client certificate (com.peacock.peacocktv.tamper.Loader).
+ *
+ * Host-matching order: AD_HOSTS (and the ad-config hosts) are always checked
+ * BEFORE SAFE_HOSTS. SAFE_HOSTS uses substring matching against broad domains
+ * ("nbcuni.com", "peacocktv.com") which would otherwise shadow ad hosts that
+ * happen to be subdomains of those same domains, e.g.
+ * "video-ads-module.ad-tech.nbcuni.com" contains "nbcuni.com" and would be
+ * incorrectly treated as safe if the safe-list were checked first.
  */
 public class PeacockWebViewHelper {
 
@@ -130,14 +137,11 @@ public class PeacockWebViewHelper {
     }
 
     private static boolean shouldBlock(String url) {
-        // Ad config endpoints — check before safe-list (subdomains of peacocktv.com)
-        if (url.contains("vac.peacocktv.com") || url.contains("sas.peacocktv.com")) {
-            return true;
-        }
-
-        // Safe-list — Peacock's own infrastructure always passes through
-        for (String safe : SAFE_HOSTS) {
-            if (url.contains(safe)) return false;
+        // Ad hosts are checked FIRST. SAFE_HOSTS below uses broad substring
+        // matching ("nbcuni.com", "peacocktv.com") that would otherwise
+        // shadow ad hosts living under those same parent domains.
+        for (String ad : AD_HOSTS) {
+            if (url.contains(ad)) return true;
         }
 
         // Netskrt CDN — block all except -ns content shard
@@ -145,9 +149,10 @@ public class PeacockWebViewHelper {
             return true;
         }
 
-        // Standard ad host blocklist
-        for (String ad : AD_HOSTS) {
-            if (url.contains(ad)) return true;
+        // Safe-list — Peacock's own infrastructure passes through once we've
+        // confirmed the URL isn't one of the ad hosts above.
+        for (String safe : SAFE_HOSTS) {
+            if (url.contains(safe)) return false;
         }
 
         return false;

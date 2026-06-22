@@ -2,50 +2,39 @@
  * Paramount+ Android TV — Ad Patch Fingerprints
  *
  * Validated against:
- *   v16.8.0  (versionCode 520000464) — com.cbs.ott
+ *   v16.8.0  (versionCode 520000464) — com.cbs.ott  [original]
+ *   v16.12.0 (versionCode 520000571) — com.cbs.ott  [adds OnAdErrorFingerprint]
  *
- * AD SUPPRESSION MECHANISM (confirmed via APK analysis of v16.8.0):
+ * AD SUPPRESSION MECHANISM (confirmed via APK analysis of v16.8.0 and v16.12.0):
  *
  *   g1.c() builds the player media source (nm0.c) from ek0.s (content URI)
- *   BEFORE DAI initialization begins. This runs for all resource config types:
- *     Lwmg (simple URI), Ln27 (IMA resource), Luf3 (DAI/SSAI)
+ *   BEFORE DAI initialization begins. This runs for all resource config types.
  *
- *   For VOD:      uf3.ek0.s = cbsaavideo.com DASH manifest URL (non-null)
- *                 g1.c() → nm0.c = valid media source
- *                 DAI fails → AVIA uses nm0.c → content plays without SSAI ads
+ *   For VOD:      content URL is non-null → fallback media source is valid.
+ *   For live TV:  no pre-DAI content URL exists → fallback media source is null.
  *
- *   For live TV:  uf3.ek0.s = null (no pre-DAI content URL exists)
- *                 g1.c() → nm0.c = null
- *                 DAI fails → nm0.c = null → black screen
+ *   STRATEGY: return an empty (but non-null) zzcx StreamRequest from
+ *   createVodStreamRequest(). This is unchanged and still required.
  *
- *   Therefore: the fallback is inherently self-regulating. Causing DAI to
- *   fail gracefully suppresses VOD SSAI ads while live TV requires DAI to
- *   succeed (since it has no ek0.s fallback URL). Live TV is NOT patched.
+ * v16.12.0 REGRESSION (new in this build, root cause of the infinite spinner):
  *
- * STRATEGY:
- *   Return an empty (but non-null) zzcx StreamRequest from createVodStreamRequest().
- *   vk0.C is non-null → passes null guard → requestStream(emptyZzcx) is called →
- *   IMA SDK throws (no content source or video ID set) → exception caught by
- *   pk0.run() try-catch → dispatched as ErrorCriticalEvent → AVIA error handler
- *   detects nm0.c is valid → falls back to cbsaavideo.com → VOD plays without ads.
+ *   The bundled IMA SDK's zzah.requestStream() no longer synchronously throws
+ *   on an empty/invalid StreamRequest — it either re-dispatches a cached
+ *   AdErrorEvent or posts the request to an async Executor, and reports
+ *   success/failure later via the registered AdErrorListener/AdsLoadedListener
+ *   (Lcl0; in v16.12, registered in Lyk0;->run()).
  *
- *   Live TV uses createLiveStreamRequest() — completely separate code path at
- *   pk0.run()[147] — unaffected by these fingerprints.
+ *   Lcl0;->onAdError(AdErrorEvent) — the callback that is supposed to forward
+ *   the failure into the AVIA fallback path (Ln1;->t0(Boolean, Lml0)) — only
+ *   does so when AdError.getErrorType() is LOAD or PLAY. Any other error
+ *   category (which is what the empty StreamRequest now triggers under the
+ *   v16.12 IMA SDK's async validation) falls through to a silent return-void.
+ *   The fallback (nm0.c / direct cbsaavideo.com playback) never fires →
+ *   infinite spinner, no content.
  *
- *   NOTE: This approach was previously tested WITH AdStartedFingerprint and
- *   AdSkipFingerprint active, which corrupted player state and blocked the
- *   nm0.c fallback path. This build contains ONLY these two patches + pause ads.
- *
- * isLive check location in pk0.run():
- *   [135] invoke-virtual v3, Lek0;->b()Z
- *   [137] if-eqz v3, +1a   → if NOT live (VOD), goto VOD path [151]
- *   [147] createLiveStreamRequest()  ← live TV (untouched)
- *   [160] createVodStreamRequest()   ← VOD (patched)
- *
- * Stream type enum (k33):
- *   k33.b = VOD  (ek0.b() returns false)
- *   k33.c = LIVE (ek0.b() returns true)
- *   k33.d = DVR
+ *   FIX: patch onAdError() to forward ALL error types unconditionally to
+ *   Ln1;->t0(), restoring the v16.8.0 behavior where any DAI failure reliably
+ *   triggers the AVIA fallback.
  */
 
 package app.morphe.patches.paramount
@@ -54,14 +43,7 @@ import app.morphe.patcher.Fingerprint
 
 // ---------------------------------------------------------------------------
 // Patch 1a: VOD SSAI — createVodStreamRequest (3-arg)
-//
-// Called by pk0.run()[160] for standard VOD content.
-// Returns a valid but empty zzcx object — no contentSourceId (zze),
-// no videoId (zzf), no apiKey (zzo) set. requestStream(emptyZzcx) throws
-// inside the IMA SDK, caught by pk0.run() try-catch, triggers the
-// ErrorCriticalEvent → AVIA falls back to nm0.c (cbsaavideo.com).
-//
-// Fully unobfuscated (IMA SDK public API). Parameters: 3 Strings.
+// Unchanged from v16.8.0 — fingerprint still matches in v16.12.0.
 // ---------------------------------------------------------------------------
 
 internal object VodStreamRequest3ArgFingerprint : Fingerprint(
@@ -77,9 +59,12 @@ internal object VodStreamRequest3ArgFingerprint : Fingerprint(
 
 // ---------------------------------------------------------------------------
 // Patch 1b: VOD SSAI — createVodStreamRequest (4-arg)
+// Unchanged from v16.8.0 — fingerprint still matches in v16.12.0.
 //
-// Called by pk0.run() for VOD content with networkCode parameter.
-// Same strategy as 3-arg — empty zzcx, triggers IMA SDK exception.
+// NOTE: v16.12.0's IMA SDK also adds a 5-arg overload taking a
+// StreamRequest$StreamTrackingMode parameter, but it is not called anywhere
+// in Paramount's app code (confirmed: the only real VOD call site,
+// Lyk0;->run(), still calls the 3-arg overload). No fingerprint needed for it.
 // ---------------------------------------------------------------------------
 
 internal object VodStreamRequest4ArgFingerprint : Fingerprint(
@@ -94,10 +79,29 @@ internal object VodStreamRequest4ArgFingerprint : Fingerprint(
 )
 
 // ---------------------------------------------------------------------------
-// Patch 2: Pause ads — CbsPauseWithAdsOverlay state machine
+// Patch 1c: NEW (v16.12.0) — AdErrorEvent.AdErrorListener.onAdError()
 //
-// Independent of IMA DAI — unaffected by the VOD stream request patches.
-// Anchored on stable log strings. endsWith() handles package path migration.
+// Anchored on the app's own literal "DAI Ad Error '" string, used when
+// building the StringBuilder message passed into the Lml0 error wrapper.
+// This string is app-authored (not part of the IMA SDK), so it survives
+// IMA SDK updates and obfuscated-class renaming (the implementing class was
+// Lcl0; in v16.12.0 but the name is not load-bearing for the fingerprint).
+// ---------------------------------------------------------------------------
+
+internal object OnAdErrorFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf("DAI Ad Error '"),
+    custom = { method, _ ->
+        method.name == "onAdError" &&
+            method.parameterTypes.size == 1 &&
+            method.parameterTypes[0] ==
+                "Lcom/google/ads/interactivemedia/v3/api/AdErrorEvent;"
+    },
+)
+
+// ---------------------------------------------------------------------------
+// Patch 2: Pause ads — CbsPauseWithAdsOverlay state machine
+// Unchanged from v16.8.0.
 // ---------------------------------------------------------------------------
 
 internal object PauseAdOverlayFingerprint : Fingerprint(
