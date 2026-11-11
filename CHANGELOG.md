@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.5.0...v1.5.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **patches:** point bundle metadata at this fork ([9b73218](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/9b732182a5bc7946c2e795139a2920572e0359a6))
+
 # [1.5.0](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.4.97...v1.5.0) (2026-11-11)
 
 
