@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.5.1...v1.5.2) (2026-11-11)
+
+
+### Bug Fixes
+
+* **youtubetv:** let the clone own the rename so the defaults install ([aa0ed7c](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/aa0ed7c338e3a4ed8caa01d7ad4251a5a020233b))
+
 ## [1.5.1](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.5.0...v1.5.1) (2026-11-11)
 
 

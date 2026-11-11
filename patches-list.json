@@ -1,5 +1,5 @@
 {
-  "version": "1.5.1",
+  "version": "1.5.2",
   "appNames": {
     "com.disney.disneyplus": "Disney+ Android TV",
     "com.espn.score_center": "ESPN Android TV",
@@ -335,8 +335,8 @@
     },
     {
       "name": "Clone YouTube TV",
-      "description": "Installs the patched YouTube Android TV as a separate app alongside the stock one, instead of replacing it. Enable this when YouTube is a preinstalled system app that can't be uninstalled — most Android TV boxes ship it in /product, and a patched build cannot be installed over it (signature mismatch). The clone gets its own package (suffix .mod) and its own settings. Leave OFF if the original was uninstalled first, or if the app is not a system app. Makes no changes when \"GmsCore support\" is applied, because that patch already renames the app. Opt-in.",
-      "use": false,
+      "description": "Installs the patched YouTube Android TV as a separate app alongside the stock one, instead of replacing it. Enable this when YouTube is a preinstalled system app that can't be uninstalled — most Android TV boxes ship it in /product, and a patched build cannot be installed over it (signature mismatch). The clone gets its own package (suffix .morphe) and its own settings. Leave OFF if the original was uninstalled first, or if the app is not a system app. Makes no changes when \"GmsCore support\" is applied, because that patch already renames the app. Opt-in.",
+      "use": true,
       "dependencies": [],
       "compatiblePackages": {
         "com.google.android.youtube.tv": [
