@@ -8,6 +8,10 @@ object Constants {
         name = "YouTube Android TV",
         packageName = "com.google.android.youtube.tv",
         appIconColor = 0xFF0000,
-        targets = listOf(AppTarget("7.05.301"))
+        targets = listOf(
+            // Tested on a MiTV-AFMU0 (Android 14, armeabi-v7a).
+            AppTarget("7.31.300"),
+            AppTarget("7.05.301"),
+        )
     )
 }

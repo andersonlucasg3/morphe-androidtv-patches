@@ -214,9 +214,13 @@
     public static java.io.InputStream filter(java.io.InputStream);
 }
 
-# YouTube TV — GMS core availability check
-# Called via invoke-static from injected smali in main activity onCreate.
--keep class ajstrick81.morphe.extension.youtubetv.patches.GmsCoreSupportPatch {
+# YouTube TV — GmsCore support (MicroG-RE) availability check.
+# checkGmsCore(Object) is called via invoke-static from smali injected into
+# CobaltActivity.onCreate (see youtubetv/misc/gms/GmsCoreSupportPatch.kt), so R8
+# sees it as unreferenced and would strip or rename it. The parameter stays
+# java.lang.Object: the extension is reflection-only and the injected descriptor
+# is (Ljava/lang/Object;)V.
+-keep class ajstrick81.morphe.extension.youtubetv.gms.GmsCoreSupportPatch {
     public static void checkGmsCore(java.lang.Object);
 }
 
