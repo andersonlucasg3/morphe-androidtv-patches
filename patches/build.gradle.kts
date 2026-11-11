@@ -2,12 +2,12 @@ group = "app.morphe"
 
 patches {
     about {
-        name = "ajstrick81 Patches"
+        name = "andersonlucasg3 Patches"
         description = "Ad-blocking patches for Android TV streaming apps"
-        source = "https://github.com/ajstrick81/morphe-androidtv-patches"
-        author = "ajstrick81"
-        contact = "https://github.com/ajstrick81"
-        website = "https://github.com/ajstrick81/morphe-androidtv-patches"
+        source = "https://github.com/andersonlucasg3/morphe-androidtv-patches"
+        author = "andersonlucasg3"
+        contact = "https://github.com/andersonlucasg3"
+        website = "https://github.com/andersonlucasg3/morphe-androidtv-patches"
         license = "GPLv3"
     }
 }
