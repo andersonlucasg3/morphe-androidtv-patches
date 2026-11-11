@@ -15,4 +15,81 @@ Modifications:
 - Converted to ParameterizedFingerprint system
 - Integrated into modular patch framework
 
+- Purple TV (nyanarchive/purpletv)
+  GrandDads ad-eligibility short-circuit technique for Twitch
+  The approach of blocking GrandDadsApiImpl.shouldDeclineAds to return
+  AdContextUnavailable was discovered by reverse-engineering Purple TV's
+  AdBlocker class from PurpleTV_2.4.apk.
+  Source: https://github.com/AdrianLxM/PurpleTV
+
+- TwitchAdSolutions (pixeltris/TwitchAdSolutions)
+  playerType spoofing concept for Twitch ad suppression
+  The idea of substituting the stream access token's playerType to reduce
+  server-side ad fill originates from TwitchAdSolutions' proxy/playlist
+  rewriting techniques.
+  Source: https://github.com/pixeltris/TwitchAdSolutions
+
+- Xtra for Twitch (crackededed/Xtra)
+  Referenced as prior art for Android-side Twitch ad mitigation
+  Source: https://github.com/crackededed/Xtra
+
+- Nikflix (YidirK/Nikflix), GPL-3.0
+  Author: YidirK (github.com/YidirK)
+  API-block mechanism contributor: Buckibarnes17 (github.com/Buckibarnes17),
+  credited in the Nikflix v2.0.1 release notes for the GraphQL API-block
+  approach.
+  Reference for the Netflix ad-interstitial / household enforcement
+  mechanism. Nikflix (a browser extension) documents that Netflix delivers
+  the playback ad interstitial via the CLCSInterstitialPlaybackAndPostPlayback
+  GraphQL operation, neutralised by returning an empty response. That pointer
+  led us to the corresponding machinery in the Netflix Android TV appboot
+  bundle, where we confirmed the same CLCS interstitial family
+  (clcsInterstitialPlaybackAndPostPlayback for ads, and the sibling
+  clcsInterstitialProfileGate that carries the household / "This is my
+  account" ownership screen).
+  Source: https://github.com/YidirK/Nikflix
+  Modifications / independence: our Netflix patches share NO source code with
+  Nikflix. They are an independent implementation for a different target
+  (the com.netflix.ninja Android TV app, not web): rather than overriding
+  window.fetch / XMLHttpRequest in a browser (impossible on the native app,
+  which has no DOM and ships the request over MSL, not plaintext HTTPS), we
+  apply an in-process appboot-heap byte edit inside the app's own JS VM,
+  located by grepping our own on-device heap dumps. YidirK and Buckibarnes17
+  are credited for identifying the CLCS interstitial enforcement seam and the
+  neutralise-the-operation approach, not for code.
+
+Modifications:
+- Twitch techniques independently re-derived via dex disassembly of the
+  official Twitch Android APK v30.2.2, not copied from source code
+- Adapted to morphe-androidtv-patches Fingerprint/bytecodePatch framework
+
+- jev-kit (jonathanavis96/jev-kit), MIT
+  Author: Jonathan Avis (github.com/jonathanavis96)
+  Inspiration for scripts/smali-search (the `esm` fast-search tool).
+  jev-kit's filesearch component steers an agent's file search at an index
+  (voidtools Everything's `es.exe`) instead of walking the tree. That idea is
+  the basis of our smali-search tool. jev-kit is an excellent, carefully
+  measured toolkit — thank you to Jonathan Avis.
+  Source: https://github.com/jonathanavis96/jev-kit
+  Modifications / independence: no jev-kit code is copied. `esm` is our own
+  small shell implementation for the Morphe smali-search need, and it adds a
+  content/code index (Google Codesearch cindex/csearch) that Everything alone
+  cannot provide — the piece that fixes tree-wide content search, our slowest
+  step (measured ~165 s over 33.6k HBO Max smali files).
+
+- Michael Bompani (michaelbompani)
+  RaiPlay Android TV 5.0.1 support, "Fix live HLS variant 404" (rewrites the
+  missing bitrate-capped playlist_ma_1800-3600.m3u8 to playlist_ma.m3u8) and
+  the opt-in "Enable WebView debugging" patch.
+  Contributed code, used with credit under GPL-3.0.
+  Source: https://github.com/michaelbompani/morphe-androidtv-patches
+
+- Joker4Life12 (github.com/Joker4Life12)
+  HBO Max "Remove Ad Periods (keep 5.1)": keeps the PRIMARY (E-AC-3 5.1) DASH
+  manifest and strips its stitched ad <Period>s instead of falling back to the
+  stereo-only ad-free stream. Captured and tested on-device by the author on
+  HBO Max (Android TV) 7.14.0.69.
+  Contributed code, used with credit under GPL-3.0.
+  Source: https://github.com/Joker4Life12/morphe-androidtv-patches (PR #285)
+
 All original authors retain credit for their contributions.

@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-06-21T19:45:09",
-  "description": "## [1.4.97](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.4.96...v1.4.97) (2026-06-21)\n\n\n### Bug Fixes\n\n* Add extendWith call in SkipAdsPatch.kt ([f0abe0d](https://github.com/ajstrick81/morphe-androidtv-patches/commit/f0abe0d531c519426610de3c0e6b8bc25480c9da))\n* Update dependencies in build.gradle.kts ([be68275](https://github.com/ajstrick81/morphe-androidtv-patches/commit/be6827510874c3a39f05f86bd2c6c9d133b6e88b))\n* Update Gradle wrapper to version 9.5.0 ([7fbf2d7](https://github.com/ajstrick81/morphe-androidtv-patches/commit/7fbf2d7471ef75333df59ecf5483e6ac66bc2823))\n* Update Prime Video extension patch for merging DEX ([8a93773](https://github.com/ajstrick81/morphe-androidtv-patches/commit/8a93773fbff409f08929ff9e45022d66596e63be))",
-  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.4.97/patches-1.4.97.mpp",
+  "created_at": "2026-11-10T21:05:12",
+  "description": "## [1.52.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.52.0...v1.52.1) (2026-11-10)\n\n\n### Bug Fixes\n\n* **pluto:** strip v17 channel bumpers and reordered creative paths ([#298](https://github.com/ajstrick81/morphe-androidtv-patches/issues/298)) ([77ad227](https://github.com/ajstrick81/morphe-androidtv-patches/commit/77ad2270584a5961b621d017269bbaf19173ba22)), closes [#144](https://github.com/ajstrick81/morphe-androidtv-patches/issues/144)",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.52.1/patches-1.52.1.mpp",
   "signature_download_url": "",
-  "version": "1.4.97"
+  "version": "1.52.1"
 }

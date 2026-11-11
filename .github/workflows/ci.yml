@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+        with:
+          job-id: morphe-build-v3
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # Native ad-hook (libignite memcpy GOT hook). The .so is compiled from
+      # source here so a push can never silently ship a stale prebuilt blob.
+      - name: Native host unit tests
+        run: |
+          cd experimental/primevideo-libignite-native/jni
+          g++ -std=c++17 -Wall -O2 test_remote_strip.cpp remote_strip.cpp -o test_remote_strip
+          ./test_remote_strip
+
+      - name: Setup Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r28c
+          # local-cache stored a partial NDK (toolchain dir present but the
+          # clang/clang++ binaries missing), and every run restored that broken
+          # copy → "CMAKE_C_COMPILER ... is not a full path to an existing
+          # compiler tool", failing the native libpvhook.so build on all PRs.
+          # Download a fresh NDK each run instead — reliable over cache-fast.
+          local-cache: false
+
+      # Both ABIs: v15.5 is armeabi-v7a only, but the v16 bundles are allAbis and
+      # a 64-bit install loads arm64 libignite — a v7a-only hook is never loaded
+      # there and the strip is silently absent.
+      - name: Build libpvhook.so (armeabi-v7a + arm64-v8a)
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          cd experimental/primevideo-libignite-native/jni
+          set -euo pipefail
+          for pair in "armeabi-v7a:build-v7a" "arm64-v8a:build-arm64"; do
+            abi="${pair%%:*}"; dir="${pair##*:}"
+            cmake -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
+                  -DANDROID_ABI="$abi" -DANDROID_PLATFORM=android-23 -B "$dir"
+            cmake --build "$dir"
+            dest="../../../patches/src/main/resources/native/$abi/libpvhook.so"
+            mkdir -p "$(dirname "$dest")"
+            install -m 0644 "$dir/libpvhook.so" "$dest"
+            file "$dest"
+          done
+
+      # Guard: the .so files must exist for every ABI the patch writes, and each
+      # must be for the right machine. Catches a silently-skipped ABI build
+      # before it can ship a bundle that patches cleanly and strips nothing.
+      - name: Verify both hook ABIs were produced
+        run: |
+          set -euo pipefail
+          v7a=patches/src/main/resources/native/armeabi-v7a/libpvhook.so
+          a64=patches/src/main/resources/native/arm64-v8a/libpvhook.so
+          for f in "$v7a" "$a64"; do
+            test -s "$f" || { echo "::error::$f missing or empty"; exit 1; }
+          done
+          file "$v7a" | grep -q "ARM, EABI" || { echo "::error::$v7a is not ARM32"; exit 1; }
+          file "$a64" | grep -q "ARM aarch64" || { echo "::error::$a64 is not ARM64"; exit 1; }
+          echo "both hook ABIs present and correctly typed"
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew clean :patches:buildAndroid generatePatchesList
+
+      # Expose the built patch bundle so testers can grab it from the run's
+      # "Artifacts" section (requires being signed in to GitHub).
+      - name: Upload .mpp artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches-${{ github.event.pull_request.head.sha || github.sha }}
+          path: patches/build/libs/patches-*.mpp
+          if-no-files-found: error
+          retention-days: 14

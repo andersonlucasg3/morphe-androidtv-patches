@@ -31,15 +31,65 @@ jobs:
       - name: Cache Gradle
         uses: burrunan/gradle-cache-action@v3
         with:
-          job-id: morphe-build-v2
+          job-id: morphe-build-v3
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      # Native ad-hook (libignite memcpy GOT hook). The .so is compiled from
+      # source here so a release can never silently ship a stale prebuilt blob.
+      - name: Native host unit tests
+        run: |
+          cd experimental/primevideo-libignite-native/jni
+          g++ -std=c++17 -Wall -O2 test_remote_strip.cpp remote_strip.cpp -o test_remote_strip
+          ./test_remote_strip
+
+      - name: Setup Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r28c
+          # See ci.yml: local-cache restored a partial NDK (missing clang) and
+          # broke the native build; download fresh each run instead.
+          local-cache: false
+
+      # Both ABIs — see ci.yml. A v7a-only hook is never loaded on a 64-bit
+      # install, so the release must carry arm64 too.
+      - name: Build libpvhook.so (armeabi-v7a + arm64-v8a)
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          cd experimental/primevideo-libignite-native/jni
+          set -euo pipefail
+          for pair in "armeabi-v7a:build-v7a" "arm64-v8a:build-arm64"; do
+            abi="${pair%%:*}"; dir="${pair##*:}"
+            cmake -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
+                  -DANDROID_ABI="$abi" -DANDROID_PLATFORM=android-23 -B "$dir"
+            cmake --build "$dir"
+            dest="../../../patches/src/main/resources/native/$abi/libpvhook.so"
+            mkdir -p "$(dirname "$dest")"
+            install -m 0644 "$dir/libpvhook.so" "$dest"
+            file "$dest"
+          done
+
+      # A release that ships a missing or wrong-arch hook strips nothing while
+      # reporting "Applied", so fail the release instead.
+      - name: Verify both hook ABIs were produced
+        run: |
+          set -euo pipefail
+          v7a=patches/src/main/resources/native/armeabi-v7a/libpvhook.so
+          a64=patches/src/main/resources/native/arm64-v8a/libpvhook.so
+          for f in "$v7a" "$a64"; do
+            test -s "$f" || { echo "::error::$f missing or empty"; exit 1; }
+          done
+          file "$v7a" | grep -q "ARM, EABI" || { echo "::error::$v7a is not ARM32"; exit 1; }
+          file "$a64" | grep -q "ARM aarch64" || { echo "::error::$a64 is not ARM64"; exit 1; }
+          echo "both hook ABIs present and correctly typed"
+
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid generatePatchesList clean
+        run: ./gradlew clean :patches:buildAndroid generatePatchesList
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

@@ -1,7 +1,10 @@
 package ajstrick81.morphe.patches.tubi.ads
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.smali.ExternalLabel
 import ajstrick81.morphe.patches.tubi.shared.Constants
 
 @Suppress("unused")
@@ -22,7 +25,7 @@ val skipAdsPatch = bytecodePatch(
         // Hook 3 — FoxPlayer.clearVodAds()
         FoxPlayerClearVodAdsFingerprint.method.addInstructions(0, "return-void")
 
-        // Hook 4 — ImagePauseAds.l(VideoApi, long)
+        // Hook 4 — ImagePauseAds.n(VideoApi, long)
         TubiPauseAdsFingerprint.method.addInstructions(0, "return-void")
 
         // Hook 5 — FoxImaStreamIdLoader.requestVODDAIUrl
@@ -45,14 +48,22 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // Hook 7 — xo/C$c.shouldInterceptRequest(WebView, WebResourceRequest)
+        // Hook 7 — Fp/C$c.shouldInterceptRequest(WebView, WebResourceRequest)
         //
         // WebView-layer ad domain interception. Blocks XHR/fetch requests from
         // the Tubi SPA to ad orchestration endpoints. Cannot intercept media
         // element (<video> src) requests — those require AGH DNS rules.
-        TubiWebClientInterceptFingerprint.method.addInstructions(
-            0,
-            """
+        //
+        // No internal labels: an internal label's branch target is fixed at
+        // insert time, so if another patch (e.g. Block analytics & tracking)
+        // later prepends code to this method the branches land mid-instruction
+        // (VerifyError at launch). Matches are OR-ed into v4 and every branch
+        // targets the method's original first instruction via ExternalLabel.
+        TubiWebClientInterceptFingerprint.method.let { method ->
+            method.addInstructionsWithLabels(
+                0,
+                """
+                const/4 v4, 0x0
                 if-eqz p2, :intercept_skip
                 invoke-interface {p2}, Landroid/webkit/WebResourceRequest;->getUrl()Landroid/net/Uri;
                 move-result-object v0
@@ -63,37 +74,36 @@ val skipAdsPatch = bytecodePatch(
                 const-string v2, "dai.google.com"
                 invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
                 move-result v3
-                if-nez v3, :intercept_block
+                or-int/2addr v4, v3
                 const-string v2, "imasdk.googleapis.com"
                 invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
                 move-result v3
-                if-nez v3, :intercept_block
+                or-int/2addr v4, v3
                 const-string v2, "doubleclick.net"
                 invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
                 move-result v3
-                if-nez v3, :intercept_block
+                or-int/2addr v4, v3
                 const-string v2, "googletagmanager.com"
                 invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
                 move-result v3
-                if-nez v3, :intercept_block
+                or-int/2addr v4, v3
                 const-string v2, "googlesyndication.com"
                 invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
                 move-result v3
-                if-nez v3, :intercept_block
+                or-int/2addr v4, v3
                 const-string v2, "adrise.tv"
                 invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
                 move-result v3
-                if-nez v3, :intercept_block
+                or-int/2addr v4, v3
                 const-string v2, "ads.production-public.tubi.io"
                 invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
                 move-result v3
-                if-nez v3, :intercept_block
+                or-int/2addr v4, v3
                 const-string v2, "rainmaker.production-public.tubi.io"
                 invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
                 move-result v3
-                if-nez v3, :intercept_block
-                goto :intercept_skip
-                :intercept_block
+                or-int/2addr v4, v3
+                if-eqz v4, :intercept_skip
                 new-instance v0, Landroid/webkit/WebResourceResponse;
                 const-string v1, "text/plain"
                 const-string v2, "utf-8"
@@ -103,12 +113,12 @@ val skipAdsPatch = bytecodePatch(
                 invoke-direct {v4, v3}, Ljava/io/ByteArrayInputStream;-><init>([B)V
                 invoke-direct {v0, v1, v2, v4}, Landroid/webkit/WebResourceResponse;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/io/InputStream;)V
                 return-object v0
-                :intercept_skip
-                nop
-            """
-        )
+                """,
+                ExternalLabel("intercept_skip", method.getInstruction(0)),
+            )
+        }
 
-        // Hook 8 — xo/C$c.onPageFinished(WebView, String)
+        // Hook 8 — Fp/C$c.onPageFinished(WebView, String)
         //
         // JavaScript fetch override injected into the SPA after page load.
         // Intercepts fetch() calls to ad orchestration endpoints in JS context.
@@ -121,11 +131,11 @@ val skipAdsPatch = bytecodePatch(
             """
         )
 
-        // Hook 9 — qf/c.suspendGetAdBreaks(String, String, String, Map, Continuation)
+        // Hook 9 — Of/c.suspendGetAdBreaks(String, String, String, Map, Continuation)
         //
-        // Rainmaker ad-break fetch coroutine. Returns Lwm/d; (sealed result),
-        // with the caller (Lpf/a;->c) branching on instance-of Lwm/d$e
-        // (success) vs Lwm/d$b (error) and converging afterward either way.
+        // Rainmaker ad-break fetch coroutine. Returns LBn/d; (sealed result),
+        // with the caller branching on instance-of LBn/d$e (success) vs
+        // LBn/d$b (error) and converging afterward either way.
         //
         // Previous attempt returned COROUTINE_SUSPENDED directly to fake a
         // no-op, which broke the suspend-function contract: nothing ever
@@ -134,7 +144,7 @@ val skipAdsPatch = bytecodePatch(
         // at TubiNewPlayerImpl.kt:102), hanging the entire content pipeline.
         //
         // Fix: skip the network call and the continuation machinery entirely,
-        // returning a real, immediate Lwm/d$d (generic error) result. The
+        // returning a real, immediate LBn/d$d (generic error) result. The
         // caller takes its existing error branch — the same one a genuine
         // network failure already triggers gracefully — and the coroutine
         // completes normally, with no DNS-layer workaround required.
@@ -144,10 +154,19 @@ val skipAdsPatch = bytecodePatch(
                 new-instance v0, Ljava/io/IOException;
                 const-string v1, "ads_blocked"
                 invoke-direct {v0, v1}, Ljava/io/IOException;-><init>(Ljava/lang/String;)V
-                new-instance v2, Lwm/d${"$"}d;
-                invoke-direct {v2, v0}, Lwm/d${"$"}d;-><init>(Ljava/lang/Throwable;)V
+                new-instance v2, LBn/d${"$"}d;
+                invoke-direct {v2, v0}, LBn/d${"$"}d;-><init>(Ljava/lang/Throwable;)V
                 return-object v2
             """
         )
+
+        // Hook 10 — PauseAdsManager.A(Bitmap, String)
+        //
+        // Image pause-ad render funnel, new in 10.40 (see Fingerprints.kt). The
+        // legacy ImagePauseAds path (Hook 4) no longer drives the on-pause image
+        // overlay; this controller does, for both third-party creatives and Tubi
+        // house promos. return-void skips posting show=true / the bitmap to the
+        // observed LiveData, so PauseAdsView is never raised — no pause ad.
+        TubiPauseAdsManagerShowImageFingerprint.method.addInstructions(0, "return-void")
     }
 }

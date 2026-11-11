@@ -8,24 +8,49 @@
 
 ## ❓ About
 
-I'm just like you — I enjoy watching TV and movies without being bored and annoyed to death by ads. I'll try to keep this repo updated when I can. I only do it for fun.
+I'm just like you — I enjoy watching TV and movies without being bored and annoyed to death by ads. I'll try to keep this repo updated when I can. I only do it for fun and I'm trying my best to make your viewing experience as enjoyable as possible :)
+
+---
+
+## 🧭 Philosophy
+
+> **You bought the TV. You control the TV. You own the glass.**
+>
+> — Rory Gallagher, [lg-webos-dashboard](https://github.com/rorygallagher2024/lg-webos-dashboard) (MIT). This project shares inspiration and is aligned with Rory's work.
+
+That line is the reason this project exists. If you own the TV and pay for the service, what plays on your screen should be your call, not an ad network's. These patches hand that choice back to you:
+
+- **Your screen, your choice.** Ads, pause-screen promos and ad-tracking beacons are removed or masked, so the show you picked is what plays.
+- **Local and transparent.** Everything runs on your TV, inside the patched app. The source is open, and the [seam map](docs/SEAM_MAP.md) shows what each patch changes.
+- **No data collection.** The patches don't phone home, and nothing is sent to this project. Several of them cut the apps' own ad-tracking calls.
+- **No dark patterns.** Optional features stay optional and are clearly labeled.
+- **No weakened security by default.** Anything that lowers the app's own protections (such as trusting user-installed CAs for HTTPS inspection) is off by default unless an ad-removal method needs it (today only ViX live, with AdGuard Premium), and its description says so.
+
+**What the patches can't reach.** They work inside the patched app only. The TV's own operating system can still watch and report on its own: TV-level Automatic Content Recognition (ACR), voice data, ad IDs and home-network scanning ([AdGuard's write-up on LG TVs](https://adguard-dns.io/en/blog/lg-smart-tv-spying-privacy.html) shows how far that goes). For that layer, turn off ACR / "viewing information" and personalized ads in the TV's settings, filter the TV's DNS (AdGuard DNS or AdGuard Home), and keep the TV on its own network or VLAN, away from your computers and phones.
 
 ---
 
 ## 📊 Patch Status
 
-| App | Package | Status | Tested Version | Date |
-|-----|---------|--------|---------------|------|
-| 🟢 Disney+ | `com.disney.disneyplus` | Working | `26.9.2+rc1-2026.06.12` | 6/17/26 |
-| 🟢 Prime Video | `com.amazon.amazonvideo.livingroom` | Working | `6.23.23+v15.5.0.70-armv7a` | 6/18/26 |
-| 🟢 HBO Max | `com.wbd.hbomax` | Working | `v7.2.0.41` | 5/5/26 |
-| 🟢 Peacock | `com.peacocktv.peacockandroid` | Working - [Use with DNS filters:](https://github.com/ajstrick81/Peacock-Ads) | `v7.5.102` | 6/13/26 |
-| 🟢 Tubi | `com.tubitv` | Working | `v10.20.5000` | 5/20/26 |
-| 🟢 ViX | `com.univision.prendetv` | Working | `v4.46.0_tv` | 5/19/26 |
-| 🔴 YouTube TV | `com.google.android.youtube.tv` | In Development | `v7.05.301` | — |
-| 🔴 Paramount+ | `com.cbs.ott` | In Development | `v16.8 → v16.12` | — |
-| 🔴 Fox One | **Under Development** | — |
-| 🔴 MLB TV | **Under Development** | — |
+| App | What's removed | Tested version | Updated |
+|-----|----------------|----------------|---------|
+| 🟢 Disney+ | Ads (pre/mid-roll) · pause ads on `≤26.15.2` | `26.16.0+rc2-2026.09.08` · `26.20.0+rc3-2026.11.02` ⚠️ experimental | 11/7/26 |
+| 🟢 Prime Video | Movie + TV-show ads (native strip) · ⚠️ stay on `6.23.23` | `6.23.23+v15.5.0.70-armv7a` | 9/20/26 |
+| 🟢 Netflix | Pre/mid-roll + pause ads · installs as a clone | `13.0.1 build 25028` | 9/14/26 |
+| 🟢 HBO Max | All ads, incl. baked-in SSAI (ad-free stream) | `7.9.0.61` | 8/26/26 |
+| 🟢 Peacock | VOD ads | `7.10.102` · `7.8.100` | 9/29/26 |
+| 🟢 Tubi | Ads (+ opt-in analytics block) | `10.40.5000` | 10/22/26 |
+| 🟢 ViX | Ads, incl. server-stitched pre-rolls | `4.52.0_tv` | 11/10/26 |
+| 🟢 Pluto TV | VOD ads · live breaks masked (opt-in) | `5.66.0-leanback` | 9/7/26 |
+| 🟢 Paramount+ | VOD + pause ads · live untouched | `16.17.0` | 8/4/26 |
+| 🟢 Twitch | Ad overlay + blanked live ads · TV build only | `13.0.0.2` | 8/22/26 |
+| 🟢 ESPN | Live breaks masked (slate + mute) · VOD ads | `6.11.1` | 9/5/26 |
+| 🟢 RTÉ Player | VOD ads · 🇮🇪 geo-locked | `3.160.3` | 9/14/26 |
+| 🔴 YouTube TV | Under development | `7.05.301` | — |
+| 🔴 Fox One | Under development | — | — |
+| 🔴 MLB TV | Under development | — | — |
+
+Details, notes and the exact download links for each app are under **How to Install** below.
 
 > 🟢 Working &nbsp;&nbsp; 🟡 Partial/Testing &nbsp;&nbsp; 🔴 Under Development / Broken
 
@@ -35,59 +60,161 @@ I'm just like you — I enjoy watching TV and movies without being bored and ann
 
 All patches follow the same general workflow using **Morphe Manager**:
 
-1. Download the correct `.apkm` from [APKMirror](https://www.apkmirror.com)
-2. Open Morphe Manager and select the `.apkm` file
-3. Apply the patch
+1. Download the correct **Android TV** `.apkm` from APKMirror — use the direct links below
+2. In Morphe Manager, make sure **Optimize for device architecture is OFF** (see below)
+3. Open Morphe Manager and select the `.apkm` file
+4. Apply the patch
 
-> ⚠️ Always verify the publisher before downloading — details below.
+> ⚠️ **Get the Android TV build, not the phone or Fire TV build.** Each direct
+> link below goes to the **exact Android TV release** on APKMirror. Several of
+> these apps ship a separate phone build and/or a Fire TV build under the *same*
+> package name — those will patch incorrectly or not at all. Match the **exact
+> version** named below and download the **`.apkm`** (App Bundle), not a
+> single-arch `.apk`. When a release lists more than one bundle, pick the one
+> whose architecture column includes **`armeabi-v7a`**.
+
+> 🛑 **Turn OFF "Optimize for device architecture" before patching.**
+> It's an Expert-mode setting in Morphe Manager (off by default). When it's on,
+> Manager keeps only the CPU architecture of **the device doing the patching** and
+> throws the rest away. If you patch on a phone (arm64) and install on a TV box,
+> the result can be missing the **`armeabi-v7a`** native libraries that many TV
+> apps — and several of these patches (Prime Video, Netflix) — depend on. Typical
+> symptoms: the app won't install, closes immediately on launch, or runs with the
+> ad patch silently doing nothing. If that happens, turn the option off and patch
+> again. (Patching on the TV itself is unaffected, but leaving it off is always safe.)
 
 ---
 
 ### 🎬 Disney+
 
-1. Go to [apkmirror.com](https://www.apkmirror.com) and search for:
-   ```
-   Disney+ 26.9.2+rc1-2026.06.12 (Android TV)
-   ```
+1. Open the **[Disney+ (Android TV) 26.20.0+rc3-2026.11.02 release on APKMirror](https://www.apkmirror.com/apk/disney/disney-android-tv/disney-android-tv-26-20-0rc3-2026-11-02-release/)** (version **`26.20.0+rc3-2026.11.02`**, marked **experimental**)
+   > ⚠️ APKMirror lists several release candidates per version. Match the **rc** exactly — `rc3` here — they are different builds.
+   >
+   > `26.20.0+rc3` is **experimental**: patched and tested on-device (no pre-roll, no
+   > mid-roll markers, no stutter), but it is a fresh build with less mileage than
+   > `26.16.0+rc2-2026.09.08`, which stays supported if you prefer the older one.
 2. Download the `.apkm` file
 3. Select it in Morphe Manager
 4. Apply the patch
+
+> ⚠️ **Always patch the newest listed version.** Disney enforces a minimum client
+> version server-side. An older build installs and launches normally, then
+> playback stops after about 20 seconds with *"There was a problem — go to our
+> Help Center"*. That is Disney refusing the client, not a broken patch, and no
+> patch can work around it. If you see it, re-patch the newest version above.
+> Do not patch whatever build happens to be installed on the TV already.
 
 ---
 
 ### 🎭 HBO Max
 
-1. Go to [apkmirror.com](https://www.apkmirror.com) and search for:
-   ```
-   HBO Max v7.2.0.41 (Android TV)
-   ```
+> **About this patch:** **Fully ad-free by default** (v1.30.0). **Prefer Ad-Free Stream** loads HBO's own ad-free manifest (its resiliency-fallback stream), so pre-rolls, mid-rolls and even the ad tier's stitched **SSAI baked-in ads** are gone — along with the ad markers/countdown — on fresh start and resume, and it loads faster. No DNS required. The legacy opt-in **Block SSAI Ad Origins** patch is off by default and superseded.
+
+1. Open the **[HBO Max 7.9.0.61 (Android TV) release on APKMirror](https://www.apkmirror.com/apk/warnermedia-direct-llc/hbo-max-stream-movies-tv-android-tv/hbo-max-stream-movies-tv-android-tv-7-9-0-61-release/hbo-max-stream-movies-tv-android-tv-7-9-0-61-android-apk-download/)** directly (or search APKMirror for the fallback `7.7.0.78` if unavailable)
+   > ⚠️ **Get the right package.** These patches target **`com.wbd.hbomax`**. WarnerMedia also publishes a separate **`com.wbd.stream`** build under a near-identical name, and APKMirror's listing URLs for this app have shifted between the two before — don't trust the listing title alone. Confirm the download page shows package **`com.wbd.hbomax`** before downloading.
 2. Download the `.apkm` file
 3. Select it in Morphe Manager
 4. Apply the patch
+   > 💡 **Keep the defaults.** Since v1.30.0 the default **Prefer Ad-Free Stream** patch loads HBO's own ad-free stream, which removes the stitched (SSAI) ad video too. Leave the legacy opt-in **Block SSAI Ad Origins** patch **off** — it is superseded, and turning it on can make mid-roll breaks fail with error `39999`.
 
 ---
 
 ### ▶️ Prime Video
 
-1. Go to [apkmirror.com](https://www.apkmirror.com) and search for:
-   ```
-   Prime Video 6.23.23+v15.5.0.70-armv7a (Android TV)
-   ```
+> **About this patch:** Native in-app ad strip for movies and TV shows — no DNS required. ✅ **`6.23.23` / engine `v15.5.x` is the recommended build.** 🧪 `6.24.7+v16.0.0.332-allAbis` and `6.24.13+v16.0.1.93-allAbis` are supported as **experimental** targets — v16's lack of suppression turned out to be a pinned access-flag in our own fingerprint (the native hook was never loaded), now fixed, so the strip can run there. **Not yet confirmed on a device.** The hook now builds for both `armeabi-v7a` and `arm64-v8a`, so 64-bit v16 installs are covered too. Keep **auto-updates disabled**. v1.37.4 hardens the strip for high-ad regions (India/EU). A rare, very large mid-roll break can still briefly freeze (spinner / "Something went wrong") — press **Back**, then **Resume**, to continue ad-free.
+
+1. Open the **[Prime Video (Android TV) 6.23.23+v15.5.0.70-armv7a release on APKMirror](https://www.apkmirror.com/apk/amazon-mobile-llc/prime-video-android-tv-android-tv/prime-video-android-tv-6-23-23v15-5-0-70-armv7a-release/)** (version **`6.23.23+v15.5.0.70-armv7a`** — `armeabi-v7a` only, so **Optimize for device architecture must be OFF**)
 2. Download the `.apkm` file
 3. Select it in Morphe Manager
 4. Apply the patch
+
+> 🟢 **Working — no DNS filter needed.** Ads are stripped **in-app** by a native
+> hook (`libpvhook.so`), so movies and TV shows play ad-free without any external
+> DNS blocklist, proxy, or root. Movie prerolls/mid-rolls and TV-show
+> prerolls/mid-rolls are all removed on the device before they play.
+>
+> 🧪 **v16 (`6.24.x`) — experimental, unconfirmed.** `6.24.7+v16.0.0.332-allAbis`
+> and `6.24.13+v16.0.1.93-allAbis` are supported targets flagged *experimental*.
+> v16 removed the Java ad hooks, but the native strip hooks libignite's own
+> memory-copy calls, which v16 did not change. It simply never loaded there: the
+> loader fingerprint required `onCreate` to be exactly `public` and v16 made it
+> `public final`, so the match failed silently. That's fixed, so the strip can now
+> run on v16 — but **no device pass has confirmed it yet**.
+> The hook is now built for **both** `armeabi-v7a` and `arm64-v8a`, so a 64-bit
+> v16 install gets its own hook rather than silently running unstripped.
+> `6.23.23` is still the build to pick if you want the validated path. Enable
+> **Disable auto-updates** when patching (on by default) so your patched build
+> isn't replaced.
+>
+> TV-show ad removal is newly shipped (v1.16.0) and in wider testing. One known
+> edge case: very aggressive fast-forward + resume can occasionally nudge the
+> playback position; it self-heals on a full playthrough and normal viewing is
+> unaffected. Please report anything else via an issue.
+>
+> 📄 **Full write-up:** see [`docs/PRIME_VIDEO_ANNOUNCEMENT.md`](docs/PRIME_VIDEO_ANNOUNCEMENT.md)
+> for how the current native (`libpvhook.so`) approach works and complete install
+> recommendations. The original Reddit announcement is archived for transparency at
+> [`docs/archive/2026-07_prime-video-reddit-post.md`](docs/archive/2026-07_prime-video-reddit-post.md).
+>
+> 🔬 **How it works under the hood:** [`docs/PRIME_VIDEO_ATV_SYSTEM_DESIGN.md`](docs/PRIME_VIDEO_ATV_SYSTEM_DESIGN.md)
+> is a reverse-engineering teardown of Prime Video's ad and playback system, and of why the patch works.
+
+---
+
+### 🍿 Netflix
+
+> **About this patch:** Native in-app ad strip (pre-roll, mid-roll, pause-screen ad), no DNS required. Installs as a **side-by-side clone** — keep stock Netflix installed.
+
+> 🟢 **Working — no DNS filter needed.** Pre-rolls, mid-rolls, **and** the
+> full-screen pause-screen ad are removed **in-app** by an in-process script that
+> the app runs itself at launch (no PC, no root, no frida server). Verified
+> on-device: Netflix's servers still deliver real ad breaks and none of them play.
+>
+> ℹ️ **Netflix's ad logic is downloaded JavaScript, not baked into the APK.** That
+> means Netflix can change how ads are delivered server-side at any time, with no
+> app update — so an ad can occasionally reappear until the in-app strip is
+> re-pointed at the new delivery path. The strip already covers several such paths
+> (dynamic server-side insertion **and** the legacy manifest model) and is kept
+> updated to match. If you ever see an ad, first make sure you're on the latest
+> patch; if it persists, please open an issue.
+>
+> 🔐 **Two apps, on purpose — keep BOTH installed.** Netflix on a TV is a
+> preinstalled, Netflix-signed **system app** that can't be replaced or uninstalled
+> without root, so the patch installs as a **separate clone**
+> (`com.netflix.ninja.clone`) next to it. The clone passes Netflix's built-in
+> tamper check by reading the **stock** app's genuine signature — so **stock
+> Netflix must stay installed and enabled** (you just never open it; letting it
+> auto-update is fine). Log into the **clone** and use that. Don't disable or
+> uninstall stock Netflix, or the clone won't start.
+
+1. Open the **[Netflix (Android TV) 13.0.1 build 25028 release on APKMirror](https://www.apkmirror.com/apk/netflix-inc/netflix-android-tv/netflix-android-tv-13-0-1-build-25028-release/)** (publisher **Netflix, Inc.**, package `com.netflix.ninja`, version **`13.0.1 build 25028`**)
+2. Download the `.apkm` bundle — it is the only variant, **`armeabi-v7a`** only (base + one arch split), so **Optimize for device architecture must be OFF**. Morphe Manager will show it as **Recommended**. Don't pick a newer `13.1.x` release — the patch targets `13.0.1 build 25028`.
+3. Select the `.apk` in Morphe Manager
+4. Apply the patch — leave **Clone Netflix** and the **Remove Netflix ads** patches enabled (both on by default). Optionally enable **Minimize Network Fingerprint** for the privacy pass (blanks local IP/MAC/SSID + advertising ID).
+5. Install the result **without uninstalling stock Netflix**, then open the new **Netflix clone** app and sign in.
+
+> ⚠️ **Not a subscription bypass.** You need a valid, paid Netflix account and you
+> log in normally. This only removes ads and trims device telemetry inside an app
+> you're already entitled to use.
+>
+> 🔬 **How it works under the hood:** [`docs/NETFLIX_ATV_SYSTEM_DESIGN.md`](docs/NETFLIX_ATV_SYSTEM_DESIGN.md)
+> is a reverse-engineering teardown of Netflix's ATV ad and playback system, and of why the patch works.
 
 ---
 
 ### 📡 Paramount+
 
-> 🔴 **Currently under development.** The transition from `v16.8` to `v16.12` introduced issues that are still being debugged. Use `v16.8` in the meantime.
+> **About this patch:** VOD ads removed (movies + TV shows, pre-roll + mid-roll) and pause ads removed; live TV is preserved.
 
-1. Go to [apkmirror.com](https://www.apkmirror.com) and search for:
-   ```
-   Paramount+ v16.8 (Android TV)
-   ```
-2. ⚠️ Download only the version published by **CBS Interactive** — DO **NOT** download the **Viacom** version
+> 🟢 **Recommended version: `v16.17.0`.** VOD ads (movies **and** TV shows,
+> pre-roll and mid-roll) and pause ads are removed, while **live TV is
+> preserved**. This is the version to patch and install right now.
+>
+> 🟡 **Stable fallback: `v16.8.0`.** The previous recommended build. Use it only
+> if you can't get `v16.17.0`.
+
+1. Open the **[Paramount+ 16.17.0 (Android TV) release on APKMirror](https://www.apkmirror.com/apk/cbs-interactive-inc/paramount-2/paramount-android-tv-16-17-0-release/paramount-android-tv-16-17-0-2-android-apk-download/)** directly (or search APKMirror for the fallback `16.8.0` if unavailable)
+2. ⚠️ This listing is published by **CBS Interactive, Inc.** — the correct publisher. Do **not** use the separate Viacom-published build.
 3. Download the `.apkm` file
 4. Select it in Morphe Manager
 5. Apply the patch
@@ -96,42 +223,153 @@ All patches follow the same general workflow using **Morphe Manager**:
 
 ### 📺 Tubi
 
-1. Go to [apkmirror.com](https://www.apkmirror.com) and search for:
-   ```
-   Tubi v10.20.5000 (Android TV)
-   ```
-2. Download the `.apkm` file
-3. Select it in Morphe Manager
-4. Apply the patch
+1. Open the **[Tubi (Android TV) listing on APKMirror](https://www.apkmirror.com/apk/tubi-tv/tubi-free-movies-live-tv-android-tv/)** and select version **`10.40.5000`**
+2. ⚠️ Use this **Android TV** listing — not the "Tubi (Fire TV)" or the phone listing
+3. Download the `.apkm` file
+4. Select it in Morphe Manager
+5. Apply the patch
 
 ---
 
 ### 🌐 ViX
 
-1. Go to [apkmirror.com](https://www.apkmirror.com) and search for:
-   ```
-   ViX v4.46.0_tv (Android TV)
-   ```
+1. Open the **[ViX: TV, Deportes y Noticias (Android TV) 4.52.0_tv release on APKMirror](https://www.apkmirror.com/apk/univision-communications-inc/vix-cine-y-tv-en-espanol-android-tv/vix-tv-deportes-y-noticias-android-tv-4-52-0_tv-release/)** (version **`4.52.0_tv`**, package `com.univision.prendetv`)
+   > ⚠️ ViX now forces older builds to update, so use `4.52.0_tv`. APKMirror files ViX under **two** Android TV listings; `4.52.0_tv` is on the one linked above. The older **`4.46.0_tv`** is on [that other listing](https://www.apkmirror.com/apk/univision-communications-inc/vix-tv-deportes-y-noticias-fire-tv-android-tv/vix-movies-tv-and-sports-in-spanish-fire-tv-android-tv-4-46-0_tv-release/) as a single universal `.apk` (no bundle).
 2. Download the `.apkm` file
 3. Select it in Morphe Manager
 4. Apply the patch
+
+---
+
+### 📡 Pluto TV
+
+> **About this patch:** VOD ad breaks removed (video, markers, beacons). LIVE TV breaks can be masked (black screen + mute) with an optional patch.
+
+> 🟢 **Working.** Pluto is a free, 100% ad-supported (FAST) service that uses
+> **server-side ad stitching (SSAI)** — ads are baked into the same stream as
+> the content, so there is no ad domain to block and no ad-free tier to unlock.
+> This patch empties the client-side ad-break timeline, which removes **on-demand
+> (VOD)** ad breaks entirely: ad video, timeline markers, overlays, and tracking
+> beacons. **LIVE TV** ads are real broadcast time in the linear feed and cannot be
+> *removed* — but the separate **Mask live ad breaks** patch *hides* them (see below).
+> DNS filters do **not** help here.
+
+1. Open the **[Pluto TV (Android TV) 5.66.0-leanback download on APKMirror](https://www.apkmirror.com/apk/pluto-inc/pluto-tv-android-tv/plutotv-stream-free-movies-tv-android-tv-5-66-0-release/plutotv-stream-free-movies-tv-android-tv-5-66-0-leanback-android-apk-download/)** (version **`5.66.0-leanback`**) — the listing now also shows newer `17.x` releases; the patch targets `5.66.0-leanback`
+2. ⚠️ Use this **Android TV** listing and pick a **`-leanback`** build — not the phone or Fire TV build
+3. Download the `.apkm` file
+4. Select it in Morphe Manager
+5. Apply the patch
+
+> 📺 **Mask live ad breaks (black screen + mute).** Live/linear Pluto ads occupy real
+> broadcast time and can't be deleted like VOD ads, so this optional patch **masks** the
+> break instead: during a live commercial it covers the player with a **black screen** and
+> **mutes** the audio, then restores both the instant the show returns — so gambling,
+> drinking, or any other live ad is blanked and silenced. It reads Pluto's own ad-state
+> signal, so it needs no polling and works alongside the main **Skip ads** patch. It's
+> **opt-out** (leave it off to watch live ads normally). Runtime tweaks via marker files in
+> the app's external files dir (`Android/data/tv.pluto.android/files/`): create **`slate_off`**
+> to disable it on-device without re-patching, or **`pluto_slate_mode`** containing `black`
+> (cover only) or `mute` (mute only) instead of the default both.
+>
+> 🔬 **How it works under the hood:** [`docs/PLUTO_TV_ATV_SYSTEM_DESIGN.md`](docs/PLUTO_TV_ATV_SYSTEM_DESIGN.md)
+> is a reverse-engineering teardown of Pluto TV's ad and playback system, and of why the patch works.
 
 ---
 
 ### 🦚 Peacock
 
-1. Go to [apkmirror.com](https://www.apkmirror.com) and search for:
-   ```
-   Peacock v7.5.102 (Android TV)
-   ```
+> **About this patch:** No DNS required.
+
+1. Open the **[Peacock TV (Android TV) 7.8.100 release on APKMirror](https://www.apkmirror.com/apk/peacock-tv-llc/peacock-tv-android-tv/peacock-tv-stream-tv-movies-android-tv-7-8-100-apk-release/)** directly (this is version **`7.8.100`** — use this link rather than searching, which can land on a similarly-named build). Versions **`7.10.102`**, **`7.5.102`** and **`7.6.100`** are also supported.
+   > This release has three bundles — pick **`arm64-v8a + armeabi-v7a`** (Android 6.0+). The `armeabi-v7a`-only bundle needs Android 12L+, and the `arm64-v8a`-only one won't run on 32-bit TV boxes.
 2. Download the `.apkm` file
 3. Select it in Morphe Manager
 4. Apply the patch
+
+> ⚠️ **Fire TV & preinstalled/system-app devices: enable the `Clone Peacock`
+> patch before applying.** On many Fire TV sticks and some Android TV boxes,
+> Peacock ships as a **system app that can't be uninstalled**. Installing the
+> patched build over it fails with a signature or `CONFLICTING_PROVIDER` error.
+> The **Clone Peacock** patch (opt-in, off by default) installs the patched app
+> side-by-side under its own package, so it appears as a second Peacock icon and
+> keeps its own login. Leave it **off** only if you were able to fully uninstall
+> the stock Peacock first (a normal in-place install is cleaner). The
+> **Disable auto-updates** patch is on by default and stops the Play Store from
+> silently replacing the patched build.
+
 ---
 
-### 🦊 Fox Sports
+### 💜 Twitch
 
-> 🔴 **Currently under development.** Install instructions will be added once a stable patch is available.
+> **About this patch:** **Android TV "Starshot" build only — install exactly `13.0.0.2`** (the phone app is not supported). Removes the on-screen ad-pod overlay/countdown ("Ad · 1 of 3") and blanks stitched (SSAI) ad video on live streams. A brief black gap can remain during a break; a VPN set to Albania is fully ad-free.
+
+> 🟢 **Working — Android TV "Starshot" build only (`13.0.0.2`).** Twitch live ads
+> are **server-side stitched (SSAI)** into the same stream as the content, and the
+> TV app runs Twitch's web player inside a WebView. This patch intercepts the live
+> HLS playlist and both **(a)** strips the client-side ad-pod tags that drive the
+> on-screen **"Ad · 1 of 3"** countdown/overlay and **(b)** blanks the stitched ad
+> video. Real ad breaks no longer play as an ad. Because the ad occupies real
+> **live** stream time, a brief **black gap** can remain during a break — the ad
+> video is gone, but that slice of live time still has to pass. DNS filters do
+> **not** help here.
+>
+> 💡 **Want zero ads and no black gap?** Point a VPN at **Albania** — Twitch serves
+> that region genuinely ad-free playlists (no ad is stitched at all). Verified
+> first-hand with **NordVPN → Albania**; pair it with the patch and you're fully
+> covered.
+
+1. Open the **[Twitch: Live Streaming (Android TV) 13.0.0.2 release on APKMirror](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch-android-tv/twitch-live-streaming-android-tv-13-0-0-2-release/)** (version **`13.0.0.2`**)
+2. ⚠️ Use this **Android TV** listing and the exact **`13.0.0.2`** "Starshot" build — not the phone or Fire TV build (the patch targets this TV build specifically). The release has two bundles; either works — **`arm64-v8a + armeabi-v7a`** is the safe pick.
+3. Download the `.apkm` file
+4. Select it in Morphe Manager
+5. Apply the patch
+
+---
+
+### 🏈 ESPN
+
+> **About this patch:** **Android TV** only. Live commercial breaks are masked with a full-screen slate + audio mute (passthrough SSAI can't be removed, only covered); VOD/scheduled ads are suppressed. No DNS required.
+
+> 🟢 **Working — Android TV only (`6.11.1`).** ESPN **live** commercial breaks are
+> native **passthrough SSAI** — the ad is stitched into the same stream as the game,
+> so it cannot be removed, only **masked**. This patch detects each break from the
+> stream's own ad markers and covers the player with a full-screen **slate** while
+> **muting** the player, then lifts cleanly when live content resumes. **VOD /
+> scheduled** ads are separately suppressed. DNS filters do **not** help here.
+
+1. Open the **[ESPN (Android TV) 6.11.1 release on APKMirror](https://www.apkmirror.com/apk/disney/espn-android-tv/espn-android-tv-6-11-1-release/)** directly (version **`6.11.1`**) — use this link rather than searching, to avoid landing on the phone build or a different version
+2. ⚠️ Use this **Android TV** listing and the exact **`6.11.1`** build (package `com.espn.score_center`)
+3. Download the `.apkm` file
+4. Select it in Morphe Manager
+5. Choose your patch options (below) and apply
+
+**Patch options**
+
+| Patch | Default | What it does |
+| --- | --- | --- |
+| **ESPN Android TV** | ✅ On (core) | Suppresses VOD / scheduled ads by forcing the DMP SGAI `isAdDisabled` flag. Always keep this on. |
+| **ESPN live commercial-break slate** | ✅ On | Masks **live** passthrough-SSAI breaks with a full-screen slate + mute. Deselect if you only want VOD ad suppression and no on-screen slate during live breaks. |
+| **Disable auto-updates** | ✅ On | Stops the Play Store from silently reinstalling the official ESPN and wiping the patch. Update deliberately by re-patching a newer APK. |
+| **Clone ESPN** | ⬜ Off (opt-in) | Installs the patched app **alongside** a stock ESPN that can't be uninstalled (common on **Amazon Fire TV** and some TV boxes). Gives it its own package/icon. Leave off if you could uninstall the original first. |
+
+**Live-slate styles (on-device):** while a break is up, press the D-pad to open an on-screen picker and switch between **Video** (your own clips), **Video + Score** (clips + a live-score strip), **Be Right Back (ESPN Ad-Break Overlay)** (an animated broadcast graphic with a live countdown), and **Blank**. Slate media is user-supplied local files placed in the app's external files dir — nothing is bundled. Drop a `slate_off` marker file to disable the live slate without re-patching. See [`slates/espn_overlay/`](slates/espn_overlay/) for the animated overlay assets and setup.
+
+---
+
+### 📺 RTÉ Player
+
+> **About this patch:** **Android TV, VOD only.** Client-side (Google IMA) pre-roll + mid-roll ads are removed seamlessly (no ad, no break pause). Live channels keep ads (server-stitched). **Geo-locked to Ireland — use a VPN**; needs a valid RTÉ account.
+
+1. Open the **[RTÉ Player (Android TV) 3.160.3 release on APKMirror](https://www.apkmirror.com/apk/rte/rte-player-android-tv/rte-player-android-tv-3-160-3-release/)** (version **`3.160.3`**)
+2. Download the `.apkm` file
+3. Select it in Morphe Manager
+4. Apply the patch
+
+> 🟢 **Working — Android TV, VOD only.** Client-side (Google IMA) **pre-roll and mid-roll** ads are removed **in-app** — content plays straight through where a break would be, with no ad and no pause. No DNS filter needed.
+>
+> ⚠️ **Geo-locked to Ireland.** RTÉ Player only streams from an Irish IP, so you need a **VPN set to Ireland** (and a valid RTÉ account — this only removes ads, it's not an access bypass).
+>
+> ℹ️ **Live channels still show ads.** Live is server-stitched (DAI) into the video itself, which can't be removed client-side without breaking the stream — only on-demand (VOD) is covered. A cosmetic ad-break marker may still appear on the scrubber, but it no longer pauses playback.
 
 ---
 
@@ -144,6 +382,31 @@ All patches follow the same general workflow using **Morphe Manager**:
 ## 🙏 Credits
 
 This patch template is based on the prior work of [ReVanced](https://github.com/ReVanced/revanced-patches-template). All modifications made by Morphe, along with their dates, can be found in the Git history.
+
+**Twitch ad-suppression techniques** are informed by:
+- [Purple TV](https://github.com/AdrianLxM/PurpleTV) (nyanarchive/purpletv) — GrandDads ad-eligibility short-circuit approach
+- [TwitchAdSolutions](https://github.com/pixeltris/TwitchAdSolutions) (pixeltris) — playerType spoofing concept
+- [Xtra for Twitch](https://github.com/crackededed/Xtra) (crackededed) — Android-side Twitch ad mitigation prior art
+
+All Twitch techniques were independently re-derived via dex disassembly and are not copied from these projects' source code. See [NOTICE](NOTICE) for full attribution details.
+
+**Community contributions** — code written by people who forked this repo, ported here with their authorship preserved. Thank you for your time and hard work:
+- [Michael Bompani](https://github.com/michaelbompani) — RaiPlay 5.0.1 support and the live-channel (Rai 2) 404 fix
+- [Joker4Life12](https://github.com/Joker4Life12) — HBO Max "Remove Ad Periods (keep 5.1)": keeps the PRIMARY 5.1 stream and strips its stitched ad periods instead of the stereo-only fallback
+
+**Netflix household-prompt suppression** is informed by:
+- [Nikflix](https://github.com/YidirK/Nikflix) (YidirK, GPL-3.0) — identified Netflix's household / "you're traveling" enforcement via the `CLCSInterstitialPlaybackAndPostPlayback` interstitial
+
+Our "Suppress Household Prompt" patch shares no source code with Nikflix — it is an independent implementation for the Android TV app (`com.netflix.ninja`), located by analyzing our own on-device appboot heap dumps. Nikflix is credited for identifying the enforcement seam. See [NOTICE](NOTICE).
+
+**ESPN live-score slate** (optional scoreboard overlay) uses ESPN's public "hidden" stats API, documented by the community:
+- [pseudo-r/Public-ESPN-API](https://github.com/pseudo-r/Public-ESPN-API)
+- [akeaswaran's ESPN hidden-API gist](https://gist.github.com/akeaswaran/b48b02f1c94f873c6655e7129910fc3b)
+- [cwendt94/espn-api](https://github.com/cwendt94/espn-api)
+- [quantum0813/ESPNSportsAPI](https://github.com/quantum0813/ESPNSportsAPI)
+- [ITIRadio/ESPN-API](https://github.com/ITIRadio/ESPN-API)
+
+We use only the publicly documented, unauthenticated scoreboard endpoints for read-only live scores; no source code from these projects is included. Thanks to their maintainers.
 
 ---
 

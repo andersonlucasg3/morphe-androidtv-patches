@@ -14,17 +14,17 @@ import ajstrick81.morphe.patches.primevideo.shared.Constants
 // the patch entirely — with no warning to the user.
 //
 // Implementation:
-//   Adds android:allowAutoUpdates="false" to the <application> tag in
-//   AndroidManifest.xml. This is the standard attribute that signals to
-//   the Play Store that this app should not be automatically updated.
+//   There is no manifest attribute that turns off Play Store auto-updates —
+//   update eligibility is decided entirely by Play Store comparing versionCode
+//   against what's installed, not by anything the app declares about itself.
+//   So instead, this patch bumps android:versionCode on the <manifest> root
+//   well past the real app's current value. Play Store only offers/pushes an
+//   update when its listed versionCode is higher than what's installed, so
+//   keeping the patched build's versionCode artificially ahead makes Play
+//   Store treat it as already up to date.
 //
-//   Also removes the android.intent.action.PACKAGE_REPLACED receiver
-//   from the manifest if present, which is one of the mechanisms Play
-//   Store uses to trigger update flows.
-//
-// Note: Manual updates via the Play Store UI will still work — this only
-// disables automatic background updates. To update the patched APK,
-// users need to download a new version and re-patch it manually via Morphe.
+// Note: This does not block manually installing a different APK. To update the
+// patched APK, users need to download a new version and re-patch it via Morphe.
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Suppress("unused")
@@ -37,22 +37,26 @@ val disableAutoUpdatesPatch = resourcePatch(
     execute {
 
         // ─────────────────────────────────────────────────────────────────────
-        // Add android:allowAutoUpdates="false" to <application>
+        // Bump android:versionCode on <manifest> past Play Store's real value
         //
-        // This is the primary signal to Play Store not to auto-update.
+        // Play Store only offers an update when its versionCode is higher than
+        // what's installed, so pushing this far ahead keeps the patched build
+        // looking newer than anything Play Store could offer for a long time.
+        // Clamped to Int.MAX_VALUE since versionCode is a 32-bit signed field.
         // ─────────────────────────────────────────────────────────────────────
         document("AndroidManifest.xml").use { document ->
-            val applicationNode = document
-                .getElementsByTagName("application")
+            val manifestNode = document
+                .getElementsByTagName("manifest")
                 .item(0)
 
-            applicationNode
+            val versionCodeAttr = manifestNode
                 .attributes
-                .setNamedItem(
-                    document.createAttribute("android:allowAutoUpdates").also {
-                        it.value = "false"
-                    }
-                )
+                .getNamedItem("android:versionCode")
+
+            val bumpedVersionCode = (versionCodeAttr.nodeValue.toLong() + 10_000_000L)
+                .coerceAtMost(Int.MAX_VALUE.toLong())
+
+            versionCodeAttr.nodeValue = bumpedVersionCode.toString()
         }
     }
 }

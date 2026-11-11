@@ -10,7 +10,15 @@
 -keep class ajstrick81.morphe.extension.primevideo.ads.SkipAdsPatch {
     public static *** skipAllMedia3AdGroups(com.google.common.collect.ImmutableMap);
     public static *** skipAllExo2AdGroups(com.google.common.collect.ImmutableMap);
-    public static *** seekToAdBreakEnd(androidx.media3.common.Player, androidx.media3.common.AdPlaybackState);
+    public static *** enforceAdBlock(com.android.volley.Request);
+}
+
+# Prime Video native ad-strip loader — called directly from injected smali
+# in Application.onCreate via invoke-static {}. Without this rule R8 sees it
+# as unreferenced (nothing in the extension's own code graph calls it) and
+# would strip or rename it, breaking the loadLibrary("pvhook") call.
+-keep class ajstrick81.morphe.extension.primevideo.nativehook.NativeHookLoader {
+    public static void load();
 }
 # Peacock — existing entry
 # emptyAdPlaybackState is called reflectively by the Sky SDK layer patches.
@@ -25,18 +33,185 @@
     public <init>();
 }
 
-# Peacock — Layer 6: method-replacement wrapper
-# PeacockAdPatchHelper.buildOkHttpClient() is called directly from injected
-# smali via invoke-static {}. R8 must not rename or remove this method.
-# OkHttpWorkaroundInterceptor is also instantiated here — kept via its own
-# existing rule elsewhere; confirm it has one if the build strips it.
+# Peacock — Layers 6/9/11: builder interceptor injection
+# addAdBlockInterceptor(OkHttpClient.Builder) is called only from injected
+# smali (Layer 6 shared client, Layer 9 NativeNetworkApi.<init>, Layer 11 SDK
+# root client), so it must be kept explicitly — without this R8 sees it as
+# unreferenced and would strip or rename it, breaking interception at runtime.
 -keep class ajstrick81.morphe.extension.peacock.ads.PeacockAdPatchHelper {
-    public static okhttp3.OkHttpClient buildOkHttpClient();
+    public static okhttp3.OkHttpClient$Builder addAdBlockInterceptor(okhttp3.OkHttpClient$Builder);
 }
 # Layer 7 — WebView shouldInterceptRequest wrapper
+# wrapClient() returns a named WrappedClient instance (not an anonymous
+# class — ART's verifier rejected an anonymous WebViewClient subtype here
+# after extendWith()'s raw dex merge, see PeacockWebViewHelper.java). Keep
+# both the entry point and the named subclass intact so R8 cannot merge,
+# inline, or otherwise re-collapse it back into the unverifiable shape.
 -keep class ajstrick81.morphe.extension.peacock.ads.PeacockWebViewHelper {
     public static android.webkit.WebViewClient wrapClient(android.webkit.WebViewClient);
 }
+-keep class ajstrick81.morphe.extension.peacock.ads.PeacockWebViewHelper$WrappedClient {
+    <init>(android.webkit.WebViewClient);
+    *;
+}
+
+# MLB At Bat — ad-break overlay helper. Called directly from injected smali
+# via invoke-static {} in Lb6/h$d;.b(), Lb6/h$i;.onAdBreakStarted()/onAdBreakEnded().
+-keep class ajstrick81.morphe.extension.mlbtv.ads.AdBreakOverlayHelper {
+    public static void registerAdViewGroup(android.view.ViewGroup);
+    public static void showOverlay();
+    public static void hideOverlay();
+}
+
+# Twitch Android TV (Starshot/laserarray WebView) — HLS ad-segment scrubber.
+# TwitchAtvWebViewHelper.wrapClient(WebViewClient) is called directly from injected
+# smali via invoke-static {} at the app's WebView.setWebViewClient(...) call site.
+# Keep it and the WrappedClient it returns intact so R8 can't strip/rename/merge them.
+-keep class ajstrick81.morphe.extension.twitchatv.ads.TwitchAtvWebViewHelper {
+    public static android.webkit.WebViewClient wrapClient(android.webkit.WebViewClient);
+    public static void setSpeedEnabled();
+    public static boolean onSpeedKeyEvent(int, android.view.KeyEvent);
+    public static void onSpeedKeyEventVoid(int, android.view.KeyEvent);
+    public static boolean onSpeedKeyEvent(android.view.KeyEvent);
+    public static void onSpeedKeyEventVoid(android.view.KeyEvent);
+}
+
+# MLB At Bat — Patch 6: HLS manifest ad-segment stripper. Called directly
+# from injected smali via invoke-static {} in Lr5/a;.f(Lq5/i;)J, right after
+# the network response InputStream is obtained.
+-keep class ajstrick81.morphe.extension.mlbtv.ads.MlbManifestRewriter {
+    public static java.io.InputStream wrap(java.lang.Object, java.io.InputStream);
+}
+
+# Pluto DASH period strip — skipAdsPatch Hook 5 (see SkipAdsPatch.kt).
+# PlutoDashManifestProbe.stripAdPeriods(DashManifest) is called only from injected
+# smali (DashManifestParser.parse return), so R8 sees it as unreferenced and would
+# strip or rename it. The media3 classes it references are provided by the app at
+# runtime (compileOnly).
+-keep class ajstrick81.morphe.extension.pluto.ads.PlutoDashManifestProbe {
+    public static androidx.media3.exoplayer.dash.manifest.DashManifest stripAdPeriods(androidx.media3.exoplayer.dash.manifest.DashManifest);
+    public static long mapResumePosition(androidx.media3.common.Player, long);
+}
+-dontwarn androidx.media3.exoplayer.dash.manifest.**
+
+# Pluto v17 (Paramount+/AVIA rebuild) DASH period strip — skipAdsV17Patch Hooks 3 & 4
+# (see SkipAdsV17Patch.kt). cleanManifestStream is called from injected smali at
+# AviaDashParser.parse, and shouldSuppressDynamicAdFetch from CLID3Processor; both are
+# unreferenced from Java, so R8 would strip or rename them. Uses only platform/XML types
+# (no library deps), so no -dontwarn is needed.
+-keep class ajstrick81.morphe.extension.pluto.ads.PlutoV17ManifestProbe {
+    public static java.io.InputStream cleanManifestStream(java.io.InputStream);
+    public static boolean shouldSuppressDynamicAdFetch();
+    # #300. correctContentDuration is called from injected smali (Hook 8, at the
+    # AviaResourceProvider.getContentDuration returns). The mapping entry points are
+    # kept alongside it: they are not currently injected anywhere (the seek remap that
+    # used toStrippedMs was reverted after device testing), but they are covered by
+    # testing/checks/PlutoTimelineMapCheck.java and are the tested basis for any future
+    # coordinate translation, so keep them resolvable rather than silently stripped.
+    public static java.util.ArrayList neutralizeStitcherAdBreaks(java.util.ArrayList);
+    public static java.util.List neutralizeAdBreaks(java.util.List);
+    public static long zeroAdBreakDuration(long);
+    public static long correctContentDuration(long);
+    public static long toStrippedMs(long);
+    public static long toOriginalMs(long);
+    public static boolean hasTimelineMap();
+    public static long getStrippedDurationMs();
+    public static long getOriginalDurationMs();
+}
+
+# Pluto LIVE ad-break mask — liveSlatePatch (see LiveSlatePatch.kt). Its @JvmStatic
+# entry points are called only from injected smali, so R8 would strip/rename them.
+-keep class ajstrick81.morphe.extension.pluto.ads.PlutoLiveSlateHelper {
+    public static void onAdTick(java.lang.Object);
+    public static void registerActivity(android.app.Activity);
+    public static void unregisterActivity(android.app.Activity);
+    public static void setAviaPlayer(java.lang.Object);
+}
+
+# HBO Max — SSAI ad-origin filter. HboAdOriginFilter.guard(Object) is called
+# only from injected smali (invoke-static {} at DefaultHttpDataSource.open),
+# so R8 sees it as unreferenced and would strip or rename it. Keep the class
+# and the guard entry point intact.
+-keep class ajstrick81.morphe.extension.hbomax.ads.HboAdOriginFilter {
+    public static void guard(java.lang.Object);
+}
+
+# HBO Max — prefer the ad-free FALLBACK stream. HboStreamSelector.preferFallbackType
+# is called only from injected smali (at PlayableKt.getStreamInfo), so R8 would
+# strip it. Keep the class and the entry point.
+-keep class ajstrick81.morphe.extension.hbomax.ads.HboStreamSelector {
+    public static java.lang.Object preferFallbackType(java.lang.Object, java.lang.Object);
+}
+
+# HBO Max — Remove Ad Periods. HboManifestFilter.captureStreams / filter are called
+# only from injected smali (at PlayableKt.getStreamInfo and
+# ExoPlayerDashManifestParser.parse, CreateTimelineUseCase.invoke), so R8 would strip the class.
+# Keep all entry points.
+-keep class ajstrick81.morphe.extension.hbomax.ads.HboManifestFilter {
+    public static void captureStreams(java.lang.Object);
+    public static java.io.InputStream filter(java.lang.Object, java.io.InputStream);
+    public static java.lang.Object timelineStreamInfo(java.lang.Object);
+    public static boolean isActive();
+}
+
+# HBO Max — playback-speed control (issue #258, opt-in). Two entry points are
+# called from injected smali: HboSpeedController.setContext (at
+# BeamApplication.onCreate) and PlayerBridge.onPlayerCreated / setSpeedNative (at
+# the media3 ExoPlayer constructor).
+#
+# The WHOLE package is kept, not just those entry points. HboSpeedPanel extends
+# android.widget.Button, and when only the entry points were kept R8 inlined /
+# merged / renamed the rest across that View-subclass boundary and emitted
+# bytecode the ART verifier rejects at class-load — a startup VerifyError on
+# HboSpeedController ("'this' ... not instance of android.widget.Button") the
+# first time BeamApplication.onCreate referenced it. Keeping every class and
+# member in the package stops R8 from optimizing across these UI classes and
+# leaves the bytecode verifiable.
+-keep class ajstrick81.morphe.extension.hbomax.speed.** { *; }
+
+# Paramount+ — LIVE sports slate PTS-aligner. MorpheTsRewriter.alignSlateToLive(String,String)
+# is called only from injected smali (invoke-static {} in AviaNetworkInterceptor.intercept),
+# so R8 sees it as unreferenced and would strip or rename it. Keep the class and the entry point.
+-keep class ajstrick81.morphe.extension.paramount.ads.MorpheTsRewriter {
+    public static byte[] alignSlateToLive(java.lang.String, java.lang.String);
+}
+
+# ESPN Android TV — live passthrough-SSAI slate overlay helper. Called directly
+# from injected smali via invoke-static {} in PlayerActivity.onResume()/onPause(),
+# MediaPlayerViewModel.attachSession(), sessionListener.onEvent(),
+# SgaiPlaybackSession.playlistRetrieved(), and
+# MediaPlayerViewModel.createAndEmitProgramData$lambda (onProgramData).
+-keep class ajstrick81.morphe.extension.espn.ads.EspnAdBreakOverlayHelper {
+    public static void registerActivity(android.app.Activity);
+    public static void unregisterActivity(android.app.Activity);
+    public static void setSession(java.lang.Object);
+    public static void onPlayerEvent(java.lang.Object);
+    public static void onDateRanges(java.lang.Object);
+    public static void onProgramData(java.lang.Object);
+}
+# EspnAdBreakOverlayHelper reflects the app's suspend DisneyMediaPlaybackSession
+# chain and passes its own kotlin.coroutines.Continuation; keep the coroutine
+# framework classes un-renamed in the extension (R8 was renaming Continuation to
+# `q`, breaking the reflective call).
+-keep class kotlin.coroutines.Continuation { *; }
+-keep class kotlin.coroutines.CoroutineContext { *; }
+-keep class kotlin.coroutines.EmptyCoroutineContext { *; }
+-keep class kotlin.coroutines.jvm.internal.** { *; }
+
+# Tubi — "Block analytics & tracking" (opt-in). openConnection / install /
+# blockWebRequest are called only from injected smali via invoke-static, and
+# BlockInterceptor is matched by instanceof, so R8 must keep all of them.
+-keep class ajstrick81.morphe.extension.tubi.privacy.TrackerBlocker {
+    public static *** openConnection(java.net.URL);
+    public static void install(okhttp3.OkHttpClient$Builder);
+    public static *** blockWebRequest(android.webkit.WebResourceRequest);
+}
+-keep class ajstrick81.morphe.extension.tubi.privacy.TrackerBlocker$BlockInterceptor { *; }
+
+# ViX — "Skip ads": filter(InputStream) is called only from smali injected into
+# media3's DashManifestParser.parse, so R8 must keep it.
+-keep class ajstrick81.morphe.extension.vix.ads.AdPeriodFilter {
+    public static java.io.InputStream filter(java.io.InputStream);
 
 # YouTube TV — GMS core availability check
 # Called via invoke-static from injected smali in main activity onCreate.

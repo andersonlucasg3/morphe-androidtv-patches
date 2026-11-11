@@ -1,0 +1,629 @@
+// hooks.cpp — JNI_OnLoad bootstrap for the Prime Video in-process ad strip.
+//
+// Strategy (see got_hook.h for the full rationale): hook libignite's *import
+// slots* (PLT/GOT) for memcpy / memmove / __memcpy_chk / __memmove_chk. Each
+// proxy calls through to the real libc function FIRST, then runs maybe_strip()
+// on the DESTINATION buffer, which now holds decompressed plaintext:
+//   - maybe_empty_regolith(): TV — empty the getVideoAds/regolith response
+//     `playlist` (PV_EMPTY_REGOLITH), with the truncated-chunk salvage (#120).
+//   - pvfilter::strip_remote_items(): movies — blank Remote items in a complete
+//     PRS intraTitlePlaylist, leaving getVideoAds-backed ones for the regolith
+//     path (PV_SKIP_GVA_REMOTES, #14).
+// Never the source: editing the source can hit libcurl's CRC-checked gzip
+// buffer (CURL 61) — see the note above proxy_memcpy. (The original Frida bench,
+// cmod-strip2.js, mutated `src` in onEnter; that is exactly what caused the
+// intermittent CURL 61s.) See remote_strip.h / rego_filter.h for the strip logic
+// and its safety invariant (never touch a truncated element).
+//
+// Why GOT and not an inline libc hook: libignite reaches memcpy through an
+// IFUNC that resolves to __memcpy_a55 on this Cortex-A55. Hooking a libc body
+// means (a) guessing which of ~7 implementations the resolver picked — last
+// session we watched memmove_a15, which the ad buffer never touches, so
+// blanked=0 — and (b) rewriting code every thread runs, a plausible cause of
+// the playback-start SIGSEGV. A GOT slot swap has neither problem.
+
+#include <jni.h>
+#include <android/log.h>
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <dlfcn.h>
+#include <pthread.h>
+#include <unistd.h>
+
+#include "got_hook.h"
+#include "remote_strip.h"
+#include "rego_filter.h"
+#include "ignite_inline_patch.h"
+
+#define TAG "PVNativeHook"
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  TAG, __VA_ARGS__)
+#define LOGW(...) __android_log_print(ANDROID_LOG_WARN,  TAG, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
+
+namespace {
+
+constexpr const char* kIgnite = "libignite.so";
+
+// DRY-RUN CONTROL: build with -DPV_DRY_RUN=1 to make the strip parse + count
+// exactly as normal but perform NO writes. Used to test whether our in-place
+// edits (not our presence) cause the intermittent PRS "bad content encoding"
+// (CURL 61) failure — hypothesis: we blank inside zlib's inflate window and
+// break the gzip CRC. If dry-run eliminates the failure, the writes are the
+// cause.
+#ifndef PV_DRY_RUN
+#define PV_DRY_RUN 0
+#endif
+constexpr bool kApplyWrites = (PV_DRY_RUN == 0);
+
+// DIAGNOSTIC build (-DPV_DIAG=1): extra logging to root-cause the #120 mid-roll
+// buffer-lock freeze. Confirms whether a mid-roll getVideoAds (regolith) response
+// arrives TRUNCATED across memcpy chunks — which makes maybe_empty_regolith bail
+// (json_match_bracket == -1) so the clean empty-break path never fires and the
+// reserved PeriodTailor slot buffer-locks. Never changes behavior, only logs.
+#ifndef PV_DIAG
+#define PV_DIAG 0
+#endif
+// Counts regolith ad-responses seen truncated (couldn't be emptied). Cheap; always on.
+std::atomic<uint64_t> g_rego_trunc{0};
+
+// Same size gate as the verified bench's CModule scan: cheap enough to run on
+// every copy, wide enough to cover real intraTitlePlaylist buffers (~40-68KB
+// observed) with headroom.
+constexpr size_t kMinScanLen = 512;
+constexpr size_t kMaxScanLen = 262144;
+
+std::atomic<uint64_t> g_calls_total{0};
+std::atomic<uint64_t> g_calls_in_gate{0};
+std::atomic<uint64_t> g_marker_found{0};
+std::atomic<uint64_t> g_complete{0};
+std::atomic<uint64_t> g_truncated{0};
+std::atomic<uint64_t> g_trunc_remotes{0};  // complete Remote items seen inside truncated chunks
+std::atomic<uint64_t> g_modified{0};
+std::atomic<uint64_t> g_remote_blanked{0};
+std::atomic<uint64_t> g_max_n{0};
+
+// Self-stamp oracle counters. Emit a stable, greppable marker whenever the hook
+// actually removes ads, plus a periodic summary — so an autotest can validate PV
+// ad removal from logcat (PV's MediaSession is unreliable; see
+// docs/AUTONOMOUS_APP_TESTING.md). Autotest ORACLE_RE matches "PVKILL"/"PVOBS".
+std::atomic<uint64_t> g_pvkill_movie{0};  // Remote ad items blanked (movies, PATH 1)
+std::atomic<uint64_t> g_pvkill_tv{0};     // ad entries emptied (TV regolith, PATH 2)
+std::atomic<uint64_t> g_rego_trunc_salvaged{0};  // truncated-preroll buffers whose media.urls we blanked
+std::atomic<uint64_t> g_rego_reassembled{0};     // #260 playlists emptied across contiguous chunks
+std::atomic<uint64_t> g_rego_split{0};           // #260 playlists closed in front of the truncated tail (location-independent)
+
+// ── #260 cross-chunk reassembly state (per-thread) ───────────────────────────
+// When the regolith "playlist":[ array is truncated inside a chunk, the salvage
+// in maybe_empty_regolith blanks what closes in-chunk but the unclosed TAIL
+// object survives reassembly, so e.playlist.length stays >=1. The app then
+// builds a ghost ad period with no fetchable media -> the pre-roll hangs
+// (~40s spinner -> "Something went wrong" / PlaybackWaitingTimeout, issue #260,
+// reported for the EU/DE ad tier where responses regularly split).
+//
+// libignite appears to inflate the response as sequential chunks written into
+// ONE growing destination buffer, so the bytes that finish the array land
+// CONTIGUOUSLY right after the truncated chunk. We remember the truncated
+// region and, on the next copy whose dst continues this buffer
+// (dst == prev_end), re-scan the reassembled span [base+open, dst+n). Once the
+// array closes we blank its WHOLE interior -> a genuinely empty playlist ->
+// length 0 -> the app's own clean empty-break path, no ghost period.
+//
+// Fully defensive: if no contiguous continuation ever arrives (different/
+// non-adjacent buffer, timeout, or — as the 2026-09 Mumbai mid-roll repro
+// found for the largest breaks — reassembly that bypasses the hooked copies),
+// the pending slot is simply dropped and the partial salvage already applied to
+// the first chunk stays in force. So this can only ever improve on, never
+// regress, current behavior. The contiguous-dst assumption is logged under
+// PV_DIAG (dst/n of consecutive regolith chunks) so a field capture can confirm
+// it; the fix also self-stamps "PVKILL path=tv-reassembled" when it fires.
+#if PV_EMPTY_REGOLITH
+thread_local char*  g_rego_cont_base  = nullptr; // dst start of the chunk holding "playlist":[
+thread_local size_t g_rego_cont_open  = 0;       // byte offset of '[' within that buffer
+thread_local size_t g_rego_cont_ploff = 0;       // byte offset of the "playlist":[ marker (re-verified)
+thread_local char*  g_rego_cont_end   = nullptr; // one-past-end of bytes assembled so far
+constexpr size_t kMaxReassembleSpan = 1u << 20;  // 1 MiB guard against a garbage end pointer
+#endif
+
+// Per-entry-point counters — tells us which copy door carries the PRS buffer.
+std::atomic<uint64_t> g_n_memcpy{0};
+std::atomic<uint64_t> g_n_memmove{0};
+std::atomic<uint64_t> g_n_memcpy_chk{0};
+std::atomic<uint64_t> g_n_memmove_chk{0};
+// Control: libignite's malloc import. If this floods while the copy counters
+// tick, the GOT mechanism is proven to fire on real traffic.
+std::atomic<uint64_t> g_malloc_calls{0};
+
+// Saved originals (the real libc functions, resolved as libignite's slot held
+// them). Proxies call through these — never a re-hooked path, so no recursion.
+using memcpy_fn      = void* (*)(void*, const void*, size_t);
+using memchk_fn      = void* (*)(void*, const void*, size_t, size_t);
+using malloc_fn      = void* (*)(size_t);
+memcpy_fn g_real_memcpy   = nullptr;
+memcpy_fn g_real_memmove  = nullptr;
+memchk_fn g_real_memcpy_chk  = nullptr;
+memchk_fn g_real_memmove_chk = nullptr;
+malloc_fn g_real_malloc   = nullptr;
+
+// Log the caller (the code that invoked memcpy) as libignite+offset, so we can
+// tell zlib's decompression copies apart from the app's final-buffer copy.
+void log_caller(const char* what, const void* caller, size_t n, int remotes) {
+    Dl_info di;
+    if (caller && dladdr(caller, &di) && di.dli_fbase) {
+        LOGI("CALLER %s: libignite+0x%zx n=%zu remotes=%d",
+             what, (size_t)((uintptr_t)caller - (uintptr_t)di.dli_fbase), n, remotes);
+    } else {
+        LOGI("CALLER %s: %p (no dladdr) n=%zu remotes=%d", what, caller, n, remotes);
+    }
+}
+
+// A copy of exactly a power-of-two size >= 4096 is a zlib/libcurl DECOMPRESSION
+// CHUNK (CHUNK=16384, 4096, etc.), not the app's assembled PRS body. Editing
+// those mid-decompression corrupts the gzip stream -> CURL 61 -> "Something went
+// wrong" (verified on-device 2026-07-24: every corrupting copy was n=4096/16384;
+// every safe/effective one was an odd-sized assembled body). Real JSON bodies
+// are effectively never an exact power of two, so skipping these loses nothing
+// but the corruption.
+inline bool is_decompress_chunk(size_t n) {
+    return n >= 4096 && (n & (n - 1)) == 0;
+}
+
+std::atomic<uint64_t> g_skipped_chunk{0};
+
+// Small self-contained substring search (bionic memmem). Returns the byte offset
+// of `needle` in [buf,buf+n), or (size_t)-1 if absent.
+inline size_t find_bytes(const char* buf, size_t n, const char* needle) {
+    size_t nlen = std::strlen(needle);
+    if (nlen == 0 || nlen > n) return static_cast<size_t>(-1);
+    const void* p = memmem(buf, n, needle, nlen);
+    return p ? static_cast<size_t>(static_cast<const char*>(p) - buf)
+             : static_cast<size_t>(-1);
+}
+
+// NOTE — the JS "count-gate" approach (rewriting resolveWithAdBreaks' `0===t.length`
+// guard in the downloaded QuickJS player) was prototyped and REJECTED for shipping:
+// that class lives in the gzip'd player bundle, and editing its buffer — source OR
+// destination — corrupts the in-flight decompression -> CURLE_BAD_CONTENT_ENCODING
+// (61) and a bundle refetch storm at startup (confirmed on-device 2026-07-30). It
+// also provided no measurable ad removal beyond PV_EMPTY_REGOLITH below, which does
+// the work cleanly on the ad-decision RESPONSE (post-validation) rather than the
+// bundle. TV ads are handled entirely by PATH 2.
+
+// ── TV: empty the regolith getVideoAds RESPONSE `playlist` array ──────────────
+// The dominant SGAI ad path (AdBreakManager.resolveAndInsert) builds every ad
+// period from the resolved regolith response `e.playlist`. Wire format (verified
+// on-device, decompressed plaintext, ~4.5KB, single buffer):
+//   {"description":{"adDeliverySessionId":"..._PBP_EXPL_...","adMarkerId":"PRE_ROLL"},
+//    "playlist":[{…ad…},{…ad…}],"measurement":{…}}
+// Blanking the array interior to spaces (same length, matched-bracket, string-aware)
+// makes e.playlist.length===0 consistently, so the app runs its OWN designed clean
+// empty-break path: no periods built, insertBefore([])/insertAfter([]) no-op,
+// sendEmptyAdBreakTrackingEvents, and unblockXpPlaylistIndex(a+0) unblocks the
+// CORRECT index -> NO ghost period. dst-side (post-decompress -> no CRC-61); only
+// acts on a COMPLETE array (matching ']' present); skips pow2 chunks.
+#ifndef PV_EMPTY_REGOLITH
+#define PV_EMPTY_REGOLITH 0
+#endif
+#if PV_EMPTY_REGOLITH
+std::atomic<uint64_t> g_rego_emptied{0};
+std::atomic<uint64_t> g_rego_seen{0};
+// json_match_bracket() lives in rego_filter.h (pvfilter::) so the same code the
+// hook runs is exercised by test_remote_strip.cpp — no test/ship drift.
+
+// #260: if a truncated regolith playlist is pending on this thread and `dst`/`n`
+// continues its buffer, try to finish the job. Returns true iff this copy was
+// consumed as a continuation (whether or not it closed the array yet), so the
+// caller skips normal processing of it. Cheap no-op when nothing is pending.
+bool rego_try_reassemble(void* vdst, size_t n) {
+    if (g_rego_cont_base == nullptr) return false;
+    char* dst = static_cast<char*>(vdst);
+    char* prev_end = g_rego_cont_end;
+#if PV_DIAG
+    LOGW("PVDIAG rego cont dst=%p prev_end=%p contiguous=%d n=%zu",
+         (void*)dst, (void*)prev_end, dst == prev_end ? 1 : 0, n);
+#endif
+    if (dst != prev_end) {                 // not a contiguous continuation
+        // Assumption broke (different or non-adjacent buffer). Drop the pending
+        // slot; the partial salvage on the first chunk remains the fallback.
+        g_rego_cont_base = nullptr;
+        return false;
+    }
+    char*  base   = g_rego_cont_base;
+    size_t open   = g_rego_cont_open;
+    size_t ploff  = g_rego_cont_ploff;
+    size_t newend = static_cast<size_t>(dst - base) + n;   // bytes assembled from base
+    g_rego_cont_end = dst + n;                              // advance for a further chunk
+
+    if (newend > kMaxReassembleSpan) { g_rego_cont_base = nullptr; return true; }
+    // Re-verify the marker still sits where we left it (guards a recycled buffer).
+    if (newend < ploff + 12 ||
+        std::memcmp(base + ploff, "\"playlist\":[", 12) != 0) {
+        g_rego_cont_base = nullptr; return true;
+    }
+    size_t close = pvfilter::blank_array_interior_if_complete(
+        base, newend, open, /*apply=*/kApplyWrites);
+    if (close == static_cast<size_t>(-1)) return true;     // still truncated; keep waiting
+    g_rego_cont_base = nullptr;                            // done with this response
+    g_rego_reassembled.fetch_add(1, std::memory_order_relaxed);
+    g_pvkill_tv.fetch_add(1, std::memory_order_relaxed);
+    LOGI("PVKILL path=tv-reassembled playlist emptied across chunks (span=%zu close=%zu)",
+         newend, close);
+    return true;
+}
+
+void maybe_empty_regolith(void* vbuf, size_t n) {
+    if (vbuf == nullptr || n < 128 || n > kMaxScanLen) return;
+    if (is_decompress_chunk(n)) return;
+    char* buf = static_cast<char*>(vbuf);
+    size_t pl = find_bytes(buf, n, "\"playlist\":[");
+    if (pl == static_cast<size_t>(-1)) return;
+    if (find_bytes(buf, n, "adDeliverySessionId") == static_cast<size_t>(-1)) return;
+    if (find_bytes(buf, n, "\"measurement\"")      == static_cast<size_t>(-1)) return;
+    if (find_bytes(buf, n, "intraTitlePlaylist")   != static_cast<size_t>(-1)) return;  // exclude PRS
+    g_rego_seen.fetch_add(1, std::memory_order_relaxed);
+    size_t open = pl + 11;                                // index of '[' in "\"playlist\":["
+    size_t close = pvfilter::json_match_bracket(buf, n, open);
+    if (close == static_cast<size_t>(-1)) {               // truncated array (#120)
+        // ⭐ #120 ROOT CAUSE: a large (aggressive-region: India/EU) ad-response
+        // arrived split across memcpy chunks, so the whole "playlist":[...] array
+        // doesn't close in this chunk and the whole-array empty below can't run.
+        // Two-layer salvage instead of bailing (which lets the ad through, or
+        // buffer-locks the PeriodTailor slot into the mid-roll freeze):
+        //   (1) blank each COMPLETE ad object {...} (plus its trailing comma) that
+        //       closes inside the chunk — kills the mid-roll ads that used to
+        //       freeze. Same same-length space-fill the intraTitlePlaylist path
+        //       uses for truncated arrays; the truncated tail object is left intact
+        //       so the JSON stays structurally valid on reassembly.
+        //   (2) for that leftover truncated tail, still blank its COMPLETE
+        //       media.urls arrays — the interstitial .mpd URLs the player fetches
+        //       to start a pre-roll (the v1.37.2 salvage). Runs over the same
+        //       region; the objects blanked in (1) are now spaces, so this only
+        //       touches URLs inside the tail. Same-length and string-safe.
+        g_rego_trunc.fetch_add(1, std::memory_order_relaxed);
+#if PV_DIAG
+        {
+            char head[97]; size_t hl = (n - pl) < 96 ? (n - pl) : 96;
+            for (size_t i = 0; i < hl; ++i) { char c = buf[pl + i]; head[i] = (c >= 32 && c < 127) ? c : '.'; }
+            head[hl] = '\0';
+            LOGW("PVDIAG rego TRUNCATED (mid-roll suspect) n=%zu open=%zu head=[%s]", n, open, head);
+        }
+#endif
+        // (1) mid-roll: blank complete ad objects that close in-chunk
+        int trunc_blanked = 0;
+        size_t tail_obj = static_cast<size_t>(-1);          // '{' of the unclosed tail item (#260 split)
+        size_t i = open + 1;
+        auto is_ws = [](char c){ return c==' '||c=='\t'||c=='\n'||c=='\r'; };
+        while (i < n) {
+            while (i < n && is_ws(buf[i])) ++i;
+            if (i >= n || buf[i] != '{') break;            // not at an object start → stop
+            size_t item_close = pvfilter::json_match_bracket(buf, n, i);
+            if (item_close == static_cast<size_t>(-1)) { tail_obj = i; break; }  // truncated tail item — leave it
+            size_t j = item_close + 1;                     // find optional trailing comma
+            while (j < n && is_ws(buf[j])) ++j;
+            bool has_comma = (j < n && buf[j] == ',');
+            size_t blank_end = has_comma ? j + 1 : item_close + 1;
+            if (kApplyWrites) for (size_t k = i; k < blank_end; ++k) buf[k] = ' ';
+            ++trunc_blanked;
+            if (!has_comma) break;                         // no comma after → nothing valid follows in-chunk
+            i = j + 1;
+        }
+        if (trunc_blanked > 0) {
+            g_pvkill_tv.fetch_add(static_cast<uint64_t>(trunc_blanked), std::memory_order_relaxed);
+            LOGI("PVKILL path=tv-trunc blanked=%d complete ad item(s) in truncated chunk (n=%zu)",
+                 trunc_blanked, n);
+        }
+        // (2) pre-roll: salvage the truncated tail's complete media.urls arrays
+        int nb = pvfilter::blank_complete_media_urls(buf, n, open);
+        if (nb > 0) {
+            uint64_t c = g_rego_trunc_salvaged.fetch_add(1, std::memory_order_relaxed);
+            g_pvkill_tv.fetch_add(static_cast<uint64_t>(nb), std::memory_order_relaxed);
+            if (c < 40)
+                LOGI("[rego] TRUNCATED playlist: blanked %d complete media.urls "
+                     "array(s) before cut n=%zu", nb, n);
+            LOGI("PVKILL path=tv-trunc urls=%d n=%zu", nb, n);   // self-stamp (oracle)
+        }
+        // #260 PRIMARY FIX: close the playlist IN FRONT OF the unclosed tail
+        // object, in the prefix bytes we already have. Step (1) blanked every
+        // complete ad object before the tail to spaces, so the gap between '[' and
+        // the tail '{' is whitespace — splice "],\"_\":[" into it so the playlist
+        // closes as an empty [] and the original ']' closes a dummy "_" array once
+        // the body reassembles. e.playlist.length === 0 regardless of WHERE the
+        // remaining bytes land, so (unlike the contiguous-only reassembler below)
+        // this works even when the continuation is written through a copy we don't
+        // hook (the common EU case, per the #260 field capture). If the tail is the
+        // first item there is no blanked gap, split refuses, and we fall through to
+        // arming the reassembler as the fallback.
+        if (tail_obj != static_cast<size_t>(-1) &&
+            pvfilter::split_off_truncated_tail(buf, n, open, tail_obj, /*apply=*/kApplyWrites)) {
+            g_rego_split.fetch_add(1, std::memory_order_relaxed);
+            g_pvkill_tv.fetch_add(1, std::memory_order_relaxed);
+            LOGI("[rego] TRUNCATED playlist closed before tail item (tail at %zu) n=%zu",
+                 tail_obj, n);
+            LOGI("PVKILL path=tv-split n=%zu", n);              // self-stamp (oracle)
+            g_rego_cont_base = nullptr;                         // split is complete; no reassembly needed
+            return;
+        }
+        // #260: arm the cross-chunk reassembler. The partial salvage above stays
+        // as the fallback; if the finishing bytes arrive contiguously in a later
+        // copy, rego_try_reassemble() empties the WHOLE playlist so no ghost tail
+        // period survives. Overwrites any older pending slot (we track only the
+        // most recent truncated response per thread).
+        g_rego_cont_base  = buf;
+        g_rego_cont_open  = open;
+        g_rego_cont_ploff = pl;
+        g_rego_cont_end   = buf + n;
+#if PV_DIAG
+        LOGW("PVDIAG rego trunc dst=%p n=%zu end=%p (armed for reassembly)",
+             (void*)buf, n, (void*)(buf + n));
+#endif
+        return;                                           // truncated tail left untouched
+    }
+    if (close <= open + 1) {                               // already empty
+#if PV_DIAG
+        LOGI("PVDIAG rego already-empty n=%zu", n);
+#endif
+        return;
+    }
+    int ads = 1; int depth = 0; bool in_str = false, esc = false;
+    for (size_t i = open; i < close; ++i) {
+        char c = buf[i];
+        if (in_str) { if (esc) esc = false; else if (c == '\\') esc = true; else if (c == '"') in_str = false; continue; }
+        if (c == '"') in_str = true;
+        else if (c == '[' || c == '{') ++depth;
+        else if (c == ']' || c == '}') --depth;
+        else if (c == ',' && depth == 1) ++ads;
+    }
+    for (size_t i = open + 1; i < close; ++i) buf[i] = ' ';   // same-length empty array
+    uint64_t c = g_rego_emptied.fetch_add(1, std::memory_order_relaxed);
+    if (c < 40)
+        LOGI("[rego] emptied playlist (~%d ad(s), interior %zu bytes blanked) n=%zu",
+             ads, close - open - 1, n);
+    g_pvkill_tv.fetch_add(static_cast<uint64_t>(ads), std::memory_order_relaxed);
+    LOGI("PVKILL path=tv ads=%d n=%zu", ads, n);   // self-stamp (oracle)
+}
+#else
+inline void maybe_empty_regolith(void*, size_t) {}
+#endif
+
+// DIAGNOSTIC (read-only, build with -DPV_LOG_MANIFEST=1): if the in-gate buffer
+// carries the PRS manifest URL, log a window of it. Used to recover the FULL
+// `ta.vod-dash.../iad_2/...` manifest URL structure so we can judge whether an
+// ad-free sibling exists on the same CDN (in-session URL-rewrite pivot). NEVER
+// writes — reads only, so it can't trip the gzip-CRC (CURL 61) failure mode.
+#if defined(PV_LOG_MANIFEST) && PV_LOG_MANIFEST
+void log_manifest_url(const char* s, size_t n) {
+    static const char* kNeedles[] = { "vod-dash", "playbackUrls", ".mpd", "pv-cdn.net" };
+    for (const char* needle : kNeedles) {
+        size_t nl = ::strlen(needle);
+        if (n < nl) continue;
+        for (size_t i = 0; i + nl <= n; ++i) {
+            if (::memcmp(s + i, needle, nl) != 0) continue;
+            // walk back to the opening quote, forward to the closing quote
+            size_t b = i; while (b > 0 && s[b-1] != '"' && (i - b) < 400) --b;
+            size_t e = i; while (e < n && s[e] != '"' && (e - i) < 600) ++e;
+            char buf[640]; size_t len = e - b; if (len > sizeof(buf)-1) len = sizeof(buf)-1;
+            ::memcpy(buf, s + b, len); buf[len] = '\0';
+            LOGI("PVMANIFEST [%s] n=%zu: %s", needle, n, buf);
+            return; // one per buffer is enough
+        }
+    }
+}
+#endif
+
+void maybe_strip(const void* buf, size_t n, const void* caller) {
+    g_calls_total.fetch_add(1, std::memory_order_relaxed);
+    if (buf == nullptr) return;
+#if PV_EMPTY_REGOLITH
+    // #260: a pending truncated regolith playlist may be finished by THIS copy,
+    // which can be any size (continuation chunks are often power-of-two inflate
+    // fragments the gates below would skip), so check before them. If consumed
+    // as a continuation, skip normal processing of the appended ad bytes.
+    if (rego_try_reassemble(const_cast<void*>(buf), n)) return;
+#endif
+    if (n < kMinScanLen || n > kMaxScanLen) return;
+    if (is_decompress_chunk(n)) { g_skipped_chunk.fetch_add(1, std::memory_order_relaxed); return; }
+    maybe_empty_regolith(const_cast<void*>(buf), n);   // TV: empty regolith ad-decision response (dst-side)
+    g_calls_in_gate.fetch_add(1, std::memory_order_relaxed);
+#if defined(PV_LOG_MANIFEST) && PV_LOG_MANIFEST
+    log_manifest_url(static_cast<const char*>(buf), n);
+#endif
+
+    uint64_t prev_max = g_max_n.load(std::memory_order_relaxed);
+    if (n > prev_max) g_max_n.store(n, std::memory_order_relaxed);
+
+    pvfilter::RemoteStripResult r =
+        pvfilter::strip_remote_items(const_cast<char*>(static_cast<const char*>(buf)), n,
+                                     /*blank_truncated_complete=*/false,
+                                     /*apply=*/kApplyWrites);
+
+    if (!r.found_marker) return;
+    g_marker_found.fetch_add(1, std::memory_order_relaxed);
+
+    if (!r.complete) {
+        // Truncated chunk copy — by design we do NOT touch it (the safety
+        // invariant that avoided black screens in the bench). Diagnostic: if
+        // complete Remote items exist before the cut, ads are present in a
+        // chunk we skip (truncated-parse-race evidence).
+        g_truncated.fetch_add(1, std::memory_order_relaxed);
+        if (r.trunc_remote_blanked > 0) {
+            g_trunc_remotes.fetch_add(static_cast<uint64_t>(r.trunc_remote_blanked),
+                                      std::memory_order_relaxed);
+            LOGI("TRUNCATED array: blanked %d/%d COMPLETE Remote item(s) before cut, "
+                 "left truncated tail untouched (n=%zu)",
+                 r.trunc_remote_blanked, r.trunc_complete_items, n);
+            log_caller("TRUNC", caller, n, r.trunc_remote_blanked);
+        } else {
+            LOGI("marker found but array TRUNCATED (not touched) n=%zu", n);
+        }
+        return;
+    }
+    g_complete.fetch_add(1, std::memory_order_relaxed);
+
+    if (r.gva_skipped > 0)
+        LOGI("PVSKIP path=movie gvaRemotesLeftForPath2=%d n=%zu", r.gva_skipped, n);
+
+    if (r.modified) {
+        g_modified.fetch_add(1, std::memory_order_relaxed);
+        g_remote_blanked.fetch_add(static_cast<uint64_t>(r.remote_items), std::memory_order_relaxed);
+        LOGI("blanked %d/%d Remote item(s) in complete array (n=%zu)",
+             r.remote_items, r.total_items, n);
+        g_pvkill_movie.fetch_add(static_cast<uint64_t>(r.remote_items), std::memory_order_relaxed);
+        LOGI("PVKILL path=movie blanked=%d/%d n=%zu", r.remote_items, r.total_items, n);  // self-stamp (oracle)
+        log_caller("COMPLETE", caller, n, r.remote_items);
+    } else {
+        LOGI("marker found, array complete, 0 Remote items (n=%zu total=%d)", n, r.total_items);
+    }
+}
+
+// IMPORTANT: we strip the DESTINATION *after* the real copy, never the source
+// before it. The PRS body reaches us through libcurl's gzip decompression; the
+// decompressed bytes are the buffer libcurl computes the gzip CRC32 over.
+// Editing the SOURCE of a copy can be editing that CRC-checked buffer mid-
+// stream -> CURLE_BAD_CONTENT_ENCODING (61) -> "Something went wrong" (verified
+// on-device 2026-07-24, clean A/B: writes-to-src ON = intermittent CURL 61,
+// dry-run = 0 errors). Editing the DESTINATION leaves the source pristine for
+// the CRC while still blanking the copy the app goes on to parse.
+void* proxy_memcpy(void* dst, const void* src, size_t n) {
+    g_n_memcpy.fetch_add(1, std::memory_order_relaxed);
+    void* ret = g_real_memcpy(dst, src, n);
+    maybe_strip(dst, n, __builtin_return_address(0));
+    return ret;
+}
+void* proxy_memmove(void* dst, const void* src, size_t n) {
+    g_n_memmove.fetch_add(1, std::memory_order_relaxed);
+    void* ret = g_real_memmove(dst, src, n);
+    maybe_strip(dst, n, __builtin_return_address(0));
+    return ret;
+}
+// __memcpy_chk(dst, src, count, dst_len): first three args match memcpy.
+void* proxy_memcpy_chk(void* dst, const void* src, size_t n, size_t dst_len) {
+    g_n_memcpy_chk.fetch_add(1, std::memory_order_relaxed);
+    void* ret = g_real_memcpy_chk(dst, src, n, dst_len);
+    maybe_strip(dst, n, __builtin_return_address(0));
+    return ret;
+}
+void* proxy_memmove_chk(void* dst, const void* src, size_t n, size_t dst_len) {
+    g_n_memmove_chk.fetch_add(1, std::memory_order_relaxed);
+    void* ret = g_real_memmove_chk(dst, src, n, dst_len);
+    maybe_strip(dst, n, __builtin_return_address(0));
+    return ret;
+}
+void* proxy_malloc(size_t n) {
+    g_malloc_calls.fetch_add(1, std::memory_order_relaxed);
+    return g_real_malloc(n);
+}
+
+// Try to install all copy-import hooks once. Returns the number of the four
+// copy entry points successfully hooked (0 if libignite isn't mapped yet).
+int try_install_once() {
+    int ok = 0;
+    if (g_real_memcpy == nullptr)
+        ok += pvgot::hook_import(kIgnite, "memcpy", (void*)proxy_memcpy, (void**)&g_real_memcpy) ? 1 : 0;
+    else ok++;
+    if (g_real_memmove == nullptr)
+        ok += pvgot::hook_import(kIgnite, "memmove", (void*)proxy_memmove, (void**)&g_real_memmove) ? 1 : 0;
+    else ok++;
+    if (g_real_memcpy_chk == nullptr)
+        ok += pvgot::hook_import(kIgnite, "__memcpy_chk", (void*)proxy_memcpy_chk, (void**)&g_real_memcpy_chk) ? 1 : 0;
+    else ok++;
+    if (g_real_memmove_chk == nullptr)
+        ok += pvgot::hook_import(kIgnite, "__memmove_chk", (void*)proxy_memmove_chk, (void**)&g_real_memmove_chk) ? 1 : 0;
+    else ok++;
+    return ok;
+}
+
+// Worker: libignite.so is NOT mapped at Application.onCreate (it loads with the
+// media/player subsystem, well before any PRS ad fetch). Poll until it appears,
+// install the GOT hooks once, then fall through to the heartbeat loop. Polling
+// dl_iterate_phdr twice a second is negligible and stops as soon as we hook.
+void* worker_thread(void*) {
+    constexpr int kMaxAttempts = 2400;  // ~20 min at 500ms; generous safety cap
+
+    // Two independent layers, because v15 and v16 deliver mid-rolls differently:
+    //   installed       — v15 SGAI: GOT import hooks, strip the getVideoAds
+    //                     (regolith) RESPONSE as it is copied.
+    //   adbreak_patched — v16 native: inline-patch the chapteringAdBreak parser
+    //                     so the engine never schedules a break at all, which is
+    //                     why a working v16 session logs NO PVKILL/rego lines —
+    //                     there is no ad response to strip.
+    // Install both and keep going if only one lands; each covers ads the other
+    // cannot reach. On v15.5 the parser offset won't match and the patch skips.
+    bool installed = false;
+    bool adbreak_patched = false;
+    for (int i = 0; i < kMaxAttempts && !(installed && adbreak_patched); i++) {
+        if (!installed) {
+            int ok = try_install_once();
+            if (ok > 0) {
+                installed = true;
+                // Best-effort control probe once libignite is present.
+                pvgot::hook_import(kIgnite, "malloc", (void*)proxy_malloc, (void**)&g_real_malloc);
+                LOGI("worker: libignite present, %d/4 copy imports hooked after %d attempt(s)", ok, i + 1);
+            }
+        }
+        if (!adbreak_patched && pvinline::apply_adbreak_patch()) {
+            adbreak_patched = true;
+            LOGI("worker: chapteringAdBreak inline patch applied after %d attempt(s)", i + 1);
+        }
+        if (installed && adbreak_patched) break;
+        usleep(500 * 1000);
+    }
+    if (!installed && !adbreak_patched) {
+        LOGE("worker: libignite never appeared within cap — no strip installed");
+        return nullptr;
+    }
+    LOGI("worker: ready (v15 SGAI strip=%s, v16 adbreak patch=%s)",
+         installed ? "on" : "off", adbreak_patched ? "on" : "off");
+
+    for (;;) {
+        sleep(5);
+        LOGI("[hb] skipchunk=%llu malloc=%llu | cpy=%llu mov=%llu cpy_chk=%llu mov_chk=%llu | "
+             "total=%llu in_gate=%llu max_n=%llu marker=%llu complete=%llu "
+             "trunc=%llu trunc_rem=%llu modified=%llu blanked=%llu rego_trunc=%llu rego_trunc_salv=%llu "
+             "rego_reasm=%llu rego_split=%llu",
+             (unsigned long long)g_skipped_chunk.load(std::memory_order_relaxed),
+             (unsigned long long)g_malloc_calls.load(std::memory_order_relaxed),
+             (unsigned long long)g_n_memcpy.load(std::memory_order_relaxed),
+             (unsigned long long)g_n_memmove.load(std::memory_order_relaxed),
+             (unsigned long long)g_n_memcpy_chk.load(std::memory_order_relaxed),
+             (unsigned long long)g_n_memmove_chk.load(std::memory_order_relaxed),
+             (unsigned long long)g_calls_total.load(std::memory_order_relaxed),
+             (unsigned long long)g_calls_in_gate.load(std::memory_order_relaxed),
+             (unsigned long long)g_max_n.load(std::memory_order_relaxed),
+             (unsigned long long)g_marker_found.load(std::memory_order_relaxed),
+             (unsigned long long)g_complete.load(std::memory_order_relaxed),
+             (unsigned long long)g_truncated.load(std::memory_order_relaxed),
+             (unsigned long long)g_trunc_remotes.load(std::memory_order_relaxed),
+             (unsigned long long)g_modified.load(std::memory_order_relaxed),
+             (unsigned long long)g_remote_blanked.load(std::memory_order_relaxed),
+             (unsigned long long)g_rego_trunc.load(std::memory_order_relaxed),
+             (unsigned long long)g_rego_trunc_salvaged.load(std::memory_order_relaxed),
+             (unsigned long long)g_rego_reassembled.load(std::memory_order_relaxed),
+             (unsigned long long)g_rego_split.load(std::memory_order_relaxed));
+        // Self-stamp summary (oracle): total ads removed since load, both paths.
+        LOGI("PVOBS movieBlanked=%llu tvEmptied=%llu tvTruncSalvaged=%llu tvReassembled=%llu tvSplit=%llu",
+             (unsigned long long)g_pvkill_movie.load(std::memory_order_relaxed),
+             (unsigned long long)g_pvkill_tv.load(std::memory_order_relaxed),
+             (unsigned long long)g_rego_trunc_salvaged.load(std::memory_order_relaxed),
+             (unsigned long long)g_rego_reassembled.load(std::memory_order_relaxed),
+             (unsigned long long)g_rego_split.load(std::memory_order_relaxed));
+    }
+    return nullptr;
+}
+
+void install_hooks() {
+    // libignite isn't mapped yet at onCreate, so defer to a worker that polls
+    // for it, installs the GOT hooks, then heartbeats.
+    pthread_t tid;
+    pthread_create(&tid, nullptr, worker_thread, nullptr);
+    pthread_detach(tid);
+}
+
+}  // namespace
+
+extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* /*vm*/, void* /*reserved*/) {
+    LOGI("JNI_OnLoad: pvhook loaded (GOT import hook on libignite memcpy/memmove) — writes=%s",
+         kApplyWrites ? "ON" : "DRY-RUN(no writes)");
+    install_hooks();
+    return JNI_VERSION_1_6;
+}
