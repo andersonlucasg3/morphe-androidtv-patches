@@ -212,9 +212,21 @@
 # media3's DashManifestParser.parse, so R8 must keep it.
 -keep class ajstrick81.morphe.extension.vix.ads.AdPeriodFilter {
     public static java.io.InputStream filter(java.io.InputStream);
+}
 
 # YouTube TV — GMS core availability check
 # Called via invoke-static from injected smali in main activity onCreate.
 -keep class ajstrick81.morphe.extension.youtubetv.patches.GmsCoreSupportPatch {
     public static void checkGmsCore(java.lang.Object);
+}
+
+# YouTube TV — "Skip ads" script injection into the Cobalt leanback web app.
+# TvScripts.setWebContents / onPageEvent / onTitle are called only from smali
+# injected into StartupGuardNavigationObserver (see youtubetv/misc/scripts/
+# TvScriptsPatch.kt), so R8 sees them as unreferenced and would strip or rename
+# them. TvScriptsPayload needs no rule: its SCRIPT constant is inlined by javac.
+-keep class ajstrick81.morphe.extension.youtubetv.scripts.TvScripts {
+    public static void setWebContents(java.lang.Object);
+    public static void onPageEvent(java.lang.String);
+    public static void onTitle(java.lang.String);
 }
