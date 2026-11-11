@@ -93,7 +93,7 @@ private val gmsCoreSupportResourcePatch = resourcePatch {
         val providerStringResources = mutableSetOf<String>()
 
         document("AndroidManifest.xml").use { document ->
-            document.documentElement.setAttribute("package", toPackageName)
+            // rename owned by Clone YouTube TV
 
             // ── Custom permissions ──────────────────────────────────────────
             // A <permission> android:name is device-unique even across package

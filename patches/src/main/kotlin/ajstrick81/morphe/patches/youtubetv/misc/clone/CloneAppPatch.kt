@@ -7,7 +7,7 @@ import java.util.logging.Logger
 
 // Suffix appended to the original package for the cloned package, e.g.
 // com.google.android.youtube.tv -> com.google.android.youtube.tv.mod
-private const val CLONE_SUFFIX = "mod"
+private const val CLONE_SUFFIX = "morphe"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Clone YouTube Android TV (side-by-side install)
@@ -48,7 +48,7 @@ val cloneAppPatch = resourcePatch(
         "(suffix .$CLONE_SUFFIX) and its own settings. Leave OFF if the original was uninstalled " +
         "first, or if the app is not a system app. Makes no changes when \"GmsCore support\" is " +
         "applied, because that patch already renames the app. Opt-in.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
