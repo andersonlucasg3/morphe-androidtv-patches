@@ -83,7 +83,7 @@ internal object PrimeMethodFingerprint : Fingerprint(
 )
 
 /**
- * CobaltActivity.onCreate(Bundle) — the activity onCreate every YouTube TV
+ * CobaltActivity.onCreate(Bundle) — the activity onCreate every YouTube
  * activity goes through: MainActivity extends Lcyz; (which overrides onCreate
  * and calls invoke-super Ldev/cobalt/coat/CobaltActivity;.onCreate), and
  * StandalonePlayerActivity extends MainActivity, so one injection covers normal

@@ -5,7 +5,7 @@ import app.morphe.patcher.patch.Compatibility
 
 object Constants {
     val COMPATIBILITY = Compatibility(
-        name = "YouTube Android TV",
+        name = "YouTube (Android TV)",
         packageName = "com.google.android.youtube.tv",
         appIconColor = 0xFF0000,
         targets = listOf(

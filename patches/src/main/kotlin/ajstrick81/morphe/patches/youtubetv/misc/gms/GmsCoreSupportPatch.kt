@@ -39,7 +39,7 @@ private const val EXTENSION_CLASS =
 // ─────────────────────────────────────────────────────────────────────────────
 // GmsCore support (MicroG-RE) for YouTube Android TV
 //
-// WHY: a resigned YouTube TV build is killed about 4 s after launch with
+// WHY: a resigned YouTube build is killed about 4 s after launch with
 //   java.lang.SecurityException: PackageVerificationRslt: not allowed:
 //   pkg=com.google.android.youtube.tv.mod, sha256=[...]
 // "PackageVerificationRslt" only exists in Google Play services
@@ -60,7 +60,7 @@ private const val EXTENSION_CLASS =
 //
 // Ported from the reference TV port (same app, 7.32.300):
 //   farotv-patches/shared/gms/GmsCoreSupportPatch.kt + PlayServicesBypassPatch.kt
-// and the phone YouTube TV implementation:
+// and the phone YouTube implementation:
 //   mobile-morphe-patches/yttv/misc/GmsCoreSupportPatch.kt
 //
 // API NOTE: this repository is on morphe-patcher 1.3.3, which has no
@@ -69,7 +69,7 @@ private const val EXTENSION_CLASS =
 // + MutableMethodImplementation.replaceInstruction() below, and the early returns
 // are injected as plain smali. Both have the same effect as the reference calls.
 //
-// GmsCore support owns the package rename. "Clone YouTube TV" would otherwise
+// GmsCore support owns the package rename. "Clone YouTube" would otherwise
 // append ".mod" in its finalize block, after this patch's execute block, and
 // silently replace the package name MicroG-RE is told to spoof; that patch now
 // stands down when the manifest package has already been renamed (see
@@ -93,7 +93,7 @@ private val gmsCoreSupportResourcePatch = resourcePatch {
         val providerStringResources = mutableSetOf<String>()
 
         document("AndroidManifest.xml").use { document ->
-            // rename owned by Clone YouTube TV
+            // rename owned by Clone YouTube
 
             // ── Custom permissions ──────────────────────────────────────────
             // A <permission> android:name is device-unique even across package

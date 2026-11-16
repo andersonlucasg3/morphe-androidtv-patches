@@ -9,7 +9,7 @@ import ajstrick81.morphe.patches.youtubetv.shared.Constants
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Removes the ad schedule (adPlacements, adSlots, playerAds, " +
-        "adBreakHeartbeatParams) from every InnerTube response before the YouTube TV leanback " +
+        "adBreakHeartbeatParams) from every InnerTube response before the YouTube leanback " +
         "web app (youtube.com/tv) reads it, and removes sponsored tiles (adSlotRenderer and the " +
         "promoted* renderers) from feeds. Also keeps the existing Android Automotive OS-name " +
         "spoof that suppresses video ads client-side.",

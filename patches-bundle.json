@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-11T14:15:34",
-  "description": "## [1.5.1](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.5.0...v1.5.1) (2026-11-11)\n\n\n### Bug Fixes\n\n* **patches:** point bundle metadata at this fork ([9b73218](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/9b732182a5bc7946c2e795139a2920572e0359a6))",
-  "download_url": "https://github.com/andersonlucasg3/morphe-androidtv-patches/releases/download/v1.5.1/patches-1.5.1.mpp",
+  "created_at": "2026-11-13T00:25:37",
+  "description": "# [1.54.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.53.0...v1.54.0) (2026-11-13)\n\n\n### Features\n\n* **paramount:** add experimental 17.3.0 target ([e56d694](https://github.com/ajstrick81/morphe-androidtv-patches/commit/e56d69473ffa98147bd5abd36a2a93da64d8cca4))",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.54.0/patches-1.54.0.mpp",
   "signature_download_url": "",
-  "version": "1.5.1"
+  "version": "1.54.0"
 }

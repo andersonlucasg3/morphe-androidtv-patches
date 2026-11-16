@@ -28,7 +28,7 @@ private const val CLONE_SUFFIX = "morphe"
 // matched by literal string on both ends.
 //
 // Runs in finalize {} so the rename happens after all other patches, at manifest
-// write time. Opt-in (default = false): a normal in-place install is cleaner
+// write time. On by default: a normal in-place install is cleaner
 // whenever the stock app can be uninstalled.
 //
 // "GmsCore support" also renames the app, and its rename runs in the execute
@@ -40,7 +40,7 @@ private const val CLONE_SUFFIX = "morphe"
 // ─────────────────────────────────────────────────────────────────────────────
 @Suppress("unused")
 val cloneAppPatch = resourcePatch(
-    name = "Clone YouTube TV",
+    name = "Clone YouTube (Android TV)",
     description = "Installs the patched YouTube Android TV as a separate app alongside the stock " +
         "one, instead of replacing it. Enable this when YouTube is a preinstalled system app that " +
         "can't be uninstalled — most Android TV boxes ship it in /product, and a patched build " +
@@ -65,9 +65,9 @@ val cloneAppPatch = resourcePatch(
             // again: its manifest package is the name MicroG-RE is told to spoof.
             val currentPackageName = document.documentElement.getAttribute("package")
             if (currentPackageName != packageName) {
-                Logger.getLogger("Clone YouTube TV").warning(
+                Logger.getLogger("Clone YouTube").warning(
                     "Package already renamed to \"$currentPackageName\" by another patch " +
-                        "(\"GmsCore support\" does this); \"Clone YouTube TV\" makes no changes.",
+                        "(\"GmsCore support\" does this); \"Clone YouTube\" makes no changes.",
                 )
                 return@use
             }
