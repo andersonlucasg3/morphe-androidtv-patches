@@ -1,5 +1,5 @@
 {
-  "version": "1.6.0",
+  "version": "1.6.1",
   "appNames": {
     "com.disney.disneyplus": "Disney+ Android TV",
     "com.espn.score_center": "ESPN Android TV",
@@ -678,7 +678,7 @@
     },
     {
       "name": "GmsCore support",
-      "description": "Signs in to Google through MicroG-RE (GmsCore) instead of Google Play services. Renames the app to app.morphe.android.youtube.tv and points every Play services package name, permission, intent action and content provider at app.revanced.android.gms, telling MicroG-RE to present the stock package name and signing certificate. Required for resigned builds: Google Play services rejects them with \"PackageVerificationRslt: not allowed\". MicroG-RE must be installed; without it the app cannot sign in.",
+      "description": "Signs in to Google through MicroG-RE (GmsCore) instead of Google Play services. Points every Play services package name, permission, intent action and content provider at app.revanced.android.gms, telling MicroG-RE to present the stock package name and signing certificate. Required for resigned builds: Google Play services rejects them with \"PackageVerificationRslt: not allowed\". MicroG-RE must be installed; without it the app cannot sign in.",
       "use": true,
       "dependencies": [
         "ResourcePatch"

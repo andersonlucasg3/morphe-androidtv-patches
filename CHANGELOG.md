@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.6.0...v1.6.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* **youtubetv:** keep the GMS package constant in sync with the clone suffix ([27c3450](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/27c3450e200b08caccb8b7094433d2b050a577a6))
+
 # [1.6.0](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.5.2...v1.6.0) (2026-11-16)
 
 
