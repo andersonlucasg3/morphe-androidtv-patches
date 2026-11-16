@@ -19,7 +19,9 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringRefere
 import org.w3c.dom.Element
 
 private const val ORIGINAL_PACKAGE_NAME = "com.google.android.youtube.tv"
-private const val PATCHED_PACKAGE_NAME = "app.morphe.android.youtube.tv"
+// Must match the package "Clone YouTube (Android TV)" produces (original + ".morphe"),
+// because the allowlist string below is compared against the running package.
+private const val PATCHED_PACKAGE_NAME = "com.google.android.youtube.tv.morphe"
 
 // MicroG-RE's package and vendor id. Both the original Morphe patch and the
 // reference TV port keep "app.revanced" (MicroG-RE and ReVanced GmsCore share it).
@@ -207,7 +209,7 @@ private val gmsCoreSupportResourcePatch = resourcePatch {
 val gmsCoreSupportPatch = bytecodePatch(
     name = "GmsCore support",
     description = "Signs in to Google through MicroG-RE (GmsCore) instead of Google Play services. " +
-        "Renames the app to $PATCHED_PACKAGE_NAME and points every Play services package name, " +
+        "Points every Play services package name, " +
         "permission, intent action and content provider at $GMS_CORE_PACKAGE_NAME, telling " +
         "MicroG-RE to present the stock package name and signing certificate. Required for " +
         "resigned builds: Google Play services rejects them with \"PackageVerificationRslt: not " +
