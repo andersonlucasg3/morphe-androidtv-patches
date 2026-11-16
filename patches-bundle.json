@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-13T00:25:37",
-  "description": "# [1.54.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.53.0...v1.54.0) (2026-11-13)\n\n\n### Features\n\n* **paramount:** add experimental 17.3.0 target ([e56d694](https://github.com/ajstrick81/morphe-androidtv-patches/commit/e56d69473ffa98147bd5abd36a2a93da64d8cca4))",
-  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.54.0/patches-1.54.0.mpp",
+  "created_at": "2026-11-16T15:00:27",
+  "description": "# [1.6.0](https://github.com/andersonlucasg3/morphe-androidtv-patches/compare/v1.5.2...v1.6.0) (2026-11-16)\n\n\n### Features\n\n* **netflix:** add opt-in legacy engine for TVs that crash at launch ([#317](https://github.com/andersonlucasg3/morphe-androidtv-patches/issues/317)) ([2bdc276](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/2bdc276f0fd63a5548a45e68b21abb70a3b282c3)), closes [#241](https://github.com/andersonlucasg3/morphe-androidtv-patches/issues/241)\n* **paramount:** add experimental 17.3.0 target ([e56d694](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/e56d69473ffa98147bd5abd36a2a93da64d8cca4))\n* **youtubetv:** YouTube for Android TV - skip ads and MicroG support ([78f5723](https://github.com/andersonlucasg3/morphe-androidtv-patches/commit/78f5723cab1b2d3c31b3f30c231e929d92a21a24))",
+  "download_url": "https://github.com/andersonlucasg3/morphe-androidtv-patches/releases/download/v1.6.0/patches-1.6.0.mpp",
   "signature_download_url": "",
-  "version": "1.54.0"
+  "version": "1.6.0"
 }
